@@ -1,0 +1,109 @@
+@import 'tailwindcss';
+
+/* ============================================
+   BUSHBOUND DESIGN SYSTEM
+   Dark & earthy, rugged adventure
+   ============================================ */
+
+@theme {
+  /* Brand colours */
+  --color-primary: #2D4A3E;
+  --color-primary-light: #3D6354;
+  --color-primary-dark: #1E332B;
+  --color-primary-foreground: #F5F0EB;
+
+  --color-sand: #C4A882;
+  --color-sand-light: #D4BE9E;
+  --color-sand-dark: #A68B64;
+
+  --color-charcoal: #1A1A1A;
+  --color-charcoal-light: #2A2A2A;
+
+  --color-stone: #E8E0D6;
+  --color-stone-light: #F5F0EB;
+  --color-stone-dark: #D4CCC2;
+
+  /* Semantic colours */
+  --color-background: #F5F0EB;
+  --color-foreground: #1A1A1A;
+  --color-muted: #E8E0D6;
+  --color-muted-foreground: #6B6560;
+  --color-destructive: #B91C1C;
+  --color-success: #2D4A3E;
+
+  /* Typography */
+  --font-heading: 'Inter', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+
+  /* Spacing scale */
+  --spacing-section: 6rem;
+  --spacing-section-sm: 4rem;
+
+  /* Border radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+/* Base styles */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background-color: var(--color-sand);
+    color: var(--color-charcoal);
+  }
+}
+
+/* Component utilities */
+@utility container-narrow {
+  max-width: 64rem;
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
+@utility container-wide {
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
+@utility section-padding {
+  padding-block: var(--spacing-section);
+}
+
+@utility section-padding-sm {
+  padding-block: var(--spacing-section-sm);
+}
+
+/* Animation base states */
+[data-animate] {
+  opacity: 0;
+}
+
+[data-animate="fade-up"] {
+  transform: translateY(2rem);
+}
+
+[data-animate="scale-in"] {
+  transform: scale(0.95);
+}

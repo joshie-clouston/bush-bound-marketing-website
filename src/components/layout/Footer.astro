@@ -1,0 +1,47 @@
+---
+import Logo from '@/components/ui/Logo.astro';
+
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="bg-charcoal text-stone-light">
+  <div class="container-wide section-padding-sm">
+    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
+      <!-- Brand -->
+      <div class="max-w-sm">
+        <Logo variant="full" class="text-sand mb-4" />
+        <p class="text-stone-dark text-sm leading-relaxed">
+          Custom vehicle fit-outs helping Australians explore more of this beautiful country. Cabinetry, water and power systems — designed with you, built for the road.
+        </p>
+      </div>
+
+      <!-- Contact -->
+      <div>
+        <h3 class="font-semibold text-sand text-sm uppercase tracking-wider mb-3">Contact</h3>
+        <ul class="space-y-2 text-sm text-stone-dark">
+          <li>Gold Coast, Queensland</li>
+          <li>
+            <a href="mailto:hello@bushbound.au" class="hover:text-sand transition-colors">
+              hello@bushbound.au
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Links -->
+      <div>
+        <h3 class="font-semibold text-sand text-sm uppercase tracking-wider mb-3">Quick Links</h3>
+        <ul class="space-y-2 text-sm text-stone-dark">
+          <li><a href="/#how-it-works" class="hover:text-sand transition-colors">How It Works</a></li>
+          <li><a href="/#services" class="hover:text-sand transition-colors">Services</a></li>
+          <li><a href="/quote" class="hover:text-sand transition-colors">Get a Quote</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-12 pt-6 border-t border-charcoal-light flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-muted-foreground">
+      <p>&copy; {currentYear} Bushbound. All rights reserved.</p>
+      <p>Gold Coast, Queensland, Australia</p>
+    </div>
+  </div>
+</footer>

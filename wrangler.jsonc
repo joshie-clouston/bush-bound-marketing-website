@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bushbound",
+  "main": "dist/_worker.js/index.js",
+  "compatibility_date": "2025-01-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "bushbound-db",
+      "database_id": "placeholder-update-after-creation"
+    }
+  ],
+  "vars": {
+    "RESEND_FROM_EMAIL": "hello@bushbound.au",
+    "NOTIFICATION_EMAIL": "team@bushbound.au"
+  }
+  // Note: RESEND_API_KEY should be set as a secret via:
+  // wrangler secret put RESEND_API_KEY
+}

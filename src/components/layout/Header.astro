@@ -1,0 +1,20 @@
+---
+import Logo from '@/components/ui/Logo.astro';
+---
+
+<header class="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-stone-dark/20">
+  <div class="container-wide flex items-center justify-between h-16">
+    <a href="/" aria-label="Bushbound home">
+      <Logo variant="full" class="text-primary" />
+    </a>
+    <a
+      href="/quote"
+      class="inline-flex items-center px-5 py-2.5 bg-primary text-primary-foreground font-semibold text-sm rounded-md hover:bg-primary-light transition-colors whitespace-nowrap"
+    >
+      Get a Quote
+    </a>
+  </div>
+</header>
+
+<!-- Spacer for fixed header -->
+<div class="h-16" aria-hidden="true"></div>
