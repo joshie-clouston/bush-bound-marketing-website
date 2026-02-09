@@ -1,0 +1,1134 @@
+---
+import '@/assets/styles/global.css';
+---
+
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <title>Hero Animation Concepts | Bushbound</title>
+
+    <style>
+      /* Reduced motion fallback */
+      @media (prefers-reduced-motion: reduce) {
+        canvas { display: none !important; }
+        .anim-svg { display: none !important; }
+        .parallax-layers { transform: none !important; }
+        .parallax-layers > * { transform: none !important; }
+        .reduced-motion-fallback { display: block !important; }
+      }
+
+      .reduced-motion-fallback {
+        display: none;
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, #1E332B 0%, #1A1A1A 100%);
+      }
+
+      /* Sticky nav */
+      .concept-nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 50;
+        background: rgba(26, 26, 26, 0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(196, 168, 130, 0.15);
+      }
+      .concept-nav a {
+        color: #E8E0D6;
+        text-decoration: none;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        transition: background 0.2s, color 0.2s;
+      }
+      .concept-nav a:hover,
+      .concept-nav a.active {
+        background: rgba(45, 74, 62, 0.6);
+        color: #C4A882;
+      }
+
+      /* Hero text overlay */
+      .hero-overlay {
+        position: relative;
+        z-index: 10;
+        text-align: center;
+        padding: 2rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        min-height: 100dvh;
+      }
+
+      .hero-overlay .label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: #C4A882;
+        margin-bottom: 0.75rem;
+        opacity: 0.9;
+      }
+
+      .hero-overlay h2 {
+        font-family: 'Inter', system-ui, sans-serif;
+        font-size: clamp(2.25rem, 5vw, 3.75rem);
+        font-weight: 800;
+        line-height: 1.1;
+        color: #F5F0EB;
+        margin-bottom: 1rem;
+      }
+      .hero-overlay h2 span {
+        color: #C4A882;
+      }
+
+      .hero-overlay .subtitle {
+        font-size: clamp(1rem, 2vw, 1.25rem);
+        color: #D4CCC2;
+        max-width: 38rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+      }
+
+      .hero-overlay .cta-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+      }
+
+      .hero-overlay .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem 2rem;
+        background: #C4A882;
+        color: #1A1A1A;
+        font-weight: 700;
+        font-size: 1rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        transition: background 0.2s;
+      }
+      .hero-overlay .btn-primary:hover { background: #D4BE9E; }
+
+      .hero-overlay .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem 2rem;
+        border: 2px solid rgba(212, 204, 194, 0.3);
+        color: #F5F0EB;
+        font-weight: 600;
+        font-size: 1rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        transition: border-color 0.2s, color 0.2s;
+      }
+      .hero-overlay .btn-secondary:hover {
+        border-color: #C4A882;
+        color: #C4A882;
+      }
+
+      /* Concept badge */
+      .concept-badge {
+        position: absolute;
+        top: 5rem;
+        left: 1.5rem;
+        z-index: 20;
+        background: rgba(26, 26, 26, 0.7);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(196, 168, 130, 0.2);
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #C4A882;
+        letter-spacing: 0.05em;
+      }
+
+      /* Section base */
+      .concept-section {
+        position: relative;
+        min-height: 100vh;
+        min-height: 100dvh;
+        overflow: hidden;
+        background: #1A1A1A;
+      }
+      .concept-section canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Concept 2: Shooting stars canvas */
+      #vj-shooting-stars {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      /* Concept 2: Vehicle SVG container */
+      .vehicle-scene {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      #vj-wheel-rear,
+      #vj-wheel-front {
+        transform-box: fill-box;
+        transform-origin: center;
+      }
+      #vj-dust .dust {
+        transform-box: fill-box;
+        transform-origin: center;
+      }
+
+      /* Concept 4: Parallax layers */
+      .parallax-container {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+      .parallax-layer {
+        position: absolute;
+        bottom: 0;
+        left: -5%;
+        width: 110%;
+        transition: transform 0.1s ease-out;
+      }
+    </style>
+  </head>
+
+  <body style="margin: 0; background: #1A1A1A; font-family: 'Inter', system-ui, sans-serif;">
+
+    <!-- Sticky Navigation -->
+    <nav class="concept-nav">
+      <div style="max-width: 64rem; margin: 0 auto; padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 0.5rem; overflow-x: auto;">
+        <span style="color: #C4A882; font-weight: 700; font-size: 0.875rem; white-space: nowrap; margin-right: 1rem;">Hero Concepts</span>
+        <a href="#concept-1">1. Topographic</a>
+        <a href="#concept-2">2. Vehicle Journey</a>
+        <a href="#concept-3">3. Starfield</a>
+        <a href="#concept-4">4. Mountain Parallax</a>
+      </div>
+    </nav>
+
+
+    <!-- ============================================
+         CONCEPT 1: TOPOGRAPHIC TERRAIN
+         Canvas + simplex noise contour lines
+         ============================================ -->
+    <section id="concept-1" class="concept-section">
+      <div class="concept-badge">01 — Topographic Terrain</div>
+      <div class="reduced-motion-fallback"></div>
+      <canvas id="topo-canvas"></canvas>
+      <div class="hero-overlay">
+        <p class="label">Custom 4WD & Van Fit-Outs — Gold Coast, QLD</p>
+        <h2>Built to take you<br /><span>further.</span></h2>
+        <p class="subtitle">We design and build custom vehicle fit-outs for touring, camping and expedition travel. Cabinetry, water systems and off-grid power — designed in 3D, built from premium laminated plywood, and professionally installed on the Gold Coast.</p>
+        <div class="cta-group">
+          <a href="/quote" class="btn-primary">Get a Free Quote</a>
+          <a href="#how-it-works" class="btn-secondary">See How It Works</a>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ============================================
+         CONCEPT 2: VEHICLE JOURNEY
+         SVG + anime.js timeline
+         ============================================ -->
+    <section id="concept-2" class="concept-section">
+      <div class="concept-badge">02 — Vehicle Journey</div>
+      <div class="reduced-motion-fallback"></div>
+      <canvas id="vj-shooting-stars"></canvas>
+      <svg id="vehicle-scene" class="vehicle-scene anim-svg" viewBox="0 0 1440 810" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+        <!-- Ground -->
+        <rect id="vj-ground" x="0" y="620" width="1440" height="190" fill="#2D4A3E" opacity="0" />
+
+        <!-- Road line -->
+        <line id="vj-road" x1="0" y1="640" x2="1440" y2="640" stroke="#C4A882" stroke-width="2" stroke-dasharray="20 15" opacity="0" />
+
+        <!-- Mountains (back layer) — smooth curves -->
+        <path id="vj-mountain-1" d="M-20 620 C80 600 140 480 220 400 C270 345 310 410 380 460 C430 490 470 375 550 315 C600 280 650 340 730 400 C790 440 830 355 910 305 C970 270 1010 320 1090 380 C1150 420 1190 340 1270 300 C1330 270 1380 310 1460 355 L1460 620 Z" fill="#1E332B" opacity="0" />
+
+        <!-- Mountains (front layer) — smooth curves -->
+        <path id="vj-mountain-2" d="M-20 620 C60 610 110 540 200 490 C250 460 300 500 380 520 C440 535 480 445 560 405 C620 375 660 425 740 465 C800 495 840 415 920 380 C980 355 1020 400 1100 440 C1160 465 1200 395 1280 365 C1340 345 1390 380 1460 425 L1460 620 Z" fill="#2D4A3E" opacity="0" />
+
+        <!-- Trees — multi-tier pines, varied sizes -->
+        <g id="vj-trees" opacity="0">
+          <!-- Tree 1 (small, 2-tier) -->
+          <g class="tree">
+            <polygon points="137,620 155,565 173,620" fill="#3D6354" />
+            <polygon points="141,590 155,548 169,590" fill="#4D7D68" />
+          </g>
+          <!-- Tree 2 (tall, 3-tier) -->
+          <g class="tree">
+            <polygon points="276,620 300,530 324,620" fill="#3D6354" />
+            <polygon points="280,570 300,490 320,570" fill="#4D7D68" />
+            <polygon points="284,535 300,460 316,535" fill="#5A8F78" />
+          </g>
+          <!-- Tree 3 (medium, 3-tier) -->
+          <g class="tree">
+            <polygon points="440,620 460,545 480,620" fill="#3D6354" />
+            <polygon points="443,580 460,515 477,580" fill="#4D7D68" />
+            <polygon points="446,550 460,492 474,550" fill="#5A8F78" />
+          </g>
+          <!-- Tree 4 (small, 2-tier) -->
+          <g class="tree">
+            <polygon points="558,620 575,570 592,620" fill="#3D6354" />
+            <polygon points="562,595 575,555 588,595" fill="#4D7D68" />
+          </g>
+          <!-- Tree 5 (tall, 3-tier) -->
+          <g class="tree">
+            <polygon points="696,620 720,525 744,620" fill="#3D6354" />
+            <polygon points="700,568 720,488 740,568" fill="#4D7D68" />
+            <polygon points="704,532 720,455 736,532" fill="#5A8F78" />
+          </g>
+          <!-- Tree 6 (medium, 3-tier) -->
+          <g class="tree">
+            <polygon points="860,620 880,548 900,620" fill="#3D6354" />
+            <polygon points="863,582 880,520 897,582" fill="#4D7D68" />
+            <polygon points="866,552 880,498 894,552" fill="#5A8F78" />
+          </g>
+          <!-- Tree 7 (small, 2-tier) -->
+          <g class="tree">
+            <polygon points="1023,620 1040,570 1057,620" fill="#3D6354" />
+            <polygon points="1027,595 1040,555 1053,595" fill="#4D7D68" />
+          </g>
+          <!-- Tree 8 (tall, 3-tier) -->
+          <g class="tree">
+            <polygon points="1156,620 1180,528 1204,620" fill="#3D6354" />
+            <polygon points="1160,570 1180,492 1200,570" fill="#4D7D68" />
+            <polygon points="1164,536 1180,462 1196,536" fill="#5A8F78" />
+          </g>
+          <!-- Tree 9 (medium, 3-tier) -->
+          <g class="tree">
+            <polygon points="1310,620 1330,550 1350,620" fill="#3D6354" />
+            <polygon points="1313,585 1330,525 1347,585" fill="#4D7D68" />
+            <polygon points="1316,556 1330,500 1344,556" fill="#5A8F78" />
+          </g>
+        </g>
+
+        <!-- Dust puffs along road -->
+        <g id="vj-dust">
+          <circle class="dust" cx="150" cy="618" r="12" fill="#C4A882" opacity="0" />
+          <circle class="dust" cx="250" cy="615" r="15" fill="#C4A882" opacity="0" />
+          <circle class="dust" cx="350" cy="617" r="11" fill="#C4A882" opacity="0" />
+          <circle class="dust" cx="450" cy="614" r="14" fill="#C4A882" opacity="0" />
+          <circle class="dust" cx="540" cy="616" r="12" fill="#C4A882" opacity="0" />
+          <circle class="dust" cx="630" cy="615" r="13" fill="#C4A882" opacity="0" />
+          <circle class="dust" cx="710" cy="617" r="10" fill="#C4A882" opacity="0" />
+        </g>
+
+        <!-- 4WD Vehicle — 80 Series Land Cruiser silhouette -->
+        <g transform="translate(0, 558)">
+        <g id="vj-vehicle">
+          <!-- Shadow -->
+          <ellipse cx="80" cy="68" rx="78" ry="5" fill="#000" opacity="0.25" />
+
+          <!-- Body — 4WD wagon silhouette with wheel arches -->
+          <path d="M14 56 Q8 56 8 50 L6 0 Q6 -8 14 -8 L92 -8 L108 12 L146 14 Q152 14 152 20 L152 50 Q152 56 146 56 L132 56 Q116 40 100 56 L58 56 Q42 40 26 56 Z" fill="#C4A882" />
+
+          <!-- Roof rack -->
+          <rect x="12" y="-13" width="82" height="4" rx="1" fill="#A68B64" />
+
+          <!-- Windows -->
+          <rect x="14" y="-4" width="12" height="14" rx="1" fill="#1A1A1A" opacity="0.5" />
+          <rect x="30" y="-4" width="28" height="14" rx="1" fill="#1A1A1A" opacity="0.5" />
+          <path d="M62 -4 L90 -4 L104 12 L62 12 Z" fill="#1A1A1A" opacity="0.5" />
+
+          <!-- Door card seam lines -->
+          <line x1="28" y1="-4" x2="28" y2="48" stroke="#B89B75" stroke-width="1" opacity="0.5" />
+          <line x1="60" y1="-4" x2="60" y2="48" stroke="#B89B75" stroke-width="1" opacity="0.5" />
+
+          <!-- Door handles -->
+          <rect x="40" y="16" width="5" height="2" rx="1" fill="#A68B64" />
+          <rect x="75" y="16" width="5" height="2" rx="1" fill="#A68B64" />
+
+          <!-- Bull bar -->
+          <rect x="152" y="14" width="6" height="42" rx="2" fill="#A68B64" />
+
+          <!-- Taillights -->
+          <rect x="5" y="14" width="3" height="8" rx="1" fill="#B91C1C" opacity="0.5" />
+
+          <!-- Rear wheel -->
+          <g id="vj-wheel-rear">
+            <circle cx="42" cy="60" r="15" fill="#1A1A1A" />
+            <circle cx="42" cy="60" r="10" fill="#2A2A2A" />
+            <circle cx="42" cy="60" r="3.5" fill="#C4A882" />
+            <line x1="42" y1="49" x2="42" y2="54" stroke="#3a3a3a" stroke-width="1.5" />
+            <line x1="42" y1="66" x2="42" y2="71" stroke="#3a3a3a" stroke-width="1.5" />
+            <line x1="31" y1="60" x2="36" y2="60" stroke="#3a3a3a" stroke-width="1.5" />
+            <line x1="48" y1="60" x2="53" y2="60" stroke="#3a3a3a" stroke-width="1.5" />
+          </g>
+
+          <!-- Front wheel -->
+          <g id="vj-wheel-front">
+            <circle cx="116" cy="60" r="15" fill="#1A1A1A" />
+            <circle cx="116" cy="60" r="10" fill="#2A2A2A" />
+            <circle cx="116" cy="60" r="3.5" fill="#C4A882" />
+            <line x1="116" y1="49" x2="116" y2="54" stroke="#3a3a3a" stroke-width="1.5" />
+            <line x1="116" y1="66" x2="116" y2="71" stroke="#3a3a3a" stroke-width="1.5" />
+            <line x1="105" y1="60" x2="110" y2="60" stroke="#3a3a3a" stroke-width="1.5" />
+            <line x1="122" y1="60" x2="127" y2="60" stroke="#3a3a3a" stroke-width="1.5" />
+          </g>
+        </g>
+        </g>
+
+        <!-- Stars (subtle) -->
+        <g id="vj-stars" opacity="0">
+          <circle cx="120" cy="80" r="1.5" fill="#E8E0D6" />
+          <circle cx="350" cy="120" r="1" fill="#E8E0D6" />
+          <circle cx="580" cy="60" r="1.5" fill="#E8E0D6" />
+          <circle cx="750" cy="150" r="1" fill="#E8E0D6" />
+          <circle cx="950" cy="90" r="1.5" fill="#E8E0D6" />
+          <circle cx="1150" cy="130" r="1" fill="#E8E0D6" />
+          <circle cx="1350" cy="70" r="1.5" fill="#E8E0D6" />
+        </g>
+      </svg>
+      <div class="hero-overlay">
+        <p class="label">Custom 4WD & Van Fit-Outs — Gold Coast, QLD</p>
+        <h2>Built to take you<br /><span>further.</span></h2>
+        <p class="subtitle">We design and build custom vehicle fit-outs for touring, camping and expedition travel. Cabinetry, water systems and off-grid power — designed in 3D, built from premium laminated plywood, and professionally installed on the Gold Coast.</p>
+        <div class="cta-group">
+          <a href="/quote" class="btn-primary">Get a Free Quote</a>
+          <a href="#how-it-works" class="btn-secondary">See How It Works</a>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ============================================
+         CONCEPT 3: STARFIELD / NIGHT SKY
+         Canvas particle system
+         ============================================ -->
+    <section id="concept-3" class="concept-section">
+      <div class="concept-badge">03 — Starfield / Night Sky</div>
+      <div class="reduced-motion-fallback"></div>
+      <canvas id="starfield-canvas"></canvas>
+      <div class="hero-overlay">
+        <p class="label">Custom 4WD & Van Fit-Outs — Gold Coast, QLD</p>
+        <h2>Built to take you<br /><span>further.</span></h2>
+        <p class="subtitle">We design and build custom vehicle fit-outs for touring, camping and expedition travel. Cabinetry, water systems and off-grid power — designed in 3D, built from premium laminated plywood, and professionally installed on the Gold Coast.</p>
+        <div class="cta-group">
+          <a href="/quote" class="btn-primary">Get a Free Quote</a>
+          <a href="#how-it-works" class="btn-secondary">See How It Works</a>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ============================================
+         CONCEPT 4: MOUNTAIN PARALLAX
+         Layered SVGs with mouse parallax
+         ============================================ -->
+    <section id="concept-4" class="concept-section" style="background: linear-gradient(180deg, #1E332B 0%, #1A1A1A 60%);">
+      <div class="concept-badge">04 — Mountain Parallax</div>
+      <div class="reduced-motion-fallback"></div>
+      <div id="parallax-container" class="parallax-container">
+        <!-- Sky gradient already on section background -->
+
+        <!-- Layer 5 (furthest) - faint ridges -->
+        <svg class="parallax-layer" data-depth="0.05" style="bottom: 18%;" viewBox="0 0 1600 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 200 L0 140 Q200 60 400 110 Q600 40 800 90 Q1000 30 1200 80 Q1400 50 1600 100 L1600 200 Z" fill="#D4CCC2" opacity="0.15" />
+        </svg>
+
+        <!-- Layer 4 -->
+        <svg class="parallax-layer" data-depth="0.1" style="bottom: 14%;" viewBox="0 0 1600 250" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 250 L0 180 Q150 80 350 130 Q550 50 700 100 Q850 30 1050 90 Q1250 40 1400 80 L1600 110 L1600 250 Z" fill="#E8E0D6" opacity="0.12" />
+        </svg>
+
+        <!-- Layer 3 -->
+        <svg class="parallax-layer" data-depth="0.2" style="bottom: 10%;" viewBox="0 0 1600 300" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 300 L0 200 Q200 90 400 160 Q500 80 650 120 Q800 50 1000 110 Q1200 60 1350 100 L1600 130 L1600 300 Z" fill="#3D6354" opacity="0.35" />
+        </svg>
+
+        <!-- Layer 2 -->
+        <svg class="parallax-layer" data-depth="0.35" style="bottom: 5%;" viewBox="0 0 1600 300" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 300 L0 180 Q100 100 250 150 Q400 60 600 130 Q750 50 900 100 Q1100 40 1300 110 Q1450 70 1600 120 L1600 300 Z" fill="#2D4A3E" opacity="0.6" />
+        </svg>
+
+        <!-- Layer 1 (nearest) - dark foreground -->
+        <svg class="parallax-layer" data-depth="0.5" style="bottom: 0;" viewBox="0 0 1600 250" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 250 L0 160 Q80 120 200 170 Q350 90 500 140 Q650 80 800 120 Q950 70 1100 130 Q1250 80 1400 120 L1600 150 L1600 250 Z" fill="#1E332B" opacity="0.85" />
+        </svg>
+      </div>
+      <div class="hero-overlay">
+        <p class="label">Custom 4WD & Van Fit-Outs — Gold Coast, QLD</p>
+        <h2>Built to take you<br /><span>further.</span></h2>
+        <p class="subtitle">We design and build custom vehicle fit-outs for touring, camping and expedition travel. Cabinetry, water systems and off-grid power — designed in 3D, built from premium laminated plywood, and professionally installed on the Gold Coast.</p>
+        <div class="cta-group">
+          <a href="/quote" class="btn-primary">Get a Free Quote</a>
+          <a href="#how-it-works" class="btn-secondary">See How It Works</a>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ============================================
+         SCRIPTS
+         ============================================ -->
+
+    <!-- CONCEPT 1: Topographic Terrain -->
+    <script>
+      (function() {
+        // Simplex noise implementation (compact)
+        class SimplexNoise {
+          private p: number[];
+          private perm: number[];
+          private grad3: number[][];
+
+          constructor(seed: number = Math.random() * 65536) {
+            this.grad3 = [
+              [1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0],
+              [1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],
+              [0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]
+            ];
+            this.p = [];
+            for (let i = 0; i < 256; i++) this.p[i] = i;
+            // Seed-based shuffle
+            let s = seed;
+            for (let i = 255; i > 0; i--) {
+              s = (s * 16807 + 0) % 2147483647;
+              const j = s % (i + 1);
+              [this.p[i], this.p[j]] = [this.p[j], this.p[i]];
+            }
+            this.perm = [];
+            for (let i = 0; i < 512; i++) this.perm[i] = this.p[i & 255];
+          }
+
+          noise2D(x: number, y: number): number {
+            const F2 = 0.5 * (Math.sqrt(3) - 1);
+            const G2 = (3 - Math.sqrt(3)) / 6;
+            const s = (x + y) * F2;
+            const i = Math.floor(x + s);
+            const j = Math.floor(y + s);
+            const t = (i + j) * G2;
+            const X0 = i - t, Y0 = j - t;
+            const x0 = x - X0, y0 = y - Y0;
+            const i1 = x0 > y0 ? 1 : 0;
+            const j1 = x0 > y0 ? 0 : 1;
+            const x1 = x0 - i1 + G2, y1 = y0 - j1 + G2;
+            const x2 = x0 - 1 + 2 * G2, y2 = y0 - 1 + 2 * G2;
+            const ii = i & 255, jj = j & 255;
+
+            const dot = (g: number[], x: number, y: number) => g[0]*x + g[1]*y;
+
+            let n0 = 0, n1 = 0, n2 = 0;
+            let t0 = 0.5 - x0*x0 - y0*y0;
+            if (t0 >= 0) { t0 *= t0; n0 = t0 * t0 * dot(this.grad3[this.perm[ii + this.perm[jj]] % 12], x0, y0); }
+            let t1 = 0.5 - x1*x1 - y1*y1;
+            if (t1 >= 0) { t1 *= t1; n1 = t1 * t1 * dot(this.grad3[this.perm[ii + i1 + this.perm[jj + j1]] % 12], x1, y1); }
+            let t2 = 0.5 - x2*x2 - y2*y2;
+            if (t2 >= 0) { t2 *= t2; n2 = t2 * t2 * dot(this.grad3[this.perm[ii + 1 + this.perm[jj + 1]] % 12], x2, y2); }
+
+            return 70 * (n0 + n1 + n2);
+          }
+        }
+
+        const canvas = document.getElementById('topo-canvas') as HTMLCanvasElement;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d')!;
+        const noise = new SimplexNoise(42);
+        let animId: number;
+        let running = false;
+
+        function resize() {
+          const section = canvas.parentElement!;
+          canvas.width = section.clientWidth;
+          canvas.height = section.clientHeight;
+        }
+
+        function draw(time: number) {
+          if (!running) return;
+          const w = canvas.width;
+          const h = canvas.height;
+          const t = time * 0.0001;
+
+          ctx.fillStyle = '#1A1A1A';
+          ctx.fillRect(0, 0, w, h);
+
+          const lineCount = 30;
+          const scale = 0.003;
+          const levels = lineCount;
+
+          for (let level = 0; level < levels; level++) {
+            const threshold = (level / levels) * 2 - 1;
+            const isAccent = level % 5 === 0;
+
+            ctx.strokeStyle = isAccent ? 'rgba(196, 168, 130, 0.35)' : 'rgba(45, 74, 62, 0.4)';
+            ctx.lineWidth = isAccent ? 1.8 : 0.8;
+            ctx.beginPath();
+
+            const step = 6;
+            for (let x = 0; x < w; x += step) {
+              for (let y = 0; y < h; y += step) {
+                const nx = x * scale;
+                const ny = y * scale;
+                const val = noise.noise2D(nx + t, ny + t * 0.5);
+
+                // Marching squares - simplified: just draw points near the threshold
+                const diff = Math.abs(val - threshold);
+                if (diff < 0.04) {
+                  ctx.moveTo(x, y);
+                  ctx.lineTo(x + 1, y + 1);
+                }
+              }
+            }
+            ctx.stroke();
+          }
+
+          animId = requestAnimationFrame(draw);
+        }
+
+        // IntersectionObserver for start/stop
+        const observer = new IntersectionObserver(
+          ([entry]) => {
+            if (entry.isIntersecting && !running) {
+              running = true;
+              resize();
+              animId = requestAnimationFrame(draw);
+            } else if (!entry.isIntersecting && running) {
+              running = false;
+              cancelAnimationFrame(animId);
+            }
+          },
+          { threshold: 0.05 }
+        );
+
+        window.addEventListener('resize', resize);
+        observer.observe(canvas.parentElement!);
+      })();
+    </script>
+
+
+    <!-- CONCEPT 2: Vehicle Journey -->
+    <script>
+      import anime from 'animejs';
+
+      (function() {
+        const section = document.getElementById('concept-2')!;
+        let started = false;
+
+        function startAnimation() {
+          if (started) return;
+          started = true;
+
+          const tl = anime.timeline({ easing: 'easeOutCubic' });
+
+          // Phase 1: Scene builds (0–3.5s)
+          // Stars fade in slowly — atmospheric
+          tl.add({
+            targets: '#vj-stars',
+            opacity: [0, 0.5],
+            duration: 2000,
+            easing: 'easeInOutSine',
+          }, 0);
+
+          // Back mountains rise up
+          tl.add({
+            targets: '#vj-mountain-1',
+            opacity: [0, 1],
+            translateY: [60, 0],
+            duration: 1800,
+            easing: 'easeOutQuart',
+          }, 300);
+
+          // Front mountains rise up
+          tl.add({
+            targets: '#vj-mountain-2',
+            opacity: [0, 1],
+            translateY: [40, 0],
+            duration: 1500,
+            easing: 'easeOutQuart',
+          }, 800);
+
+          // Ground appears
+          tl.add({
+            targets: '#vj-ground',
+            opacity: [0, 1],
+            duration: 1000,
+            easing: 'easeOutQuad',
+          }, 1400);
+
+          // Road draws in from left
+          tl.add({
+            targets: '#vj-road',
+            opacity: [0, 0.5],
+            strokeDashoffset: [1480, 0],
+            duration: 1800,
+            easing: 'linear',
+          }, 1800);
+
+          // Trees spring up — staggered left to right
+          tl.add({
+            targets: '#vj-trees',
+            opacity: [0, 1],
+            duration: 400,
+          }, 2000);
+
+          tl.add({
+            targets: '#vj-trees .tree',
+            translateY: [30, 0],
+            opacity: [0, 1],
+            delay: anime.stagger(100),
+            duration: 600,
+            easing: 'easeOutBack',
+          }, 2000);
+
+          // Phase 2: Vehicle enters (3.5–8s)
+          // Vehicle drives in from left to centre
+          tl.add({
+            targets: '#vj-vehicle',
+            translateX: [-250, 620],
+            duration: 4500,
+            easing: 'easeInOutQuad',
+          }, 3500);
+
+          // Wheels spin during drive
+          tl.add({
+            targets: ['#vj-wheel-rear', '#vj-wheel-front'],
+            rotate: [0, 360 * 10],
+            duration: 4500,
+            easing: 'linear',
+          }, 3500);
+
+          // Dust puffs along road — each triggers as the vehicle passes
+          // Vehicle goes from x=-250 to x=620 (870px) over 4500ms starting at 3500ms
+          // Dust puffs are at x: 150, 250, 350, 450, 540, 630, 710
+          // Calculate when vehicle reaches each puff position
+          const dustPositions = [150, 250, 350, 450, 540, 630, 710];
+          const vehicleStart = -250;
+          const vehicleEnd = 620;
+          const vehicleRange = vehicleEnd - vehicleStart; // 870
+          const driveDuration = 4500;
+          const driveStart = 3500;
+
+          dustPositions.forEach((pos, i) => {
+            const progress = (pos - vehicleStart) / vehicleRange;
+            const triggerTime = driveStart + (progress * driveDuration);
+            tl.add({
+              targets: `#vj-dust .dust:nth-child(${i + 1})`,
+              scale: [0, 1.3],
+              opacity: [
+                {value: 0.3, duration: 300},
+                {value: 0, duration: 1200},
+              ],
+              translateY: [0, -20],
+              duration: 1500,
+              easing: 'easeOutQuad',
+            }, triggerTime);
+          });
+
+          // Phase 3: Idle (8s+)
+          // Gentle idle bounce
+          tl.add({
+            targets: '#vj-vehicle',
+            translateY: [-1.5, 0],
+            duration: 800,
+            direction: 'alternate',
+            loop: true,
+            easing: 'easeInOutSine',
+          }, 8200);
+        }
+
+        const observer = new IntersectionObserver(
+          ([entry]) => {
+            if (entry.isIntersecting) startAnimation();
+          },
+          { threshold: 0.3 }
+        );
+
+        observer.observe(section);
+      })();
+    </script>
+
+
+    <!-- CONCEPT 2: Shooting stars overlay -->
+    <script>
+      (function() {
+        const canvas = document.getElementById('vj-shooting-stars') as HTMLCanvasElement;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d')!;
+        let animId: number;
+        let running = false;
+
+        interface ShootingStar {
+          x: number;
+          y: number;
+          vx: number;
+          vy: number;
+          life: number;
+          maxLife: number;
+          size: number;
+        }
+
+        const shootingStars: ShootingStar[] = [];
+        let nextShoot = 0;
+
+        function resize() {
+          const section = canvas.parentElement!;
+          canvas.width = section.clientWidth;
+          canvas.height = section.clientHeight;
+        }
+
+        function spawnShootingStar(time: number) {
+          const startX = Math.random() * canvas.width * 0.7;
+          const startY = Math.random() * canvas.height * 0.35;
+          const angle = Math.PI * 0.15 + Math.random() * 0.2;
+          const speed = 8 + Math.random() * 6;
+          shootingStars.push({
+            x: startX,
+            y: startY,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: 0,
+            maxLife: 40 + Math.random() * 30,
+            size: 1.5 + Math.random() * 1.5,
+          });
+          nextShoot = time + 3000 + Math.random() * 4000;
+        }
+
+        function draw(time: number) {
+          if (!running) return;
+          const w = canvas.width;
+          const h = canvas.height;
+
+          ctx.clearRect(0, 0, w, h);
+
+          // Spawn shooting stars
+          if (time > nextShoot) spawnShootingStar(time);
+
+          for (let i = shootingStars.length - 1; i >= 0; i--) {
+            const ss = shootingStars[i];
+            ss.x += ss.vx;
+            ss.y += ss.vy;
+            ss.life++;
+
+            const progress = ss.life / ss.maxLife;
+            const alpha = progress < 0.1 ? progress * 10 : Math.max(0, 1 - (progress - 0.1) / 0.9);
+
+            // Tail
+            const tailLen = 40;
+            const hyp = Math.hypot(ss.vx, ss.vy);
+            const tailX = ss.x - (ss.vx * tailLen / hyp) * 2;
+            const tailY = ss.y - (ss.vy * tailLen / hyp) * 2;
+
+            const grad = ctx.createLinearGradient(ss.x, ss.y, tailX, tailY);
+            grad.addColorStop(0, `rgba(245, 240, 235, ${alpha * 0.9})`);
+            grad.addColorStop(1, `rgba(245, 240, 235, 0)`);
+
+            ctx.beginPath();
+            ctx.moveTo(ss.x, ss.y);
+            ctx.lineTo(tailX, tailY);
+            ctx.strokeStyle = grad;
+            ctx.lineWidth = ss.size;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            // Head glow
+            ctx.beginPath();
+            ctx.arc(ss.x, ss.y, ss.size * 1.5, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(245, 240, 235, ${alpha * 0.6})`;
+            ctx.fill();
+
+            if (ss.life >= ss.maxLife) shootingStars.splice(i, 1);
+          }
+
+          animId = requestAnimationFrame(draw);
+        }
+
+        const section = canvas.parentElement!;
+        const observer = new IntersectionObserver(
+          ([entry]) => {
+            if (entry.isIntersecting && !running) {
+              running = true;
+              resize();
+              nextShoot = performance.now() + 2000;
+              animId = requestAnimationFrame(draw);
+            } else if (!entry.isIntersecting && running) {
+              running = false;
+              cancelAnimationFrame(animId);
+            }
+          },
+          { threshold: 0.05 }
+        );
+
+        window.addEventListener('resize', resize);
+        observer.observe(section);
+      })();
+    </script>
+
+
+    <!-- CONCEPT 3: Starfield / Night Sky -->
+    <script>
+      (function() {
+        const canvas = document.getElementById('starfield-canvas') as HTMLCanvasElement;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d')!;
+        let animId: number;
+        let running = false;
+        let mouseX = 0.5;
+        let mouseY = 0.5;
+
+        interface Star {
+          x: number;
+          y: number;
+          r: number;
+          baseOpacity: number;
+          phase: number;
+          speed: number;
+          depth: number; // for parallax
+        }
+
+        interface ShootingStar {
+          x: number;
+          y: number;
+          vx: number;
+          vy: number;
+          life: number;
+          maxLife: number;
+          size: number;
+        }
+
+        const stars: Star[] = [];
+        const shootingStars: ShootingStar[] = [];
+        let nextShoot = 0;
+
+        function resize() {
+          const section = canvas.parentElement!;
+          canvas.width = section.clientWidth;
+          canvas.height = section.clientHeight;
+          initStars();
+        }
+
+        function initStars() {
+          stars.length = 0;
+          const count = Math.min(300, Math.floor((canvas.width * canvas.height) / 4000));
+          for (let i = 0; i < count; i++) {
+            stars.push({
+              x: Math.random() * canvas.width,
+              y: Math.random() * canvas.height,
+              r: Math.random() * 1.8 + 0.3,
+              baseOpacity: Math.random() * 0.6 + 0.3,
+              phase: Math.random() * Math.PI * 2,
+              speed: Math.random() * 0.8 + 0.3,
+              depth: Math.random() * 0.8 + 0.2,
+            });
+          }
+        }
+
+        function spawnShootingStar(time: number) {
+          const startX = Math.random() * canvas.width * 0.7;
+          const startY = Math.random() * canvas.height * 0.4;
+          const angle = Math.PI * 0.15 + Math.random() * 0.2;
+          const speed = 8 + Math.random() * 6;
+          shootingStars.push({
+            x: startX,
+            y: startY,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: 0,
+            maxLife: 40 + Math.random() * 30,
+            size: 1.5 + Math.random() * 1.5,
+          });
+          nextShoot = time + 3000 + Math.random() * 4000;
+        }
+
+        function draw(time: number) {
+          if (!running) return;
+          const w = canvas.width;
+          const h = canvas.height;
+
+          // Background gradient (charcoal to primary-dark)
+          const grad = ctx.createLinearGradient(0, 0, 0, h);
+          grad.addColorStop(0, '#1A1A1A');
+          grad.addColorStop(0.5, '#1E332B');
+          grad.addColorStop(1, '#2D4A3E');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, w, h);
+
+          // Parallax offset from mouse
+          const px = (mouseX - 0.5) * 20;
+          const py = (mouseY - 0.5) * 15;
+
+          // Draw stars
+          for (const star of stars) {
+            const opacity = star.baseOpacity + Math.sin(time * 0.001 * star.speed + star.phase) * 0.25;
+            const ox = star.x + px * star.depth;
+            const oy = star.y + py * star.depth;
+
+            ctx.beginPath();
+            ctx.arc(ox, oy, star.r, 0, Math.PI * 2);
+            // Warm white / sand tint
+            const warmth = star.r > 1.2 ? 1 : 0;
+            ctx.fillStyle = warmth
+              ? `rgba(196, 168, 130, ${Math.max(0, opacity)})`
+              : `rgba(245, 240, 235, ${Math.max(0, opacity)})`;
+            ctx.fill();
+          }
+
+          // Shooting stars
+          if (time > nextShoot) spawnShootingStar(time);
+
+          for (let i = shootingStars.length - 1; i >= 0; i--) {
+            const ss = shootingStars[i];
+            ss.x += ss.vx;
+            ss.y += ss.vy;
+            ss.life++;
+
+            const progress = ss.life / ss.maxLife;
+            const alpha = progress < 0.1 ? progress * 10 : Math.max(0, 1 - (progress - 0.1) / 0.9);
+
+            // Tail
+            const tailLen = 40;
+            const grad = ctx.createLinearGradient(
+              ss.x, ss.y,
+              ss.x - ss.vx * tailLen / Math.hypot(ss.vx, ss.vy) * 2,
+              ss.y - ss.vy * tailLen / Math.hypot(ss.vx, ss.vy) * 2
+            );
+            grad.addColorStop(0, `rgba(245, 240, 235, ${alpha * 0.9})`);
+            grad.addColorStop(1, `rgba(245, 240, 235, 0)`);
+
+            ctx.beginPath();
+            ctx.moveTo(ss.x, ss.y);
+            ctx.lineTo(
+              ss.x - ss.vx * tailLen / Math.hypot(ss.vx, ss.vy) * 2,
+              ss.y - ss.vy * tailLen / Math.hypot(ss.vx, ss.vy) * 2
+            );
+            ctx.strokeStyle = grad;
+            ctx.lineWidth = ss.size;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            // Head glow
+            ctx.beginPath();
+            ctx.arc(ss.x, ss.y, ss.size * 1.5, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(245, 240, 235, ${alpha * 0.6})`;
+            ctx.fill();
+
+            if (ss.life >= ss.maxLife) shootingStars.splice(i, 1);
+          }
+
+          animId = requestAnimationFrame(draw);
+        }
+
+        // Mouse tracking for parallax
+        const section = canvas.parentElement!;
+        section.addEventListener('mousemove', (e: MouseEvent) => {
+          const rect = section.getBoundingClientRect();
+          mouseX = (e.clientX - rect.left) / rect.width;
+          mouseY = (e.clientY - rect.top) / rect.height;
+        });
+
+        const observer = new IntersectionObserver(
+          ([entry]) => {
+            if (entry.isIntersecting && !running) {
+              running = true;
+              resize();
+              nextShoot = performance.now() + 2000;
+              animId = requestAnimationFrame(draw);
+            } else if (!entry.isIntersecting && running) {
+              running = false;
+              cancelAnimationFrame(animId);
+            }
+          },
+          { threshold: 0.05 }
+        );
+
+        window.addEventListener('resize', resize);
+        observer.observe(section);
+      })();
+    </script>
+
+
+    <!-- CONCEPT 4: Mountain Parallax -->
+    <script>
+      (function() {
+        const container = document.getElementById('parallax-container');
+        if (!container) return;
+        const section = document.getElementById('concept-4')!;
+        const layers = container.querySelectorAll('.parallax-layer') as NodeListOf<HTMLElement>;
+
+        // Mouse-based parallax
+        section.addEventListener('mousemove', (e: MouseEvent) => {
+          const rect = section.getBoundingClientRect();
+          const x = (e.clientX - rect.left) / rect.width - 0.5;
+          const y = (e.clientY - rect.top) / rect.height - 0.5;
+
+          layers.forEach((layer) => {
+            const depth = parseFloat(layer.dataset.depth || '0');
+            const moveX = x * depth * 60;
+            const moveY = y * depth * 30;
+            layer.style.transform = `translate(${moveX}px, ${moveY}px)`;
+          });
+        });
+
+        // Mobile: device orientation
+        if (typeof DeviceOrientationEvent !== 'undefined') {
+          window.addEventListener('deviceorientation', (e: DeviceOrientationEvent) => {
+            const gamma = (e.gamma || 0) / 45; // left-right tilt, normalised
+            const beta = ((e.beta || 0) - 45) / 45; // front-back tilt, normalised
+
+            layers.forEach((layer) => {
+              const depth = parseFloat(layer.dataset.depth || '0');
+              const moveX = gamma * depth * 40;
+              const moveY = beta * depth * 20;
+              layer.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            });
+          });
+        }
+
+        // Reset on mouse leave
+        section.addEventListener('mouseleave', () => {
+          layers.forEach((layer) => {
+            layer.style.transform = 'translate(0, 0)';
+          });
+        });
+      })();
+    </script>
+
+
+    <!-- NAV: Active state tracking -->
+    <script>
+      (function() {
+        const navLinks = document.querySelectorAll('.concept-nav a') as NodeListOf<HTMLAnchorElement>;
+        const sections = document.querySelectorAll('.concept-section');
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                const id = entry.target.id;
+                navLinks.forEach((link) => {
+                  link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+                });
+              }
+            });
+          },
+          { threshold: 0.4 }
+        );
+
+        sections.forEach((s) => observer.observe(s));
+      })();
+    </script>
+
+  </body>
+</html>

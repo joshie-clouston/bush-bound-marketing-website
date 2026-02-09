@@ -9,3 +9,10 @@ CREATE TABLE IF NOT EXISTS quotes (
   message TEXT,
   created_at INTEGER DEFAULT (unixepoch())
 );
+
+CREATE TABLE IF NOT EXISTS flatpack_waitlist (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT NOT NULL UNIQUE,
+  rego TEXT,
+  created_at INTEGER DEFAULT (unixepoch())
+);

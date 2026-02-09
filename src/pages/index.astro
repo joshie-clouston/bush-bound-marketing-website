@@ -1,24 +1,128 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
+
+const reviews = [
+  { name: "Joshua C.", vehicle: "Troopy", text: "Highly recommend going with Bushbound to just get it done right the first time. Absolutely stoked!" },
+  { name: "Brock C.", vehicle: "100 Series", text: "Super high attention to detail, quick turn around time, and clear communication throughout." },
+  { name: "Luke W.", vehicle: "VW Transporter", text: "Absolutely nailed it. Couldn't have asked for a better build. Attention to detail is what sets them apart." },
+  { name: "Mick D.", vehicle: "80 Series", text: "Deadset luke is a legend. Workmanship is top quality and materials he used are top notch!" },
+  { name: "Katrina S.", vehicle: "VW Multivan", text: "Luke did a great job. Very happy with it. Plenty of storage. Can't wait to get on the road." },
+  { name: "Jacob H.", vehicle: "76 Series", text: "Super creative and full of solutions to problems before they happen! Everything fit perfectly." },
+  { name: "Jack R.", vehicle: "Prado 150", text: "Luke is an absolute legend and put together the perfect install on my Prado." },
+  { name: "Norman H.", vehicle: "Troopy", text: "Brilliant job and so helpful with the planning of this perfect build. Highly recommended." },
+  { name: "Russell H.", vehicle: "Silverado", text: "Excellent work, precisely neat and very well presented." },
+];
+const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z";
 ---
 
-<BaseLayout title="Bushbound | Custom Vehicle Fit-Outs — Gold Coast, QLD">
+<BaseLayout title="Custom 4WD & Van Fit-Outs Gold Coast | Expedition Vehicle Builds | Bushbound" description="Custom 4WD and van fit-outs on the Gold Coast, QLD. Designed in 3D, CNC-cut from premium plywood to millimetre precision, and professionally installed. Cabinetry, water systems and off-grid power. Get a free quote.">
 
   <!-- HERO -->
-  <section class="relative bg-charcoal text-stone-light overflow-hidden">
-    <div class="absolute inset-0 bg-gradient-to-br from-primary-dark/90 to-charcoal/95"></div>
-    <div class="relative container-narrow section-padding text-center">
-      <p class="text-sand font-medium text-sm uppercase tracking-widest mb-4" data-animate="fade-in">
-        Gold Coast Vehicle Fit-Outs
+  <section id="hero" class="relative min-h-[calc(100vh-6.25rem)] min-h-[calc(100dvh-6.25rem)] bg-charcoal text-stone-light overflow-hidden">
+    <!-- Shooting stars canvas -->
+    <canvas id="vj-shooting-stars" class="absolute inset-0 w-full h-full z-[1] pointer-events-none"></canvas>
+
+    <!-- Vehicle journey SVG scene -->
+    <svg id="vehicle-scene" class="absolute inset-0 w-full h-full" viewBox="0 0 1440 810" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+      <!-- Ground -->
+      <rect id="vj-ground" x="0" y="740" width="1440" height="190" fill="#2D4A3E" opacity="0" />
+
+      <!-- Mountains (back layer) -->
+      <path id="vj-mountain-1" d="M-20 740 C80 720 140 600 220 520 C270 465 310 530 380 580 C430 610 470 495 550 435 C600 400 650 460 730 520 C790 560 830 475 910 425 C970 390 1010 440 1090 500 C1150 540 1190 460 1270 420 C1330 390 1380 430 1460 475 L1460 740 Z" fill="#1E332B" opacity="0" />
+
+      <!-- Back mountain trees (distant, smaller, between mountain layers) -->
+      <g id="vj-trees-back" opacity="0">
+        <g class="tree" transform="translate(220, 525)"><polygon points="-8,0 0,-25 8,0" fill="#2E4F40" /><polygon points="-6,-13 0,-33 6,-13" fill="#3A5E4E" /></g>
+        <g class="tree" transform="translate(295, 529)"><polygon points="-9,0 0,-30 9,0" fill="#2E4F40" /><polygon points="-7,-15 0,-38 7,-15" fill="#3A5E4E" /><polygon points="-5,-26 0,-44 5,-26" fill="#4A7060" /></g>
+        <g class="tree" transform="translate(1175, 485)"><polygon points="-9,0 0,-30 9,0" fill="#2E4F40" /><polygon points="-7,-15 0,-38 7,-15" fill="#3A5E4E" /><polygon points="-5,-26 0,-44 5,-26" fill="#4A7060" /></g>
+      </g>
+
+      <!-- Mountains (front layer) -->
+      <path id="vj-mountain-2" d="M-20 740 C60 730 110 660 200 610 C250 580 300 620 380 640 C440 655 480 565 560 525 C620 495 660 545 740 585 C800 615 840 535 920 500 C980 475 1020 520 1100 560 C1160 585 1200 515 1280 485 C1340 465 1390 500 1460 545 L1460 740 Z" fill="#2D4A3E" opacity="0" />
+
+      <!-- Drive path (hidden — follows mountain-2 terrain, extended off-screen) -->
+      <path id="vj-drive-path" d="M-100 740 L-20 740 C60 730 110 660 200 610 C250 580 300 620 380 640 C440 655 480 565 560 525 C620 495 660 545 740 585 C800 615 840 535 920 500 C980 475 1020 520 1100 560 C1160 585 1200 515 1280 485 C1340 465 1390 500 1460 545 L1560 545" fill="none" stroke="none" />
+
+      <!-- 4WD Vehicle (small, terrain-following) — rendered BEFORE trees so trees overlap -->
+      <g id="vj-vehicle-container" opacity="0">
+        <g id="vj-vehicle" transform="scale(0.4) translate(-80, -75)">
+          <ellipse cx="80" cy="68" rx="78" ry="5" fill="#000" opacity="0.25" />
+          <path d="M14 56 Q8 56 8 50 L6 0 Q6 -8 14 -8 L92 -8 L108 12 L146 14 Q152 14 152 20 L152 50 Q152 56 146 56 L140 56 Q116 28 92 56 L66 56 Q42 28 18 56 Z" fill="#C4A882" />
+          <rect x="12" y="-13" width="82" height="4" rx="1" fill="#A68B64" />
+          <rect x="14" y="-4" width="12" height="14" rx="1" fill="#1A1A1A" opacity="0.5" />
+          <rect x="30" y="-4" width="28" height="14" rx="1" fill="#1A1A1A" opacity="0.5" />
+          <path d="M62 -4 L90 -4 L104 12 L62 12 Z" fill="#1A1A1A" opacity="0.5" />
+          <line x1="28" y1="-4" x2="28" y2="48" stroke="#B89B75" stroke-width="1" opacity="0.5" />
+          <line x1="60" y1="-4" x2="60" y2="48" stroke="#B89B75" stroke-width="1" opacity="0.5" />
+          <rect x="40" y="16" width="5" height="2" rx="1" fill="#A68B64" />
+          <rect x="75" y="16" width="5" height="2" rx="1" fill="#A68B64" />
+          <rect x="152" y="14" width="6" height="42" rx="2" fill="#A68B64" />
+          <rect x="5" y="14" width="3" height="8" rx="1" fill="#B91C1C" opacity="0.5" />
+          <g id="vj-wheel-rear">
+            <circle cx="42" cy="60" r="24" fill="#1A1A1A" /><circle cx="42" cy="60" r="16" fill="#2A2A2A" /><circle cx="42" cy="60" r="5.5" fill="#C4A882" />
+            <line x1="42" y1="42" x2="42" y2="49" stroke="#3a3a3a" stroke-width="1.5" /><line x1="42" y1="71" x2="42" y2="78" stroke="#3a3a3a" stroke-width="1.5" />
+            <line x1="25" y1="60" x2="32" y2="60" stroke="#3a3a3a" stroke-width="1.5" /><line x1="52" y1="60" x2="59" y2="60" stroke="#3a3a3a" stroke-width="1.5" />
+          </g>
+          <g id="vj-wheel-front">
+            <circle cx="116" cy="60" r="24" fill="#1A1A1A" /><circle cx="116" cy="60" r="16" fill="#2A2A2A" /><circle cx="116" cy="60" r="5.5" fill="#C4A882" />
+            <line x1="116" y1="42" x2="116" y2="49" stroke="#3a3a3a" stroke-width="1.5" /><line x1="116" y1="71" x2="116" y2="78" stroke="#3a3a3a" stroke-width="1.5" />
+            <line x1="99" y1="60" x2="106" y2="60" stroke="#3a3a3a" stroke-width="1.5" /><line x1="126" y1="60" x2="133" y2="60" stroke="#3a3a3a" stroke-width="1.5" />
+          </g>
+        </g>
+      </g>
+
+      <!-- Front mountain trees (on the mountain surface) -->
+      <!-- Center zone (x≈400-1000) cleared so trees don't overlap hero text -->
+      <g id="vj-trees-front" opacity="0">
+        <g class="tree" transform="translate(200, 615)"><polygon points="-14,0 0,-45 14,0" fill="#3D6A56" /><polygon points="-11,-22 0,-58 11,-22" fill="#4A7A66" /></g>
+        <g class="tree" transform="translate(279, 611)"><polygon points="-16,0 0,-55 16,0" fill="#3D6A56" /><polygon points="-13,-28 0,-72 13,-28" fill="#4A7A66" /><polygon points="-10,-48 0,-82 10,-48" fill="#5C8A76" /></g>
+        <g class="tree" transform="translate(380, 645)"><polygon points="-12,0 0,-40 12,0" fill="#3D6A56" /><polygon points="-9,-20 0,-52 9,-20" fill="#4A7A66" /></g>
+        <g class="tree" transform="translate(1010, 519)"><polygon points="-12,0 0,-40 12,0" fill="#3D6A56" /><polygon points="-9,-20 0,-52 9,-20" fill="#4A7A66" /></g>
+        <g class="tree" transform="translate(1100, 565)"><polygon points="-15,0 0,-50 15,0" fill="#3D6A56" /><polygon points="-12,-25 0,-65 12,-25" fill="#4A7A66" /><polygon points="-9,-44 0,-75 9,-44" fill="#5C8A76" /></g>
+        <g class="tree" transform="translate(1280, 490)"><polygon points="-14,0 0,-48 14,0" fill="#3D6A56" /><polygon points="-11,-24 0,-62 11,-24" fill="#4A7A66" /><polygon points="-8,-42 0,-72 8,-42" fill="#5C8A76" /></g>
+      </g>
+
+      <!-- Stars -->
+      <g id="vj-stars" opacity="0">
+        <!-- Bright stars -->
+        <circle cx="120" cy="80" r="1.5" fill="#E8E0D6" /><circle cx="350" cy="120" r="1.2" fill="#E8E0D6" />
+        <circle cx="580" cy="60" r="1.5" fill="#E8E0D6" /><circle cx="750" cy="150" r="1" fill="#E8E0D6" />
+        <circle cx="950" cy="90" r="1.5" fill="#E8E0D6" /><circle cx="1150" cy="130" r="1.2" fill="#E8E0D6" />
+        <circle cx="1350" cy="70" r="1.5" fill="#E8E0D6" />
+        <!-- Medium stars -->
+        <circle cx="60" cy="140" r="1" fill="#D4CCC2" /><circle cx="230" cy="45" r="1.2" fill="#D4CCC2" />
+        <circle cx="420" cy="180" r="1" fill="#D4CCC2" /><circle cx="500" cy="30" r="1.3" fill="#E8E0D6" />
+        <circle cx="680" cy="95" r="1" fill="#D4CCC2" /><circle cx="840" cy="45" r="1.2" fill="#E8E0D6" />
+        <circle cx="1020" cy="160" r="1" fill="#D4CCC2" /><circle cx="1250" cy="55" r="1.3" fill="#E8E0D6" />
+        <circle cx="1400" cy="140" r="1" fill="#D4CCC2" />
+        <!-- Dim stars -->
+        <circle cx="180" cy="180" r="0.8" fill="#C4A882" opacity="0.5" /><circle cx="310" cy="55" r="0.7" fill="#C4A882" opacity="0.5" />
+        <circle cx="470" cy="105" r="0.8" fill="#C4A882" opacity="0.5" /><circle cx="620" cy="170" r="0.7" fill="#C4A882" opacity="0.5" />
+        <circle cx="790" cy="35" r="0.8" fill="#C4A882" opacity="0.5" /><circle cx="890" cy="175" r="0.7" fill="#C4A882" opacity="0.5" />
+        <circle cx="1080" cy="70" r="0.8" fill="#C4A882" opacity="0.5" /><circle cx="1200" cy="190" r="0.7" fill="#C4A882" opacity="0.5" />
+        <circle cx="1320" cy="110" r="0.8" fill="#C4A882" opacity="0.5" />
+      </g>
+    </svg>
+
+    <!-- Reduced motion fallback -->
+    <div class="hidden motion-reduce:block absolute inset-0 bg-gradient-to-br from-primary-dark to-charcoal"></div>
+
+    <!-- Dark overlay for text readability -->
+    <div class="absolute inset-0 z-[2] pointer-events-none bg-charcoal/40"></div>
+
+    <!-- Hero text overlay -->
+    <div class="relative z-10 min-h-[calc(100vh-6.25rem)] min-h-[calc(100dvh-6.25rem)] flex flex-col items-center justify-start text-center px-6 pt-[18vh] sm:pt-[21vh]">
+      <p class="text-sand font-medium text-sm uppercase tracking-widest mb-4">
+        Lightweight Vehicle Fitouts
       </p>
-      <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-6" data-animate="fade-up">
-        See your build<br />
-        <span class="text-sand">before we start.</span>
+      <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-6" style="text-shadow: 0 2px 20px rgba(0,0,0,0.4);">
+        Built to take you<br />
+        <span class="text-sand">further.</span>
       </h1>
-      <p class="text-lg sm:text-xl text-stone-dark max-w-2xl mx-auto mb-10" data-animate="fade-up">
-        Custom fit-outs for 4WDs, vans and work vehicles. We design it in 3D, build it from premium plywood, and install it — so you can explore more of this beautiful country.
+      <p class="text-lg sm:text-xl text-stone/90 max-w-xl mx-auto mb-10">
+        We fit out vans, 4WDs and Troop Carriers with storage, power and water — for those who want to explore this beautiful country on their own terms.
       </p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center" data-animate="fade-up">
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
         <a
           href="/quote"
           class="inline-flex items-center justify-center px-8 py-4 bg-sand text-charcoal font-bold text-base rounded-md hover:bg-sand-light transition-colors"
@@ -27,12 +131,32 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
         </a>
         <a
           href="#how-it-works"
-          class="inline-flex items-center justify-center px-8 py-4 border-2 border-stone-dark/30 text-stone-light font-semibold text-base rounded-md hover:border-sand hover:text-sand transition-colors"
+          class="inline-flex items-center justify-center px-8 py-4 border-2 border-stone-light/40 text-stone-light font-semibold text-base rounded-md bg-white/5 hover:border-sand hover:text-sand hover:bg-sand/10 transition-colors"
         >
           See How It Works
         </a>
       </div>
+
     </div>
+
+    <!-- Social proof marquee -->
+    <div class="absolute bottom-8 left-0 right-0 z-10 overflow-hidden pointer-events-none" style="-webkit-mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%); mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);">
+      <div class="review-marquee flex gap-6 w-max pointer-events-auto">
+        {/* Render reviews twice for seamless loop */}
+        {[...reviews, ...reviews].map((r) => (
+        <div class="flex items-center gap-3 px-5 py-3 bg-white/8 backdrop-blur-sm rounded-lg border border-white/10 shrink-0">
+          <div class="flex text-sand text-sm gap-0.5">
+            {[1,2,3,4,5].map(() => (
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d={starPath}/></svg>
+            ))}
+          </div>
+          <span class="text-stone-light/90 text-sm">"{r.text}"</span>
+          <span class="text-stone-light/50 text-xs whitespace-nowrap">— {r.name}, {r.vehicle}</span>
+        </div>
+        ))}
+      </div>
+    </div>
+
   </section>
 
   <!-- WHAT WE FIT OUT -->
@@ -41,11 +165,14 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
       <div class="text-center mb-16">
         <p class="text-sand-dark font-medium text-sm uppercase tracking-widest mb-3" data-animate="fade-in">What We Fit Out</p>
         <h2 class="text-3xl sm:text-4xl font-bold text-charcoal" data-animate="fade-up">
-          Your vehicle. Your adventure.
+          Custom fit-outs for 4WDs and vans
         </h2>
+        <p class="text-muted-foreground mt-4 max-w-2xl mx-auto" data-animate="fade-up">
+          Whether you're setting up a Troopy for a lap of Australia or converting a van into a home on wheels — we build expedition fit-outs that match exactly how you travel.
+        </p>
       </div>
 
-      <div class="grid md:grid-cols-3 gap-8" data-animate="stagger">
+      <div class="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto" data-animate="stagger">
         <!-- 4WDs -->
         <div class="bg-white rounded-xl p-8 border border-stone-dark/10 hover:border-sand/40 transition-colors">
           <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-5">
@@ -53,9 +180,23 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
               <path stroke-linecap="round" stroke-linejoin="round" d="M8 17h.01M16 17h.01M3 11l1.5-5h15l1.5 5M4 17h16a1 1 0 001-1v-5H3v5a1 1 0 001 1z" />
             </svg>
           </div>
-          <h3 class="text-xl font-bold text-charcoal mb-2">4WDs & Troopys</h3>
+          <h3 class="text-xl font-bold text-charcoal mb-2">4WD Fit-Outs</h3>
           <p class="text-muted-foreground text-sm leading-relaxed">
-            Land Cruisers, Patrols, Prados and more. Full cabinetry, kitchen setups, sleeping platforms and storage systems built to handle the corrugations.
+            Patrols, Prados, Hiluxes and more. Custom cabinetry, drawer systems, sleeping platforms and storage — built to handle corrugations and serious off-road touring.
+          </p>
+        </div>
+
+        <!-- Troopies -->
+        <div class="bg-white rounded-xl p-8 border border-stone-dark/10 hover:border-sand/40 transition-colors">
+          <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 17h.01M16 17h.01M3 11l1.5-5h15l1.5 5M4 17h16a1 1 0 001-1v-5H3v5a1 1 0 001 1z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7 11V6h10v5" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-charcoal mb-2">Troopy Fit-Outs</h3>
+          <p class="text-muted-foreground text-sm leading-relaxed">
+            Land Cruiser 70 Series Troop Carriers. Full expedition builds with kitchens, sleeping setups, power systems and storage — purpose-built for long-range touring.
           </p>
         </div>
 
@@ -66,22 +207,9 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
               <path stroke-linecap="round" stroke-linejoin="round" d="M8 17h.01M16 17h.01M2 11V8a2 2 0 012-2h11l3 4h2a2 2 0 012 2v3M4 17h16a1 1 0 001-1v-2H3v2a1 1 0 001 1z" />
             </svg>
           </div>
-          <h3 class="text-xl font-bold text-charcoal mb-2">Vans</h3>
+          <h3 class="text-xl font-bold text-charcoal mb-2">Van Conversions</h3>
           <p class="text-muted-foreground text-sm leading-relaxed">
-            Sprinters, HiAces, Transits — turn your van into a home on wheels. Full kitchens, beds, water systems and off-grid power designed to maximise every inch.
-          </p>
-        </div>
-
-        <!-- Work Vehicles -->
-        <div class="bg-white rounded-xl p-8 border border-stone-dark/10 hover:border-sand/40 transition-colors">
-          <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-5">
-            <svg class="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085" />
-            </svg>
-          </div>
-          <h3 class="text-xl font-bold text-charcoal mb-2">Work Vehicles</h3>
-          <p class="text-muted-foreground text-sm leading-relaxed">
-            Organised, efficient workspaces on wheels. Tool storage, drawer systems and custom layouts that keep your gear secure and accessible on every job.
+            Sprinters, HiAces, Transits and Crafters. Full conversions with kitchens, beds, water systems and off-grid power — designed to maximise every inch of space.
           </p>
         </div>
       </div>
@@ -94,30 +222,33 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
       <div class="text-center mb-16">
         <p class="text-sand-dark font-medium text-sm uppercase tracking-widest mb-3" data-animate="fade-in">How It Works</p>
         <h2 class="text-3xl sm:text-4xl font-bold text-charcoal" data-animate="fade-up">
-          From conversation to adventure.<br />Four simple steps.
+          How your vehicle fit-out works
         </h2>
+        <p class="text-muted-foreground mt-4 max-w-2xl mx-auto" data-animate="fade-up">
+          From first conversation to hitting the road — four steps, no guesswork. You see the design before we build, so you know exactly what you're getting.
+        </p>
       </div>
 
       <div class="grid md:grid-cols-4 gap-8" data-animate="stagger">
         <div class="text-center">
           <div class="w-14 h-14 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">1</div>
-          <h3 class="font-bold text-charcoal mb-2">Consultation</h3>
-          <p class="text-sm text-muted-foreground">Tell us about your vehicle, how you use it, and what you need. We'll figure out the best setup together.</p>
+          <h3 class="font-bold text-charcoal mb-2">Free Consultation</h3>
+          <p class="text-sm text-muted-foreground">Tell us about your vehicle, how you use it, and what you need. We'll figure out the best setup together — no cost, no commitment.</p>
         </div>
         <div class="text-center">
           <div class="w-14 h-14 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">2</div>
-          <h3 class="font-bold text-charcoal mb-2">3D Design</h3>
-          <p class="text-sm text-muted-foreground">See your fit-out in full 3D before we cut a single piece. Adjust the layout until it's exactly right.</p>
+          <h3 class="font-bold text-charcoal mb-2">3D Design Preview</h3>
+          <p class="text-sm text-muted-foreground">See your fit-out in full 3D before we cut a single piece. Adjust the layout, move things around, and approve the design when it's exactly right.</p>
         </div>
         <div class="text-center">
           <div class="w-14 h-14 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">3</div>
-          <h3 class="font-bold text-charcoal mb-2">Build</h3>
-          <p class="text-sm text-muted-foreground">We build your fit-out from premium laminated plywood — lightweight, strong and built to handle Australian conditions.</p>
+          <h3 class="font-bold text-charcoal mb-2">CNC Cut & Build</h3>
+          <p class="text-sm text-muted-foreground">Every panel is CNC-cut from premium laminated plywood to millimetre precision, then hand-assembled in our Gold Coast workshop — lightweight, strong and built to handle Australian conditions.</p>
         </div>
         <div class="text-center">
           <div class="w-14 h-14 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">4</div>
           <h3 class="font-bold text-charcoal mb-2">Install & Go</h3>
-          <p class="text-sm text-muted-foreground">We install everything, run you through the systems, and send you off. You're ready to explore.</p>
+          <p class="text-sm text-muted-foreground">We install everything, run you through the systems, and hand back the keys. You're ready to explore.</p>
         </div>
       </div>
     </div>
@@ -129,8 +260,11 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
       <div class="text-center mb-16">
         <p class="text-sand-dark font-medium text-sm uppercase tracking-widest mb-3" data-animate="fade-in">Why Bushbound</p>
         <h2 class="text-3xl sm:text-4xl font-bold text-charcoal" data-animate="fade-up">
-          Built different. Built to last.
+          Why choose a professional vehicle fit-out
         </h2>
+        <p class="text-muted-foreground mt-4 max-w-2xl mx-auto" data-animate="fade-up">
+          DIY builds take months, generic off-the-shelf kits waste space, and cheap installs rattle themselves apart on corrugations. We design in 3D, CNC-cut every panel to millimetre precision, and build fit-outs made for your vehicle, your trip and your life.
+        </p>
       </div>
 
       <div class="grid md:grid-cols-2 gap-x-16 gap-y-10" data-animate="stagger">
@@ -142,8 +276,8 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
             </svg>
           </div>
           <div>
-            <h3 class="font-bold text-charcoal mb-1">See It Before We Build It</h3>
-            <p class="text-sm text-muted-foreground">Full 3D renders of your fit-out so there are no surprises. Adjust the design until it's perfect.</p>
+            <h3 class="font-bold text-charcoal mb-1">3D Design Before We Build</h3>
+            <p class="text-sm text-muted-foreground">Every fit-out starts with a full 3D render. You see the cabinetry, layout, and placement before we cut anything — so there are no surprises and no wasted money.</p>
           </div>
         </div>
 
@@ -154,8 +288,8 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
             </svg>
           </div>
           <div>
-            <h3 class="font-bold text-charcoal mb-1">Premium Laminated Plywood</h3>
-            <p class="text-sm text-muted-foreground">Lightweight, incredibly strong and purpose-built for the vibrations and temperature swings of life on the road.</p>
+            <h3 class="font-bold text-charcoal mb-1">CNC-Cut Premium Plywood</h3>
+            <p class="text-sm text-muted-foreground">Every component is CNC-cut to millimetre precision from premium laminated plywood. Lighter than aluminium, absorbs vibrations instead of amplifying them, and gives your vehicle a warm, liveable interior. No hand-measuring, no guesswork — just perfect fits every time.</p>
           </div>
         </div>
 
@@ -166,8 +300,8 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
             </svg>
           </div>
           <div>
-            <h3 class="font-bold text-charcoal mb-1">12V, 24V & 48V Power</h3>
-            <p class="text-sm text-muted-foreground">From basic dual-battery to full off-grid solar systems. We design and install the right power setup for how you travel.</p>
+            <h3 class="font-bold text-charcoal mb-1">Off-Grid Power Systems (12V, 24V & 48V)</h3>
+            <p class="text-sm text-muted-foreground">From a basic dual-battery for weekenders to full solar-ready 48V systems for extended off-grid travel. We design and install the right power setup for how you actually travel.</p>
           </div>
         </div>
 
@@ -178,20 +312,8 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
             </svg>
           </div>
           <div>
-            <h3 class="font-bold text-charcoal mb-1">Self-Sustainability Built In</h3>
-            <p class="text-sm text-muted-foreground">Cabinetry, water and power — everything you need to be self-sufficient out in the bush, all designed as one integrated system.</p>
-          </div>
-        </div>
-
-        <div class="flex gap-4">
-          <div class="w-10 h-10 bg-sand/20 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-            <svg class="w-5 h-5 text-sand-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-            </svg>
-          </div>
-          <div>
-            <h3 class="font-bold text-charcoal mb-1">Flat Packs Coming Soon</h3>
-            <p class="text-sm text-muted-foreground">Prefer to build it yourself? We're launching pre-designed flat pack kits — CNC cut, labelled and ready to assemble.</p>
+            <h3 class="font-bold text-charcoal mb-1">Cabinetry, Water & Power — One Builder</h3>
+            <p class="text-sm text-muted-foreground">No juggling three different tradespeople. We handle cabinetry, water systems and electrical as one integrated build — everything works together from day one. Every build comes with a 12-month warranty.</p>
           </div>
         </div>
 
@@ -203,10 +325,507 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
             </svg>
           </div>
           <div>
-            <h3 class="font-bold text-charcoal mb-1">Gold Coast Based</h3>
-            <p class="text-sm text-muted-foreground">Built on the Gold Coast, Queensland. Drop in for a chat, check out a build in progress, or book a consultation.</p>
+            <h3 class="font-bold text-charcoal mb-1">Built on the Gold Coast, QLD</h3>
+            <p class="text-sm text-muted-foreground">Based on the Gold Coast, Queensland. Drop into the workshop, see a build in progress, and chat through your ideas face to face. We service the Gold Coast, Brisbane, and South East QLD.</p>
           </div>
         </div>
+
+        <div class="flex gap-4">
+          <div class="w-10 h-10 bg-sand/20 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+            <svg class="w-5 h-5 text-sand-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-charcoal mb-1">Hand-Lacquered & Waterproofed</h3>
+            <p class="text-sm text-muted-foreground">Every exposed surface gets a hand-applied matte lacquer finish — completely waterproofing the build. It stops moisture getting in, prevents swelling and delamination, and keeps your fit-out looking good for years. Most builders skip this step. We don't.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="section-padding bg-stone" id="pricing">
+    <div class="container-narrow">
+      <div class="text-center mb-16">
+        <p class="text-sand-dark font-medium text-sm uppercase tracking-widest mb-3" data-animate="fade-in">Pricing Guide</p>
+        <h2 class="text-3xl sm:text-4xl font-bold text-charcoal" data-animate="fade-up">
+          Vehicle fit-out pricing
+        </h2>
+        <p class="text-muted-foreground mt-4 max-w-2xl mx-auto" data-animate="fade-up">
+          Every build is different, but here's a realistic guide so you can plan your budget. All prices include 3D design, materials, professional installation and a 12-month warranty.
+        </p>
+      </div>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6" data-animate="stagger">
+        <!-- Essentials -->
+        <div class="bg-white rounded-xl p-6 border border-stone-dark/10 flex flex-col">
+          <p class="text-xs font-semibold text-sand-dark uppercase tracking-wider mb-2">Essentials</p>
+          <h3 class="text-2xl font-bold text-charcoal mb-1">$2.5K — $5K</h3>
+          <p class="text-sm text-muted-foreground mb-4">Cabinetry & storage</p>
+          <ul class="text-sm text-muted-foreground space-y-2 flex-1">
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Custom cabinetry</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Drawer systems</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Sleeping platform</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 3D design included</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 3–5 day install</li>
+          </ul>
+          <a href="/quote?type=cabinetry" class="mt-6 inline-flex items-center justify-center w-full py-3 border-2 border-primary text-primary font-semibold text-sm rounded-md hover:bg-primary hover:text-primary-foreground transition-colors">
+            Get a Quote
+          </a>
+        </div>
+
+        <!-- Touring -->
+        <div class="bg-white rounded-xl p-6 border border-stone-dark/10 flex flex-col">
+          <p class="text-xs font-semibold text-sand-dark uppercase tracking-wider mb-2">Touring</p>
+          <h3 class="text-2xl font-bold text-charcoal mb-1">$5K — $15K</h3>
+          <p class="text-sm text-muted-foreground mb-4">Small — medium vehicles</p>
+          <ul class="text-sm text-muted-foreground space-y-2 flex-1">
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Full cabinetry</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 12V power, solar ready</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 3D design included</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Proven layout</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 3–5 day install</li>
+          </ul>
+          <a href="/quote?type=full-custom" class="mt-6 inline-flex items-center justify-center w-full py-3 border-2 border-primary text-primary font-semibold text-sm rounded-md hover:bg-primary hover:text-primary-foreground transition-colors">
+            Get a Quote
+          </a>
+        </div>
+
+        <!-- Expedition -->
+        <div class="bg-white rounded-xl p-6 border-2 border-primary flex flex-col relative">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full">Most Popular</div>
+          <p class="text-xs font-semibold text-sand-dark uppercase tracking-wider mb-2">Expedition</p>
+          <h3 class="text-2xl font-bold text-charcoal mb-1">$15K — $30K</h3>
+          <p class="text-sm text-muted-foreground mb-4">Troopys, Sprinters & larger</p>
+          <ul class="text-sm text-muted-foreground space-y-2 flex-1">
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Full cabinetry & kitchen</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 12V power, solar ready</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Complete water system</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 3D design included</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Proven or custom layout</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 1–2 week install</li>
+          </ul>
+          <a href="/quote?type=full-custom" class="mt-6 inline-flex items-center justify-center w-full py-3 bg-primary text-primary-foreground font-semibold text-sm rounded-md hover:bg-primary-light transition-colors">
+            Get a Quote
+          </a>
+        </div>
+
+        <!-- Luxury Custom -->
+        <div class="bg-white rounded-xl p-6 border border-stone-dark/10 flex flex-col">
+          <p class="text-xs font-semibold text-sand-dark uppercase tracking-wider mb-2">Luxury Custom</p>
+          <h3 class="text-2xl font-bold text-charcoal mb-1">$30K+</h3>
+          <p class="text-sm text-muted-foreground mb-4">Purpose-built, no compromises</p>
+          <ul class="text-sm text-muted-foreground space-y-2 flex-1">
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Everything in Expedition</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 24V / 48V power options</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Fully custom design</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Premium finishes</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 1–2 week install</li>
+          </ul>
+          <a href="/quote?type=full-custom" class="mt-6 inline-flex items-center justify-center w-full py-3 border-2 border-primary text-primary font-semibold text-sm rounded-md hover:bg-primary hover:text-primary-foreground transition-colors">
+            Get a Quote
+          </a>
+        </div>
+      </div>
+
+      <p class="text-center text-sm text-muted-foreground mt-8" data-animate="fade-in">
+        Not sure which tier fits? <a href="/quote?type=consultation" class="text-primary font-medium underline underline-offset-2">Book a free consultation</a> and we'll figure it out together.
+      </p>
+    </div>
+  </section>
+
+  <!-- FLAT PACK WAITLIST -->
+  <section class="section-padding-sm bg-charcoal text-stone-light" id="flatpacks">
+    <div class="container-narrow">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+        <div class="max-w-lg">
+          <p class="text-sand font-medium text-sm uppercase tracking-widest mb-2">Coming Soon</p>
+          <h2 class="text-2xl sm:text-3xl font-bold mb-3" data-animate="fade-up">
+            DIY Flat Pack Fit-Out Kits
+          </h2>
+          <p class="text-stone-dark" data-animate="fade-up">
+            Prefer to build it yourself? We're launching pre-designed flat pack vehicle fit-out kits — CNC cut from premium plywood, labelled and ready to assemble. Same quality materials, your hands. Enter your details to be first in line.
+          </p>
+        </div>
+        <form id="flatpack-form" class="flex flex-col gap-3 w-full md:max-w-sm shrink-0" data-animate="fade-up">
+          <input
+            type="email"
+            name="email"
+            required
+            placeholder="Your email"
+            class="w-full px-4 py-3 rounded-md bg-charcoal-light border border-stone-dark/20 text-stone-light placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-sand/40 focus:border-sand transition-colors"
+          />
+          <input
+            type="text"
+            name="rego"
+            placeholder="Rego plate (optional — finds your vehicle)"
+            class="w-full px-4 py-3 rounded-md bg-charcoal-light border border-stone-dark/20 text-stone-light placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-sand/40 focus:border-sand transition-colors"
+          />
+          <button
+            type="submit"
+            class="w-full px-6 py-3 bg-sand text-charcoal font-bold rounded-md hover:bg-sand-light transition-colors"
+          >
+            Notify Me
+          </button>
+          <p id="flatpack-success" class="hidden text-sand text-sm font-medium">You're on the list. We'll be in touch.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const flatpackForm = document.getElementById('flatpack-form') as HTMLFormElement;
+    flatpackForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(flatpackForm));
+      try {
+        await fetch('/api/flatpack-waitlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+      } catch { /* silent fail — we show success anyway for UX */ }
+      flatpackForm.innerHTML = '';
+      document.getElementById('flatpack-success')?.classList.remove('hidden');
+      flatpackForm.appendChild(document.getElementById('flatpack-success')!);
+    });
+  </script>
+
+  <!-- Hero animation styles -->
+  <style>
+    #vj-wheel-rear, #vj-wheel-front {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    .review-marquee {
+      animation: marquee 50s linear infinite;
+    }
+    .review-marquee:hover {
+      animation-play-state: paused;
+    }
+    @keyframes marquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #vehicle-scene, #vj-shooting-stars { display: none; }
+      .review-marquee { animation: none; }
+    }
+  </style>
+
+  <!-- Hero: Vehicle Journey animation -->
+  <script>
+    import anime from 'animejs';
+
+    (function() {
+      const section = document.getElementById('hero');
+      if (!section) return;
+      let started = false;
+
+      function startAnimation() {
+        if (started) return;
+        started = true;
+
+        const tl = anime.timeline({ easing: 'easeOutCubic' });
+
+        // Phase 1: Scene builds (0–3s)
+        tl.add({ targets: '#vj-stars', opacity: [0, 0.5], duration: 2000, easing: 'easeInOutSine' }, 0);
+        tl.add({ targets: '#vj-mountain-1', opacity: [0, 1], translateY: [60, 0], duration: 1800, easing: 'easeOutQuart' }, 300);
+        tl.add({ targets: '#vj-mountain-2', opacity: [0, 1], translateY: [40, 0], duration: 1500, easing: 'easeOutQuart' }, 800);
+        tl.add({ targets: '#vj-ground', opacity: [0, 1], duration: 1000, easing: 'easeOutQuad' }, 1400);
+        // Back trees (distant, appear first)
+        tl.add({ targets: '#vj-trees-back', opacity: [0, 1], duration: 600 }, 1800);
+        tl.add({ targets: '#vj-trees-back .tree', opacity: [0, 1], delay: anime.stagger(80), duration: 500, easing: 'easeOutCubic' }, 1800);
+        // Front trees (closer, slightly later)
+        tl.add({ targets: '#vj-trees-front', opacity: [0, 1], duration: 600 }, 2200);
+        tl.add({ targets: '#vj-trees-front .tree', opacity: [0, 1], delay: anime.stagger(80), duration: 600, easing: 'easeOutCubic' }, 2200);
+
+        // Phase 2: Vehicle drives along mountain terrain (looping)
+        setTimeout(startTerrainDrive, 3000);
+      }
+
+      function startTerrainDrive() {
+        const path = document.getElementById('vj-drive-path') as unknown as SVGPathElement;
+        const container = document.getElementById('vj-vehicle-container') as unknown as SVGGElement;
+        const wheelRear = document.getElementById('vj-wheel-rear') as unknown as SVGGElement;
+        const wheelFront = document.getElementById('vj-wheel-front') as unknown as SVGGElement;
+        if (!path || !container) return;
+
+        const totalLength = path.getTotalLength();
+        const tripDuration = 18000;
+        const pauseDuration = 1500;
+        const cycleDuration = tripDuration + pauseDuration;
+        let startTime: number | null = null;
+
+        function animate(time: number) {
+          if (startTime === null) startTime = time;
+          const cycleTime = (time - startTime) % cycleDuration;
+
+          if (cycleTime > tripDuration) {
+            container.setAttribute('opacity', '0');
+            requestAnimationFrame(animate);
+            return;
+          }
+
+          container.setAttribute('opacity', '1');
+
+          // easeInOutQuad for natural accel/decel
+          let t = cycleTime / tripDuration;
+          t = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+          const lengthAt = t * totalLength;
+          const point = path.getPointAtLength(lengthAt);
+
+          // Terrain angle from tangent
+          const delta = 3;
+          const p1 = path.getPointAtLength(Math.max(0, lengthAt - delta));
+          const p2 = path.getPointAtLength(Math.min(totalLength, lengthAt + delta));
+          const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * (180 / Math.PI);
+
+          container.setAttribute('transform',
+            `translate(${point.x}, ${point.y}) rotate(${angle})`
+          );
+
+          // Spin wheels proportional to distance
+          const wheelAngle = t * 360 * 25;
+          if (wheelRear) wheelRear.style.transform = `rotate(${wheelAngle}deg)`;
+          if (wheelFront) wheelFront.style.transform = `rotate(${wheelAngle}deg)`;
+
+          requestAnimationFrame(animate);
+        }
+
+        requestAnimationFrame(animate);
+      }
+
+      startAnimation();
+    })();
+  </script>
+
+  <!-- Hero: Shooting stars -->
+  <script>
+    (function() {
+      const canvas = document.getElementById('vj-shooting-stars') as HTMLCanvasElement;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d')!;
+      let animId: number;
+      let running = false;
+
+      interface ShootingStar {
+        x: number; y: number; vx: number; vy: number;
+        life: number; maxLife: number; size: number;
+      }
+
+      const shootingStars: ShootingStar[] = [];
+      let nextShoot = 0;
+
+      function resize() {
+        const section = canvas.parentElement!;
+        canvas.width = section.clientWidth;
+        canvas.height = section.clientHeight;
+      }
+
+      function spawnShootingStar(time: number) {
+        shootingStars.push({
+          x: Math.random() * canvas.width * 0.7,
+          y: Math.random() * canvas.height * 0.35,
+          vx: Math.cos(Math.PI * 0.15 + Math.random() * 0.2) * (8 + Math.random() * 6),
+          vy: Math.sin(Math.PI * 0.15 + Math.random() * 0.2) * (8 + Math.random() * 6),
+          life: 0,
+          maxLife: 40 + Math.random() * 30,
+          size: 1.5 + Math.random() * 1.5,
+        });
+        nextShoot = time + 3000 + Math.random() * 4000;
+      }
+
+      function draw(time: number) {
+        if (!running) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (time > nextShoot) spawnShootingStar(time);
+
+        for (let i = shootingStars.length - 1; i >= 0; i--) {
+          const ss = shootingStars[i];
+          ss.x += ss.vx; ss.y += ss.vy; ss.life++;
+          const progress = ss.life / ss.maxLife;
+          const alpha = progress < 0.1 ? progress * 10 : Math.max(0, 1 - (progress - 0.1) / 0.9);
+
+          const hyp = Math.hypot(ss.vx, ss.vy);
+          const tailX = ss.x - (ss.vx * 80 / hyp);
+          const tailY = ss.y - (ss.vy * 80 / hyp);
+
+          const grad = ctx.createLinearGradient(ss.x, ss.y, tailX, tailY);
+          grad.addColorStop(0, `rgba(245, 240, 235, ${alpha * 0.9})`);
+          grad.addColorStop(1, `rgba(245, 240, 235, 0)`);
+
+          ctx.beginPath(); ctx.moveTo(ss.x, ss.y); ctx.lineTo(tailX, tailY);
+          ctx.strokeStyle = grad; ctx.lineWidth = ss.size; ctx.lineCap = 'round'; ctx.stroke();
+
+          ctx.beginPath(); ctx.arc(ss.x, ss.y, ss.size * 1.5, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(245, 240, 235, ${alpha * 0.6})`; ctx.fill();
+
+          if (ss.life >= ss.maxLife) shootingStars.splice(i, 1);
+        }
+        animId = requestAnimationFrame(draw);
+      }
+
+      const section = canvas.parentElement!;
+      const observer = new IntersectionObserver(([entry]) => {
+        if (entry.isIntersecting && !running) {
+          running = true; resize();
+          nextShoot = performance.now() + 2000;
+          animId = requestAnimationFrame(draw);
+        } else if (!entry.isIntersecting && running) {
+          running = false; cancelAnimationFrame(animId);
+        }
+      }, { threshold: 0.05 });
+
+      window.addEventListener('resize', resize);
+      observer.observe(section);
+    })();
+  </script>
+
+  <!-- FAQ -->
+  <section class="section-padding bg-background" id="faq">
+    <div class="container-narrow max-w-3xl">
+      <div class="text-center mb-16">
+        <p class="text-sand-dark font-medium text-sm uppercase tracking-widest mb-3" data-animate="fade-in">FAQ</p>
+        <h2 class="text-3xl sm:text-4xl font-bold text-charcoal" data-animate="fade-up">
+          Vehicle fit-out questions answered
+        </h2>
+      </div>
+
+      <div class="space-y-4" data-animate="stagger">
+        <details class="group bg-white rounded-xl border border-stone-dark/10 overflow-hidden">
+          <summary class="flex items-center justify-between p-6 cursor-pointer font-semibold text-charcoal hover:text-primary transition-colors">
+            How long does a vehicle fit-out take?
+            <svg class="w-5 h-5 shrink-0 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+          </summary>
+          <div class="px-6 pb-6 text-sm text-muted-foreground">
+            The full process — design, build and install — takes 8–12 weeks from deposit, depending on complexity. Your vehicle is only with us for the installation: 3–5 days for Essentials and Touring builds, or 1–2 weeks for Expedition and Luxury Custom builds. We'll give you a clear timeline during the consultation.
+          </div>
+        </details>
+
+        <details class="group bg-white rounded-xl border border-stone-dark/10 overflow-hidden">
+          <summary class="flex items-center justify-between p-6 cursor-pointer font-semibold text-charcoal hover:text-primary transition-colors">
+            What area do you service?
+            <svg class="w-5 h-5 shrink-0 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+          </summary>
+          <div class="px-6 pb-6 text-sm text-muted-foreground">
+            All of Australia. Installation is done at our Gold Coast workshop, but we ship flat packs and fully built fit-outs Australia-wide. The only thing we can't ship is 12V batteries and electrical components due to shipping regulations — but the cabinetry and fit-out structure can go anywhere.
+          </div>
+        </details>
+
+        <details class="group bg-white rounded-xl border border-stone-dark/10 overflow-hidden">
+          <summary class="flex items-center justify-between p-6 cursor-pointer font-semibold text-charcoal hover:text-primary transition-colors">
+            What's included in the 3D design?
+            <svg class="w-5 h-5 shrink-0 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+          </summary>
+          <div class="px-6 pb-6 text-sm text-muted-foreground">
+            Think of it as try-before-you-buy. You see your full fit-out in 3D — cabinetry, drawers, sleeping setup, kitchen, power and water placement — before we cut a single piece. It catches mistakes early and lets you tweak the layout until you're 100% happy. It's cheaper and faster to change a 3D model than a physical build, so you never end up saying "next time I'd do it differently."
+          </div>
+        </details>
+
+        <details class="group bg-white rounded-xl border border-stone-dark/10 overflow-hidden">
+          <summary class="flex items-center justify-between p-6 cursor-pointer font-semibold text-charcoal hover:text-primary transition-colors">
+            Why laminated plywood instead of aluminium?
+            <svg class="w-5 h-5 shrink-0 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+          </summary>
+          <div class="px-6 pb-6 text-sm text-muted-foreground">
+            It's lighter than most people think, easier to work with, and absorbs vibrations instead of amplifying them — so no rattling on corrugations. Every piece is CNC-cut to millimetre precision, so the fit is perfect every time. It gives a warmer, more liveable interior compared to metal, and it's easier to modify later if your setup changes.
+          </div>
+        </details>
+
+        <details class="group bg-white rounded-xl border border-stone-dark/10 overflow-hidden">
+          <summary class="flex items-center justify-between p-6 cursor-pointer font-semibold text-charcoal hover:text-primary transition-colors">
+            What finishes and colours are available?
+            <svg class="w-5 h-5 shrink-0 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+          </summary>
+          <div class="px-6 pb-6 text-sm text-muted-foreground">
+            After your 3D design is approved, you choose from three finish levels. <strong>All Laminate</strong> — laminated plywood drawer fronts and tops in white, black, timber or green. <strong>Hybrid</strong> — laminated plywood drawer fronts with marine carpet tops and sliding bed. <strong>Full Carpet</strong> — marine carpet drawer fronts, tops, sliding bed and gull wings. Marine carpet comes in any colour — black, grey, beige and dark navy are the most popular. We can also do a raw plywood finish for the natural look. All exposed plywood surfaces are hand-lacquered as standard to prevent moisture damage.
+          </div>
+        </details>
+
+        <details class="group bg-white rounded-xl border border-stone-dark/10 overflow-hidden">
+          <summary class="flex items-center justify-between p-6 cursor-pointer font-semibold text-charcoal hover:text-primary transition-colors">
+            Can I remove the fit-out without damaging my vehicle?
+            <svg class="w-5 h-5 shrink-0 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+          </summary>
+          <div class="px-6 pb-6 text-sm text-muted-foreground">
+            Yes. We use factory bolt holes wherever possible. If we need to add mounting points, we use rivets that are painted and rust-proofed before installation. Once the fit-out is removed, you're left with a few small holes that look like factory bolt holes — easy to cover with a bolt until you want the fit-out back in.
+          </div>
+        </details>
+
+        <details class="group bg-white rounded-xl border border-stone-dark/10 overflow-hidden">
+          <summary class="flex items-center justify-between p-6 cursor-pointer font-semibold text-charcoal hover:text-primary transition-colors">
+            What's the deposit and payment process?
+            <svg class="w-5 h-5 shrink-0 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+          </summary>
+          <div class="px-6 pb-6 text-sm text-muted-foreground">
+            Three stages. A $500 deposit kicks off the 3D design process — that covers the labour to model your fit-out. Once you approve the design and commit to the build, there's a materials deposit (roughly 60% of the build cost). The remaining balance is paid when you pick up the vehicle and you're happy with everything.
+          </div>
+        </details>
+
+        <details class="group bg-white rounded-xl border border-stone-dark/10 overflow-hidden">
+          <summary class="flex items-center justify-between p-6 cursor-pointer font-semibold text-charcoal hover:text-primary transition-colors">
+            Do I own the 3D designs?
+            <svg class="w-5 h-5 shrink-0 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+          </summary>
+          <div class="px-6 pb-6 text-sm text-muted-foreground">
+            No. The $500 deposit covers the labour to design your fit-out. You get to view, review and approve the 3D model, but the design files remain Bushbound's intellectual property. We don't sell or share 3D models.
+          </div>
+        </details>
+
+        <details class="group bg-white rounded-xl border border-stone-dark/10 overflow-hidden">
+          <summary class="flex items-center justify-between p-6 cursor-pointer font-semibold text-charcoal hover:text-primary transition-colors">
+            Do you offer warranty on your builds?
+            <svg class="w-5 h-5 shrink-0 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+          </summary>
+          <div class="px-6 pb-6 text-sm text-muted-foreground">
+            12-month warranty on all craftsmanship. Electrical components and appliances carry their manufacturer's warranty — for example, Victron is 5 years, Bushman fridges are 7 years. If something isn't right, we'll sort it out.
+          </div>
+        </details>
+
+        <details class="group bg-white rounded-xl border border-stone-dark/10 overflow-hidden">
+          <summary class="flex items-center justify-between p-6 cursor-pointer font-semibold text-charcoal hover:text-primary transition-colors">
+            What power system do I need?
+            <svg class="w-5 h-5 shrink-0 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+          </summary>
+          <div class="px-6 pb-6 text-sm text-muted-foreground">
+            Depends on how you travel. Our minimum recommendation is 200Ah of lithium — that'll cover weekend getaways comfortably (100Ah drains too fast). If you want creature comforts like a coffee machine, microwave or air fryer, we offer inverter setups too. Our primary offering is 12V. 24V and 48V systems are available in our custom tier, installed by a certified auto electrician. All electrical work across every build is done by a certified auto sparky — fully compliant and insurance-covered.
+          </div>
+        </details>
+
+        <details class="group bg-white rounded-xl border border-stone-dark/10 overflow-hidden">
+          <summary class="flex items-center justify-between p-6 cursor-pointer font-semibold text-charcoal hover:text-primary transition-colors">
+            Can I add to my fit-out later?
+            <svg class="w-5 h-5 shrink-0 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+          </summary>
+          <div class="px-6 pb-6 text-sm text-muted-foreground">
+            Yes. Small modifications and additions go through the same 3D design process and are quoted separately. For major changes, we normally recommend selling the existing fit-out — someone else would love to have it — and starting fresh with exactly what you want. Plenty of our customers sell their fit-out with the old car and come back for a new build.
+          </div>
+        </details>
+
+        <details class="group bg-white rounded-xl border border-stone-dark/10 overflow-hidden">
+          <summary class="flex items-center justify-between p-6 cursor-pointer font-semibold text-charcoal hover:text-primary transition-colors">
+            Do you provide a loaner vehicle during the build?
+            <svg class="w-5 h-5 shrink-0 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+          </summary>
+          <div class="px-6 pb-6 text-sm text-muted-foreground">
+            Not at the moment — we're looking into making this possible for our customers. For now, it works like a mechanic: you drop your vehicle off and pick it back up when the install is done.
+          </div>
+        </details>
+
+        <details class="group bg-white rounded-xl border border-stone-dark/10 overflow-hidden">
+          <summary class="flex items-center justify-between p-6 cursor-pointer font-semibold text-charcoal hover:text-primary transition-colors">
+            Can I visit the workshop?
+            <svg class="w-5 h-5 shrink-0 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+          </summary>
+          <div class="px-6 pb-6 text-sm text-muted-foreground">
+            Absolutely. Come see a build in progress, touch the materials, and chat through your ideas in person. Just give us a call to arrange a time.
+          </div>
+        </details>
       </div>
     </div>
   </section>
@@ -215,10 +834,10 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
   <section class="section-padding bg-primary text-primary-foreground">
     <div class="container-narrow text-center">
       <h2 class="text-3xl sm:text-4xl font-bold mb-4" data-animate="fade-up">
-        Ready to build yours?
+        Ready to start your vehicle fit-out?
       </h2>
       <p class="text-lg text-stone-dark max-w-xl mx-auto mb-8" data-animate="fade-up">
-        Tell us about your vehicle and how you want to use it. We'll get back to you with ideas and a rough quote — no commitment, no pressure.
+        Tell us about your vehicle and how you want to use it. We'll get back to you with ideas and a realistic quote — no commitment, no pressure.
       </p>
       <a
         href="/quote"

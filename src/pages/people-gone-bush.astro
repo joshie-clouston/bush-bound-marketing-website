@@ -1,0 +1,122 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+const customers = [
+  {
+    name: 'Joshua C.',
+    tags: ['Toyota', 'Land Cruiser', 'Troopy'],
+    testimonial: "Luke's willingness to listen and ability to turn my ideas into reality was an amazing experience. My Troopy has 2 fridges, 2 drawers, a pull out table and a pull out bed. I can drive 4 people around town and take 4 people camping. Then I can fold the seats down to slide out my bed. Highly recommend going with Bushbound to just get it done right the first time. Absolutely stoked!",
+    image: null,
+  },
+  {
+    name: 'Brock C.',
+    tags: ['Toyota', 'Land Cruiser', '100 Series'],
+    testimonial: "Great fitout! Super high attention to detail, quick turn around time, and clear communication throughout. Super down to earth and easy to work with guy. Would definitely come back for another job if I wasn't so thrilled with this set up.",
+    image: null,
+  },
+  {
+    name: 'Luke W.',
+    tags: ['Volkswagen', 'Transporter'],
+    testimonial: "Luke and the Team at Bushbound absolutely nailed it. Couldn't have asked for a better build. The effort and attention to detail is what sets them apart. Highly recommended and I'll definitely be doing builds with the team again in the future.",
+    image: null,
+  },
+  {
+    name: 'Mick D.',
+    tags: ['Toyota', 'Land Cruiser', '80 Series'],
+    testimonial: "Deadset luke is a legend, from top to bottom full custom design/fit-out. Workmanship is top quality and materials/accessories he used are top notch! Do yaself a favour and give him a call for a fit out.",
+    image: null,
+  },
+  {
+    name: 'Katrina S.',
+    tags: ['Volkswagen', 'Multivan'],
+    testimonial: "Luke @ Bushbound fitted out my VW multivan. I only wanted a lightweight 3/4 fitout, which included an extra big single bed, small fridge, some drawers and a battery. I wanted extra space for bike or boards. Luke did a great job. Very happy with it. Plenty of storage now with 4 decent drawers and 1 massive drawer. Can't wait to get on the road.",
+    image: null,
+  },
+  {
+    name: 'Jacob H.',
+    tags: ['Toyota', 'Land Cruiser', '76 Series'],
+    testimonial: "Super creative and full of solutions to problems before they happen! Luke helped me out with some finishing details and helped me get 2 more smaller boxes for a home project. Everything fit perfectly and designed perfectly for my requirements and design! Thanks Bushbound for making my thoughts come to life!",
+    image: null,
+  },
+  {
+    name: 'Jack R.',
+    tags: ['Toyota', 'Prado', '150 Series'],
+    testimonial: "Luke is an absolute legend and put together the perfect install on my Prado, highly recommend a Bushbound fit out!",
+    image: null,
+  },
+  {
+    name: 'Norman H.',
+    tags: ['Toyota', 'Land Cruiser', 'Troopy'],
+    testimonial: "Luke done a brilliant job and was so helpful with the planning of this perfect build. Highly recommended, absolute legend.",
+    image: null,
+  },
+  {
+    name: 'Russell H.',
+    tags: ['Chevrolet', 'Silverado'],
+    testimonial: "Excellent work, precisely neat and very well presented.",
+    image: null,
+  },
+];
+---
+
+<BaseLayout title="People Gone Bush | Bushbound" description="Real customers, real builds, real adventures. See what Bushbound fit-outs look like on the road.">
+
+  <section class="section-padding bg-background">
+    <div class="container-narrow">
+      <a href="/" class="inline-flex items-center text-sm text-primary font-medium mb-8 hover:text-primary-light transition-colors">
+        <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+        </svg>
+        Back to home
+      </a>
+
+      <div class="text-center mb-16">
+        <p class="text-sand-dark font-medium text-sm uppercase tracking-widest mb-3" data-animate="fade-in">Testimonials</p>
+        <h1 class="text-3xl sm:text-4xl font-bold text-charcoal mb-4" data-animate="fade-up">
+          People Gone Bush
+        </h1>
+        <p class="text-muted-foreground text-lg max-w-2xl mx-auto" data-animate="fade-up">
+          Real customers, real builds, real adventures. Here's what happens after a Bushbound fit-out.
+        </p>
+      </div>
+
+      <div class="space-y-12" data-animate="stagger">
+        {customers.map((customer) => (
+          <article class="bg-white rounded-xl border border-stone-dark/10 overflow-hidden">
+            {customer.image && (
+              <div class="aspect-video bg-stone">
+                <img src={customer.image} alt={`${customer.name}'s ${customer.vehicle}`} class="w-full h-full object-cover" />
+              </div>
+            )}
+            {!customer.image && (
+              <div class="aspect-video bg-stone flex items-center justify-center">
+                <p class="text-muted-foreground text-sm">Photo coming soon</p>
+              </div>
+            )}
+            <div class="p-8">
+              <div class="flex flex-wrap gap-2 mb-4">
+                {customer.tags.map((tag: string) => (
+                  <span class="inline-flex items-center px-3 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full">{tag}</span>
+                ))}
+              </div>
+              <h2 class="text-xl font-bold text-charcoal mb-2">{customer.name}</h2>
+              <blockquote class="border-l-4 border-sand pl-4 italic text-muted-foreground">
+                "{customer.testimonial}"
+              </blockquote>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <!-- CTA -->
+      <div class="mt-16 text-center" data-animate="fade-up">
+        <h2 class="text-2xl font-bold text-charcoal mb-3">Want to be next?</h2>
+        <p class="text-muted-foreground mb-6">Get your fit-out sorted and join the crew.</p>
+        <a href="/quote" class="inline-flex items-center justify-center px-8 py-4 bg-primary text-primary-foreground font-bold rounded-md hover:bg-primary-light transition-colors">
+          Get a Free Quote
+        </a>
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>

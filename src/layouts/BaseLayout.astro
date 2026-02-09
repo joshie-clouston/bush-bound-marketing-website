@@ -1,5 +1,6 @@
 ---
 import '@/assets/styles/global.css';
+import AnnouncementBar from '@/components/layout/AnnouncementBar.astro';
 import Header from '@/components/layout/Header.astro';
 import Footer from '@/components/layout/Footer.astro';
 
@@ -8,7 +9,7 @@ interface Props {
   description?: string;
 }
 
-const { title, description = 'Custom vehicle fit-outs for 4WDs, vans and work vehicles. Consultation, 3D design, build and install. Gold Coast, Queensland.' } = Astro.props;
+const { title, description = 'Custom 4WD and van fit-outs on the Gold Coast, QLD. Expedition cabinetry, water systems and off-grid power — designed in 3D, built from premium plywood and professionally installed.' } = Astro.props;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
@@ -37,6 +38,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <title>{title}</title>
   </head>
   <body class="min-h-screen flex flex-col">
+    <AnnouncementBar />
     <Header />
     <main class="flex-1">
       <slot />

@@ -33,7 +33,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
             required
             autofocus
             class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors"
-            placeholder="Your name"
+            placeholder="Ben Dover"
           />
         </div>
 
@@ -46,7 +46,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
             name="email"
             required
             class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors"
-            placeholder="you@example.com"
+            placeholder="ben@dover.com"
           />
         </div>
 
@@ -76,7 +76,6 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
             <option value="troopy">Toyota Troopy / Troop Carrier</option>
             <option value="van">Van (Sprinter, HiAce, Transit, etc.)</option>
             <option value="ute-canopy">Ute with Canopy</option>
-            <option value="work">Work Vehicle</option>
             <option value="other">Other</option>
           </select>
         </div>
@@ -102,13 +101,12 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
             required
             class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors"
           >
-            <option value="">Select a service</option>
-            <option value="full-custom">Full Custom Fit-Out (design + build + install)</option>
-            <option value="flatpack">Flat Pack Kit (when available)</option>
-            <option value="cabinetry">Cabinetry Only</option>
-            <option value="power">Power System (12V / 24V / 48V)</option>
-            <option value="water">Water System</option>
-            <option value="consultation">Just a Consultation</option>
+            <option value="">Select a tier</option>
+            <option value="essentials">Essentials (cabinetry & storage)</option>
+            <option value="touring">Touring (cabinetry, storage & 12V power)</option>
+            <option value="expedition">Expedition (cabinetry, storage, 12V & water)</option>
+            <option value="luxury-custom">Luxury Custom (whatever you can imagine!)</option>
+            <option value="not-sure">Not sure yet — help me figure it out</option>
           </select>
         </div>
 

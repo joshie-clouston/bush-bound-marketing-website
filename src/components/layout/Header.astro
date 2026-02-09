@@ -2,7 +2,7 @@
 import Logo from '@/components/ui/Logo.astro';
 ---
 
-<header class="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-stone-dark/20">
+<header class="fixed top-9 left-0 right-0 z-40 bg-background/90 backdrop-blur-md border-b border-stone-dark/20">
   <div class="container-wide flex items-center justify-between h-16">
     <a href="/" aria-label="Bushbound home">
       <Logo variant="full" class="text-primary" />
@@ -17,4 +17,5 @@ import Logo from '@/components/ui/Logo.astro';
 </header>
 
 <!-- Spacer for fixed header -->
-<div class="h-16" aria-hidden="true"></div>
+<!-- Spacer for announcement bar + fixed header -->
+<div class="h-[6.25rem]" aria-hidden="true"></div>
