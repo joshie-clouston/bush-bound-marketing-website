@@ -6,7 +6,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const runtime = locals.runtime;
 
   try {
-    const { name, email, phone, vehicleType, vehicleModel, serviceType, message } = await request.json();
+    const { name, email, phone, vehicleType, vehicleModel, serviceType, message, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = await request.json();
 
     if (!name || !email || !vehicleType || !serviceType) {
       return new Response(
@@ -17,9 +17,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     // Store in D1
     await runtime.env.DB.prepare(
-      `INSERT INTO quotes (name, email, phone, vehicle_type, vehicle_model, service_type, message, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-    ).bind(name, email, phone || null, vehicleType, vehicleModel || null, serviceType, message || null, Date.now()).run();
+      `INSERT INTO quotes (name, email, phone, vehicle_type, vehicle_model, service_type, message, utm_source, utm_medium, utm_campaign, utm_term, utm_content, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(name, email, phone || null, vehicleType, vehicleModel || null, serviceType, message || null, utm_source || null, utm_medium || null, utm_campaign || null, utm_term || null, utm_content || null, Date.now()).run();
 
     // Send notification email (non-blocking)
     try {
@@ -40,6 +40,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
             <p><strong>Vehicle Model:</strong> ${vehicleModel || 'Not provided'}</p>
             <p><strong>Service:</strong> ${serviceType}</p>
             <p><strong>Message:</strong> ${message || 'No message'}</p>
+            <hr />
+            <p><strong>Source:</strong> ${[utm_source, utm_medium, utm_campaign].filter(Boolean).join(' / ') || 'Direct'}</p>
           `,
         });
       }

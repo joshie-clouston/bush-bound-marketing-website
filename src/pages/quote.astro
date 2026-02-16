@@ -179,11 +179,20 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 
       const data = Object.fromEntries(new FormData(form));
 
+      // Capture UTM params
+      const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+      const utmParams = new URLSearchParams(window.location.search);
+      const utm: Record<string, string> = {};
+      for (const key of utmKeys) {
+        const val = utmParams.get(key);
+        if (val) utm[key] = val;
+      }
+
       try {
         const response = await fetch('/api/quote', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
+          body: JSON.stringify({ ...data, ...utm }),
         });
 
         if (!response.ok) throw new Error('Request failed');

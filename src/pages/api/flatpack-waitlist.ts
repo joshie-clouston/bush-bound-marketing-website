@@ -6,7 +6,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const runtime = locals.runtime;
 
   try {
-    const { email, rego } = await request.json();
+    const { email, rego, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = await request.json();
 
     if (!email) {
       return new Response(
@@ -17,8 +17,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     // Store in D1
     await runtime.env.DB.prepare(
-      `INSERT OR IGNORE INTO flatpack_waitlist (email, rego, created_at) VALUES (?, ?, ?)`
-    ).bind(email, rego || null, Date.now()).run();
+      `INSERT OR IGNORE INTO flatpack_waitlist (email, rego, utm_source, utm_medium, utm_campaign, utm_term, utm_content, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(email, rego || null, utm_source || null, utm_medium || null, utm_campaign || null, utm_term || null, utm_content || null, Date.now()).run();
 
     return new Response(
       JSON.stringify({ success: true }),

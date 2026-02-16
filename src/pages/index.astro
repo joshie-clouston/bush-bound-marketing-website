@@ -480,11 +480,21 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
     flatpackForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const data = Object.fromEntries(new FormData(flatpackForm));
+
+      // Capture UTM params
+      const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+      const utmParams = new URLSearchParams(window.location.search);
+      const utm: Record<string, string> = {};
+      for (const key of utmKeys) {
+        const val = utmParams.get(key);
+        if (val) utm[key] = val;
+      }
+
       try {
         await fetch('/api/flatpack-waitlist', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
+          body: JSON.stringify({ ...data, ...utm }),
         });
       } catch { /* silent fail — we show success anyway for UX */ }
       flatpackForm.innerHTML = '';
