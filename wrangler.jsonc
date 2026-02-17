@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "bushbound",
+  "name": "bush-bound-marketing-website",
   "account_id": "a3122191c8386eb42337be132d64a1ee",
   "main": "dist/_worker.js/index.js",
   "compatibility_date": "2025-01-01",
