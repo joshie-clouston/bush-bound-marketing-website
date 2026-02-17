@@ -5,7 +5,10 @@ import Logo from '@/components/ui/Logo.astro';
 <header class="fixed top-9 left-0 right-0 z-40 bg-background/90 backdrop-blur-md border-b border-stone-dark/20">
   <div class="container-wide flex items-center justify-between h-16">
     <a href="/" aria-label="Bushbound home">
-      <Logo variant="full" class="text-primary" />
+      <div class="flex items-center gap-3">
+        <Logo variant="icon" class="h-10 w-auto text-primary" />
+        <span class="text-xl text-primary uppercase" style="font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.02em; line-height: 1.15;">Bush Bound</span>
+      </div>
     </a>
     <a
       href="/quote"

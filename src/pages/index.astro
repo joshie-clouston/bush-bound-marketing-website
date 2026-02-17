@@ -542,20 +542,20 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
 
         const tl = anime.timeline({ easing: 'easeOutCubic' });
 
-        // Phase 1: Scene builds (0–3s)
-        tl.add({ targets: '#vj-stars', opacity: [0, 0.5], duration: 2000, easing: 'easeInOutSine' }, 0);
-        tl.add({ targets: '#vj-mountain-1', opacity: [0, 1], translateY: [60, 0], duration: 1800, easing: 'easeOutQuart' }, 300);
-        tl.add({ targets: '#vj-mountain-2', opacity: [0, 1], translateY: [40, 0], duration: 1500, easing: 'easeOutQuart' }, 800);
-        tl.add({ targets: '#vj-ground', opacity: [0, 1], duration: 1000, easing: 'easeOutQuad' }, 1400);
+        // Phase 1: Scene builds (0–1.5s)
+        tl.add({ targets: '#vj-stars', opacity: [0, 0.5], duration: 1000, easing: 'easeInOutSine' }, 0);
+        tl.add({ targets: '#vj-mountain-1', opacity: [0, 1], translateY: [60, 0], duration: 900, easing: 'easeOutQuart' }, 100);
+        tl.add({ targets: '#vj-mountain-2', opacity: [0, 1], translateY: [40, 0], duration: 800, easing: 'easeOutQuart' }, 400);
+        tl.add({ targets: '#vj-ground', opacity: [0, 1], duration: 600, easing: 'easeOutQuad' }, 700);
         // Back trees (distant, appear first)
-        tl.add({ targets: '#vj-trees-back', opacity: [0, 1], duration: 600 }, 1800);
-        tl.add({ targets: '#vj-trees-back .tree', opacity: [0, 1], delay: anime.stagger(80), duration: 500, easing: 'easeOutCubic' }, 1800);
+        tl.add({ targets: '#vj-trees-back', opacity: [0, 1], duration: 400 }, 900);
+        tl.add({ targets: '#vj-trees-back .tree', opacity: [0, 1], delay: anime.stagger(50), duration: 400, easing: 'easeOutCubic' }, 900);
         // Front trees (closer, slightly later)
-        tl.add({ targets: '#vj-trees-front', opacity: [0, 1], duration: 600 }, 2200);
-        tl.add({ targets: '#vj-trees-front .tree', opacity: [0, 1], delay: anime.stagger(80), duration: 600, easing: 'easeOutCubic' }, 2200);
+        tl.add({ targets: '#vj-trees-front', opacity: [0, 1], duration: 400 }, 1100);
+        tl.add({ targets: '#vj-trees-front .tree', opacity: [0, 1], delay: anime.stagger(50), duration: 400, easing: 'easeOutCubic' }, 1100);
 
         // Phase 2: Vehicle drives along mountain terrain (looping)
-        setTimeout(startTerrainDrive, 3000);
+        setTimeout(startTerrainDrive, 1000);
       }
 
       function startTerrainDrive() {
