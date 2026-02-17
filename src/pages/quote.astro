@@ -1,4 +1,6 @@
 ---
+export const prerender = true;
+
 import BaseLayout from '@/layouts/BaseLayout.astro';
 ---
 
@@ -163,7 +165,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     const params = new URLSearchParams(window.location.search);
     const serviceParam = params.get('type');
     if (serviceParam) {
-      const serviceSelect = document.getElementById('serviceType') as HTMLSelectElement;
+      const serviceSelect = document.getElementById('serviceType') as unknown as HTMLSelectElement;
       const option = serviceSelect.querySelector(`option[value="${serviceParam}"]`);
       if (option) serviceSelect.value = serviceParam;
     }

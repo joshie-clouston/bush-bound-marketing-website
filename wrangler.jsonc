@@ -1,6 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "bushbound",
+  "account_id": "a3122191c8386eb42337be132d64a1ee",
   "main": "dist/_worker.js/index.js",
   "compatibility_date": "2025-01-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
@@ -16,7 +17,7 @@
     {
       "binding": "DB",
       "database_name": "bushbound-db",
-      "database_id": "placeholder-update-after-creation"
+      "database_id": "78e0f5ae-a066-4179-8897-7e9cdda0325c"
     }
   ],
   "vars": {

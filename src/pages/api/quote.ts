@@ -6,7 +6,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const runtime = locals.runtime;
 
   try {
-    const { name, email, phone, vehicleType, vehicleModel, serviceType, message, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = await request.json();
+    const { name, email, phone, vehicleType, vehicleModel, serviceType, message, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = (await request.json()) as Record<string, string>;
 
     if (!name || !email || !vehicleType || !serviceType) {
       return new Response(

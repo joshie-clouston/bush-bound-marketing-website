@@ -6,7 +6,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const runtime = locals.runtime;
 
   try {
-    const { email, rego, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = await request.json();
+    const { email, rego, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = (await request.json()) as Record<string, string>;
 
     if (!email) {
       return new Response(

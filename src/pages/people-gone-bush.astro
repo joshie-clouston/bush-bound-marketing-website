@@ -1,4 +1,6 @@
 ---
+export const prerender = true;
+
 import BaseLayout from '@/layouts/BaseLayout.astro';
 
 const customers = [
@@ -85,7 +87,7 @@ const customers = [
           <article class="bg-white rounded-xl border border-stone-dark/10 overflow-hidden">
             {customer.image && (
               <div class="aspect-video bg-stone">
-                <img src={customer.image} alt={`${customer.name}'s ${customer.vehicle}`} class="w-full h-full object-cover" />
+                <img src={customer.image} alt={`${customer.name}'s ${customer.tags[0]}`} class="w-full h-full object-cover" />
               </div>
             )}
             {!customer.image && (
