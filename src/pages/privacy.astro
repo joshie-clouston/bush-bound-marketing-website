@@ -1,0 +1,63 @@
+---
+export const prerender = true;
+
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Privacy Policy | Bushbound" description="How Bushbound collects, uses and protects your personal information.">
+
+  <section class="section-padding bg-background">
+    <div class="container-narrow max-w-2xl">
+      <a href="/" class="inline-flex items-center text-sm text-primary font-medium mb-8 hover:text-primary-light transition-colors">
+        <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+        </svg>
+        Back to home
+      </a>
+
+      <h1 class="text-3xl sm:text-4xl font-bold text-charcoal mb-8" data-animate="fade-up">Privacy Policy</h1>
+
+      <div class="prose prose-charcoal max-w-none space-y-6 text-muted-foreground" data-animate="fade-up">
+        <p class="text-sm text-stone-dark">Last updated: 8 March 2026</p>
+
+        <h2 class="text-xl font-semibold text-charcoal mt-8">Who we are</h2>
+        <p>Bushbound builds custom vehicle fit-outs on the Gold Coast, Queensland. This policy explains how we handle your personal information when you use our website at bushbound.au.</p>
+
+        <h2 class="text-xl font-semibold text-charcoal mt-8">What we collect</h2>
+        <p>We only collect information you give us directly:</p>
+        <ul class="list-disc pl-6 space-y-1">
+          <li><strong>Quote requests:</strong> name, email, phone (optional), vehicle type, vehicle model (optional), service type, and your message</li>
+          <li><strong>Flat pack waitlist:</strong> email address and rego plate (optional)</li>
+          <li><strong>Traffic source:</strong> UTM parameters from the URL you arrived on (e.g. which ad or link brought you here)</li>
+        </ul>
+
+        <h2 class="text-xl font-semibold text-charcoal mt-8">How we use it</h2>
+        <ul class="list-disc pl-6 space-y-1">
+          <li>To respond to your quote request or enquiry</li>
+          <li>To notify you when flat pack kits become available</li>
+          <li>To understand which marketing channels are working (UTM data only - no tracking cookies)</li>
+        </ul>
+        <p>We do not sell, rent or share your personal information with third parties for marketing purposes.</p>
+
+        <h2 class="text-xl font-semibold text-charcoal mt-8">Where we store it</h2>
+        <p>Your data is stored securely on Cloudflare's infrastructure (D1 database). Email notifications are sent via Resend. Both services are subject to their own privacy policies and comply with industry-standard security practices.</p>
+
+        <h2 class="text-xl font-semibold text-charcoal mt-8">Cookies and tracking</h2>
+        <p>We do not use cookies, analytics scripts, or third-party trackers on this website. We do not use Google Analytics, Facebook Pixel, or similar tools.</p>
+
+        <h2 class="text-xl font-semibold text-charcoal mt-8">Your rights</h2>
+        <p>You can ask us to:</p>
+        <ul class="list-disc pl-6 space-y-1">
+          <li>Show you what data we hold about you</li>
+          <li>Correct any inaccurate information</li>
+          <li>Delete your information entirely</li>
+        </ul>
+        <p>Email <a href="mailto:luke@bushbound.au" class="text-primary underline hover:text-primary-light">luke@bushbound.au</a> and we'll sort it out.</p>
+
+        <h2 class="text-xl font-semibold text-charcoal mt-8">Changes</h2>
+        <p>If we change this policy, we'll update the date at the top. No sneaky stuff.</p>
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>

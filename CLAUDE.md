@@ -13,9 +13,11 @@ Custom vehicle fit-outs for 4WDs, vans and work vehicles. Gold Coast, QLD.
 
 ## Tech Stack
 
-- Astro 5.x (static + SSR for API routes)
+- Astro 5.x (`output: 'server'` + per-page `export const prerender = true` for static pages)
 - Tailwind CSS 4.x
-- Cloudflare Workers + D1
+- Cloudflare Workers + D1 (database: `bushbound-db` / `78e0f5ae-a066-4179-8897-7e9cdda0325c`)
+- Cloudflare account: `a3122191c8386eb42337be132d64a1ee` (shared with pmplastics)
+- Deploys via Cloudflare native Git integration (no GitHub Actions)
 - Resend for email
 - anime.js for scroll animations
 
@@ -30,7 +32,7 @@ Custom vehicle fit-outs for 4WDs, vans and work vehicles. Gold Coast, QLD.
 ## Commands
 
 ```bash
-npm run dev        # Start dev server
-npm run build      # Build for production
+npm run dev        # Start dev server (runs wrangler types first)
+npm run build      # Build for production (wrangler types + astro check + astro build)
 npm run preview    # Preview production build
 ```

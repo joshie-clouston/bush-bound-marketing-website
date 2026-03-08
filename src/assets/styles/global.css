@@ -95,6 +95,13 @@
   padding-block: var(--spacing-section-sm);
 }
 
+/* Interactive elements */
+a,
+button,
+[role="button"] {
+  cursor: pointer;
+}
+
 /* Animation base states */
 [data-animate] {
   opacity: 0;
