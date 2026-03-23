@@ -115,7 +115,7 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
     <!-- Hero text overlay -->
     <div class="relative z-10 min-h-[calc(100vh-6.25rem)] min-h-[calc(100dvh-6.25rem)] flex flex-col items-center justify-start text-center px-6 pt-[18vh] sm:pt-[21vh]">
       <p class="text-sand font-medium text-sm uppercase tracking-widest mb-4">
-        Lightweight Vehicle Fitouts
+        Premium Vehicle Fitouts
       </p>
       <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-6" style="text-shadow: 0 2px 20px rgba(0,0,0,0.4);">
         Built to take you<br />
@@ -124,16 +124,16 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
       <p class="text-lg sm:text-xl text-stone/90 max-w-xl mx-auto mb-10">
         We fit out vans, 4WDs and Troop Carriers with storage, power and water - for those who want to explore this country on their own terms.
       </p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <div class="flex flex-col sm:flex-row gap-4 justify-center w-full sm:w-auto">
         <a
           href="/quote"
-          class="inline-flex items-center justify-center px-8 py-4 bg-sand text-charcoal font-bold text-base rounded-md hover:bg-sand-light transition-colors"
+          class="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 bg-sand text-charcoal font-bold text-base rounded-md hover:bg-sand-light transition-colors"
         >
           Get a Free Quote
         </a>
         <a
           href="#how-it-works"
-          class="inline-flex items-center justify-center px-8 py-4 border-2 border-stone-light/40 text-stone-light font-semibold text-base rounded-md bg-white/5 hover:border-sand hover:text-sand hover:bg-sand/10 transition-colors"
+          class="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 border-2 border-stone-light/40 text-stone-light font-semibold text-base rounded-md bg-white/5 hover:border-sand hover:text-sand hover:bg-sand/10 transition-colors"
         >
           See How It Works
         </a>
@@ -170,50 +170,53 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
           Custom fit-outs for 4WDs and vans
         </h2>
         <p class="text-muted-foreground mt-4 max-w-2xl mx-auto" data-animate="fade-up">
-          Whether you're setting up a Troopy for a lap of Australia or converting a van into a home on wheels, we build expedition fit-outs that match exactly how you travel.
+          Whether you're setting up a 78 Series for a lap of Australia or converting a van into a home on wheels, we build expedition fit-outs that match exactly how you travel.
         </p>
       </div>
 
       <div class="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto" data-animate="stagger">
         <!-- 4WDs -->
-        <div class="bg-white rounded-xl p-8 border border-stone-dark/10 hover:border-sand/40 transition-colors">
-          <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-5">
+        <a href="/services/4wd-fitouts" class="group bg-white rounded-xl p-8 border border-stone-dark/10 hover:border-sand/40 hover:shadow-md transition-all cursor-pointer">
+          <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-colors">
             <svg class="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M8 17h.01M16 17h.01M3 11l1.5-5h15l1.5 5M4 17h16a1 1 0 001-1v-5H3v5a1 1 0 001 1z" />
             </svg>
           </div>
-          <h3 class="text-xl font-bold text-charcoal mb-2">4WD Fit-Outs</h3>
-          <p class="text-muted-foreground text-sm leading-relaxed">
-            Cabinetry, drawers, sleeping platforms and storage for Patrols, Prados, Hiluxes and more.
+          <h3 class="text-xl font-bold text-charcoal mb-2 group-hover:text-primary transition-colors">4WD Fit-Outs</h3>
+          <p class="text-muted-foreground text-sm leading-relaxed mb-4">
+            Custom storage, sleeping and power for Patrols, Prados, Hiluxes and LandCruisers.
           </p>
-        </div>
+          <span class="text-primary text-sm font-semibold group-hover:underline">Learn more &rarr;</span>
+        </a>
 
         <!-- Troopies -->
-        <div class="bg-white rounded-xl p-8 border border-stone-dark/10 hover:border-sand/40 transition-colors">
-          <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-5">
+        <a href="/services/troopy-fitouts" class="group bg-white rounded-xl p-8 border border-stone-dark/10 hover:border-sand/40 hover:shadow-md transition-all cursor-pointer">
+          <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-colors">
             <svg class="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M8 17h.01M16 17h.01M3 11l1.5-5h15l1.5 5M4 17h16a1 1 0 001-1v-5H3v5a1 1 0 001 1z" />
               <path stroke-linecap="round" stroke-linejoin="round" d="M7 11V6h10v5" />
             </svg>
           </div>
-          <h3 class="text-xl font-bold text-charcoal mb-2">Troopy Fit-Outs</h3>
-          <p class="text-muted-foreground text-sm leading-relaxed">
-            Full expedition builds for 70 Series Troop Carriers. Kitchens, sleeping setups, power and storage.
+          <h3 class="text-xl font-bold text-charcoal mb-2 group-hover:text-primary transition-colors">Troopy Fit-Outs</h3>
+          <p class="text-muted-foreground text-sm leading-relaxed mb-4">
+            Full expedition builds for the 78 Series Troop Carrier, designed to live out of indefinitely.
           </p>
-        </div>
+          <span class="text-primary text-sm font-semibold group-hover:underline">Learn more &rarr;</span>
+        </a>
 
         <!-- Vans -->
-        <div class="bg-white rounded-xl p-8 border border-stone-dark/10 hover:border-sand/40 transition-colors">
-          <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-5">
+        <a href="/services/van-fitouts" class="group bg-white rounded-xl p-8 border border-stone-dark/10 hover:border-sand/40 hover:shadow-md transition-all cursor-pointer">
+          <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-colors">
             <svg class="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M8 17h.01M16 17h.01M2 11V8a2 2 0 012-2h11l3 4h2a2 2 0 012 2v3M4 17h16a1 1 0 001-1v-2H3v2a1 1 0 001 1z" />
             </svg>
           </div>
-          <h3 class="text-xl font-bold text-charcoal mb-2">Van Conversions</h3>
-          <p class="text-muted-foreground text-sm leading-relaxed">
-            Sprinters, HiAces, Transits and Crafters. Kitchens, beds, water and off-grid power in every inch.
+          <h3 class="text-xl font-bold text-charcoal mb-2 group-hover:text-primary transition-colors">Van Conversions</h3>
+          <p class="text-muted-foreground text-sm leading-relaxed mb-4">
+            Turn your Transporter, HiAce or Sprinter into a fully self-contained home on wheels.
           </p>
-        </div>
+          <span class="text-primary text-sm font-semibold group-hover:underline">Learn more &rarr;</span>
+        </a>
       </div>
     </div>
   </section>
@@ -231,30 +234,135 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
         </p>
       </div>
 
-      <div class="grid md:grid-cols-4 gap-8" data-animate="stagger">
-        <div class="text-center">
-          <div class="w-14 h-14 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">1</div>
-          <h3 class="font-bold text-charcoal mb-2">Free Consultation</h3>
-          <p class="text-sm text-muted-foreground">Tell us about your vehicle, how you use it, and what you need. We'll figure out the best setup together. No cost, no commitment.</p>
+      <div id="hiw-steps" class="relative max-w-3xl mx-auto">
+        <!-- Vertical progress track (desktop only) -->
+        <div class="hidden md:block absolute top-[28px] bottom-[28px] w-[2px] bg-stone-dark/15 rounded-full left-[47px]">
+          <div id="hiw-progress" class="w-full rounded-full" style="height: 0%; background-color: var(--color-primary); transition: height 0.4s ease-out;"></div>
         </div>
-        <div class="text-center">
-          <div class="w-14 h-14 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">2</div>
-          <h3 class="font-bold text-charcoal mb-2">3D Design Preview</h3>
-          <p class="text-sm text-muted-foreground">See your fit-out in full 3D before we cut a single piece. Adjust the layout, move things around, and approve the design when it's exactly right.</p>
-        </div>
-        <div class="text-center">
-          <div class="w-14 h-14 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">3</div>
-          <h3 class="font-bold text-charcoal mb-2">CNC Cut & Build</h3>
-          <p class="text-sm text-muted-foreground">Every panel is CNC-cut from premium laminated plywood to millimetre precision, then hand-assembled in our Gold Coast workshop. Lightweight, strong and built to handle Australian conditions.</p>
-        </div>
-        <div class="text-center">
-          <div class="w-14 h-14 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">4</div>
-          <h3 class="font-bold text-charcoal mb-2">Install & Go</h3>
-          <p class="text-sm text-muted-foreground">We install everything, run you through the systems, and hand back the keys. You're ready to explore.</p>
+
+        <!-- Steps -->
+        <div class="space-y-2 md:space-y-4">
+          <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl" style="opacity: 0.3; transition: opacity 0.5s ease;">
+            <div class="hiw-circle shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold" style="background: white; color: var(--color-stone-dark); border: 2px solid var(--color-stone-dark); opacity: 0.3; transition: all 0.5s ease;">1</div>
+            <div class="pt-2">
+              <h3 class="font-bold text-charcoal text-lg mb-1">Free Consultation</h3>
+              <p class="text-sm text-muted-foreground leading-relaxed">Tell us about your vehicle and we'll recommend the best setup - no cost, no commitment.</p>
+            </div>
+          </div>
+
+          <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl" style="opacity: 0.3; transition: opacity 0.5s ease;">
+            <div class="hiw-circle shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold" style="background: white; color: var(--color-stone-dark); border: 2px solid var(--color-stone-dark); opacity: 0.3; transition: all 0.5s ease;">2</div>
+            <div class="pt-2">
+              <h3 class="font-bold text-charcoal text-lg mb-1">Deposit & Design</h3>
+              <p class="text-sm text-muted-foreground leading-relaxed">Lock in your build and approve your full 3D design before we order anything.</p>
+            </div>
+          </div>
+
+          <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl" style="opacity: 0.3; transition: opacity 0.5s ease;">
+            <div class="hiw-circle shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold" style="background: white; color: var(--color-stone-dark); border: 2px solid var(--color-stone-dark); opacity: 0.3; transition: all 0.5s ease;">3</div>
+            <div class="pt-2">
+              <h3 class="font-bold text-charcoal text-lg mb-1">Cut & Build</h3>
+              <p class="text-sm text-muted-foreground leading-relaxed">Every panel CNC-cut from premium plywood and hand-assembled in our GC workshop.</p>
+            </div>
+          </div>
+
+          <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl" style="opacity: 0.3; transition: opacity 0.5s ease;">
+            <div class="hiw-circle shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold" style="background: white; color: var(--color-stone-dark); border: 2px solid var(--color-stone-dark); opacity: 0.3; transition: all 0.5s ease;">4</div>
+            <div class="pt-2">
+              <h3 class="font-bold text-charcoal text-lg mb-1">Install & Pickup</h3>
+              <p class="text-sm text-muted-foreground leading-relaxed">We install everything, walk you through the systems and hand back the keys.</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </section>
+
+  <script>
+    (function() {
+      const container = document.getElementById('hiw-steps');
+      if (!container) return;
+
+      const steps = Array.from(container.querySelectorAll('.hiw-step'));
+      const circles = Array.from(container.querySelectorAll('.hiw-circle'));
+      const progressBar = document.getElementById('hiw-progress');
+      const total = steps.length;
+      let running = false;
+
+      const PRIMARY = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim();
+      const PRIMARY_FG = getComputedStyle(document.documentElement).getPropertyValue('--color-primary-foreground').trim();
+      const STONE_DARK = getComputedStyle(document.documentElement).getPropertyValue('--color-stone-dark').trim();
+
+      function setStep(index: number) {
+        steps.forEach((step, i) => {
+          const el = step as HTMLElement;
+          const circle = circles[i] as HTMLElement;
+          if (i <= index) {
+            el.style.opacity = '1';
+            circle.style.background = PRIMARY;
+            circle.style.color = PRIMARY_FG;
+            circle.style.borderColor = PRIMARY;
+            circle.style.opacity = '1';
+          } else {
+            el.style.opacity = '0.3';
+            circle.style.background = 'white';
+            circle.style.color = STONE_DARK;
+            circle.style.borderColor = STONE_DARK;
+            circle.style.opacity = '0.3';
+          }
+        });
+        if (progressBar) {
+          progressBar.style.height = `${((index + 1) / total) * 100}%`;
+        }
+      }
+
+      function resetAll() {
+        steps.forEach((step) => { (step as HTMLElement).style.opacity = '0.3'; });
+        circles.forEach((c) => {
+          const el = c as HTMLElement;
+          el.style.background = 'white';
+          el.style.color = STONE_DARK;
+          el.style.borderColor = STONE_DARK;
+          el.style.opacity = '0.3';
+        });
+        if (progressBar) progressBar.style.height = '0%';
+      }
+
+      function runSequence() {
+        let current = 0;
+        resetAll();
+
+        function next() {
+          if (current >= total) {
+            // Hold on final state, then loop
+            setTimeout(() => {
+              resetAll();
+              setTimeout(() => { current = 0; next(); }, 500);
+            }, 2500);
+            return;
+          }
+          setStep(current);
+          current++;
+          setTimeout(next, 800);
+        }
+
+        setTimeout(next, 300);
+      }
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && !running) {
+            running = true;
+            runSequence();
+            observer.unobserve(container);
+          }
+        },
+        { threshold: 0.15 }
+      );
+
+      observer.observe(container);
+    })();
+  </script>
 
   <!-- WHY BUSHBOUND -->
   <section class="section-padding bg-background">
@@ -279,7 +387,7 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
           </div>
           <div>
             <h3 class="font-bold text-charcoal mb-1">3D Design Before We Build</h3>
-            <p class="text-sm text-muted-foreground">Every fit-out starts with a full 3D render. You see the cabinetry, layout, and placement before we cut anything, so there are no surprises and no wasted money.</p>
+            <p class="text-sm text-muted-foreground">You see and approve your full fit-out in 3D before we cut a single piece.</p>
           </div>
         </div>
 
@@ -291,7 +399,7 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
           </div>
           <div>
             <h3 class="font-bold text-charcoal mb-1">CNC-Cut Premium Plywood</h3>
-            <p class="text-sm text-muted-foreground">Every component is CNC-cut to millimetre precision from premium laminated plywood. Lighter than aluminium, absorbs vibrations instead of amplifying them, and gives your vehicle a warm, liveable interior. No hand-measuring, no guesswork - just perfect fits every time.</p>
+            <p class="text-sm text-muted-foreground">CNC-cut to millimetre precision from laminated plywood - lighter than aluminium, no rattles, perfect fits.</p>
           </div>
         </div>
 
@@ -303,7 +411,7 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
           </div>
           <div>
             <h3 class="font-bold text-charcoal mb-1">Off-Grid Power Systems (12V, 24V & 48V)</h3>
-            <p class="text-sm text-muted-foreground">From a basic dual-battery for weekenders to full solar-ready 48V systems for extended off-grid travel. We design and install the right power setup for how you actually travel.</p>
+            <p class="text-sm text-muted-foreground">From dual-battery weekender setups to full solar-ready 48V systems for extended off-grid travel.</p>
           </div>
         </div>
 
@@ -315,7 +423,7 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
           </div>
           <div>
             <h3 class="font-bold text-charcoal mb-1">Cabinetry, Water & Power - One Builder</h3>
-            <p class="text-sm text-muted-foreground">No juggling three different tradespeople. We handle cabinetry, water systems and electrical as one integrated build. Everything works together from day one. Every build comes with a 12-month warranty.</p>
+            <p class="text-sm text-muted-foreground">Cabinetry, water and electrical done as one integrated build with a 12-month warranty.</p>
           </div>
         </div>
 
@@ -328,7 +436,7 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
           </div>
           <div>
             <h3 class="font-bold text-charcoal mb-1">Built on the Gold Coast, QLD</h3>
-            <p class="text-sm text-muted-foreground">Based on the Gold Coast, Queensland. Drop into the workshop, see a build in progress, and chat through your ideas face to face. We service the Gold Coast, Brisbane, and South East QLD.</p>
+            <p class="text-sm text-muted-foreground">Drop into our Gold Coast workshop, see a build in progress and chat through your ideas face to face.</p>
           </div>
         </div>
 
@@ -340,7 +448,7 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
           </div>
           <div>
             <h3 class="font-bold text-charcoal mb-1">Hand-Lacquered & Waterproofed</h3>
-            <p class="text-sm text-muted-foreground">Every exposed surface gets a hand-applied matte lacquer finish, completely waterproofing the build. It stops moisture getting in, prevents swelling and delamination, and keeps your fit-out looking good for years. Most builders skip this step. We don't.</p>
+            <p class="text-sm text-muted-foreground">Every exposed surface is hand-lacquered to seal out moisture and prevent swelling - most builders skip this.</p>
           </div>
         </div>
       </div>
@@ -365,15 +473,15 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
         <div class="bg-white rounded-xl p-6 border border-stone-dark/10 flex flex-col">
           <p class="text-xs font-semibold text-sand-dark uppercase tracking-wider mb-2">Essentials</p>
           <h3 class="text-2xl font-bold text-charcoal mb-1">$2.5K - $5K</h3>
-          <p class="text-sm text-muted-foreground mb-4">Cabinetry & storage</p>
+          <p class="text-sm text-muted-foreground mb-4">Storage & sleeping</p>
           <ul class="text-sm text-muted-foreground space-y-2 flex-1">
             <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Custom cabinetry</li>
             <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Drawer systems</li>
             <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Sleeping platform</li>
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 3D design included</li>
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 3–5 day install</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Proven designs</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 3-5 day install</li>
           </ul>
-          <a href="/quote?type=cabinetry" class="mt-6 inline-flex items-center justify-center w-full py-3 border-2 border-primary text-primary font-semibold text-sm rounded-md hover:bg-primary hover:text-primary-foreground transition-colors">
+          <a href="/quote?type=essentials" class="mt-6 inline-flex items-center justify-center w-full py-3 border-2 border-primary text-primary font-semibold text-sm rounded-md hover:bg-primary hover:text-primary-foreground transition-colors">
             Get a Quote
           </a>
         </div>
@@ -382,15 +490,14 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
         <div class="bg-white rounded-xl p-6 border border-stone-dark/10 flex flex-col">
           <p class="text-xs font-semibold text-sand-dark uppercase tracking-wider mb-2">Touring</p>
           <h3 class="text-2xl font-bold text-charcoal mb-1">$5K - $15K</h3>
-          <p class="text-sm text-muted-foreground mb-4">Small - medium vehicles</p>
+          <p class="text-sm text-muted-foreground mb-4">Storage, sleeping + power</p>
           <ul class="text-sm text-muted-foreground space-y-2 flex-1">
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Full cabinetry</li>
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 12V power, solar ready</li>
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 3D design included</li>
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Proven layout</li>
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 3–5 day install</li>
+            <li class="flex gap-2"><span class="text-muted-foreground/50 mt-0.5">&#10003;</span> Everything in Essentials, plus:</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 12V dual-battery system</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Solar ready</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 3-5 day install</li>
           </ul>
-          <a href="/quote?type=full-custom" class="mt-6 inline-flex items-center justify-center w-full py-3 border-2 border-primary text-primary font-semibold text-sm rounded-md hover:bg-primary hover:text-primary-foreground transition-colors">
+          <a href="/quote?type=touring" class="mt-6 inline-flex items-center justify-center w-full py-3 border-2 border-primary text-primary font-semibold text-sm rounded-md hover:bg-primary hover:text-primary-foreground transition-colors">
             Get a Quote
           </a>
         </div>
@@ -400,16 +507,14 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
           <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full">Most Popular</div>
           <p class="text-xs font-semibold text-sand-dark uppercase tracking-wider mb-2">Expedition</p>
           <h3 class="text-2xl font-bold text-charcoal mb-1">$15K - $30K</h3>
-          <p class="text-sm text-muted-foreground mb-4">Troopys, Sprinters & larger</p>
+          <p class="text-sm text-muted-foreground mb-4">Storage, power + water & kitchen</p>
           <ul class="text-sm text-muted-foreground space-y-2 flex-1">
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Full cabinetry & kitchen</li>
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 12V power, solar ready</li>
+            <li class="flex gap-2"><span class="text-muted-foreground/50 mt-0.5">&#10003;</span> Everything in Touring, plus:</li>
             <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Complete water system</li>
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 3D design included</li>
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Proven or custom layout</li>
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 1–2 week install</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Built-in kitchen</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 1-2 week install</li>
           </ul>
-          <a href="/quote?type=full-custom" class="mt-6 inline-flex items-center justify-center w-full py-3 bg-primary text-primary-foreground font-semibold text-sm rounded-md hover:bg-primary-light transition-colors">
+          <a href="/quote?type=expedition" class="mt-6 inline-flex items-center justify-center w-full py-3 bg-primary text-primary-foreground font-semibold text-sm rounded-md hover:bg-primary-light transition-colors">
             Get a Quote
           </a>
         </div>
@@ -420,13 +525,13 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
           <h3 class="text-2xl font-bold text-charcoal mb-1">$30K+</h3>
           <p class="text-sm text-muted-foreground mb-4">Purpose-built, no compromises</p>
           <ul class="text-sm text-muted-foreground space-y-2 flex-1">
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Everything in Expedition</li>
+            <li class="flex gap-2"><span class="text-muted-foreground/50 mt-0.5">&#10003;</span> Everything in Expedition, plus:</li>
             <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 24V / 48V power options</li>
             <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Fully custom design</li>
             <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Premium finishes</li>
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 1–2 week install</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 1-2 week install</li>
           </ul>
-          <a href="/quote?type=full-custom" class="mt-6 inline-flex items-center justify-center w-full py-3 border-2 border-primary text-primary font-semibold text-sm rounded-md hover:bg-primary hover:text-primary-foreground transition-colors">
+          <a href="/quote?type=luxury-custom" class="mt-6 inline-flex items-center justify-center w-full py-3 border-2 border-primary text-primary font-semibold text-sm rounded-md hover:bg-primary hover:text-primary-foreground transition-colors">
             Get a Quote
           </a>
         </div>
