@@ -21,8 +21,8 @@
     }
   ],
   "vars": {
-    "RESEND_FROM_EMAIL": "hello@bushbound.au",
-    "NOTIFICATION_EMAIL": "team@bushbound.au"
+    "RESEND_FROM_EMAIL": "support@bushbound.au",
+    "NOTIFICATION_EMAIL": "support@bushbound.au"
   }
   // Note: RESEND_API_KEY should be set as a secret via:
   // wrangler secret put RESEND_API_KEY

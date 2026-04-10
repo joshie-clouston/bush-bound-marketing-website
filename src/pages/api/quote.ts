@@ -28,7 +28,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
         const resend = new Resend(runtime.env.RESEND_API_KEY);
 
         await resend.emails.send({
-          from: runtime.env.RESEND_FROM_EMAIL || 'hello@bushbound.au',
+          from: `Bushbound Support <${runtime.env.RESEND_FROM_EMAIL || 'support@bushbound.au'}>`,
           to: runtime.env.NOTIFICATION_EMAIL || 'team@bushbound.au',
           subject: `New quote request from ${name}`,
           html: `

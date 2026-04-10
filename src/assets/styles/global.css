@@ -1,5 +1,10 @@
 @import 'tailwindcss';
 
+/* Offset anchor scroll for fixed header (announcement bar + nav) */
+html {
+  scroll-padding-top: 6.5rem;
+}
+
 /* ============================================
    BUSHBOUND DESIGN SYSTEM
    Dark & earthy, rugged adventure

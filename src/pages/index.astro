@@ -4,14 +4,14 @@ export const prerender = true;
 import BaseLayout from '@/layouts/BaseLayout.astro';
 
 const reviews = [
-  { name: "Joshua C.", vehicle: "Troopy", text: "Highly recommend going with Bushbound to just get it done right the first time. Absolutely stoked!" },
+  { name: "Joshua C.", vehicle: "Troop Carrier (Troopy)", text: "Highly recommend going with Bushbound to just get it done right the first time. Absolutely stoked!" },
   { name: "Brock C.", vehicle: "100 Series", text: "Super high attention to detail, quick turn around time, and clear communication throughout." },
   { name: "Luke W.", vehicle: "VW Transporter", text: "Absolutely nailed it. Couldn't have asked for a better build. Attention to detail is what sets them apart." },
   { name: "Mick D.", vehicle: "80 Series", text: "Deadset luke is a legend. Workmanship is top quality and materials he used are top notch!" },
   { name: "Katrina S.", vehicle: "VW Multivan", text: "Luke did a great job. Very happy with it. Plenty of storage. Can't wait to get on the road." },
   { name: "Jacob H.", vehicle: "76 Series", text: "Super creative and full of solutions to problems before they happen! Everything fit perfectly." },
   { name: "Jack R.", vehicle: "Prado 150", text: "Luke is an absolute legend and put together the perfect install on my Prado." },
-  { name: "Norman H.", vehicle: "Troopy", text: "Brilliant job and so helpful with the planning of this perfect build. Highly recommended." },
+  { name: "Norman H.", vehicle: "Troop Carrier (Troopy)", text: "Brilliant job and so helpful with the planning of this perfect build. Highly recommended." },
   { name: "Russell H.", vehicle: "Silverado", text: "Excellent work, precisely neat and very well presented." },
 ];
 const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z";
@@ -197,7 +197,7 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
               <path stroke-linecap="round" stroke-linejoin="round" d="M7 11V6h10v5" />
             </svg>
           </div>
-          <h3 class="text-xl font-bold text-charcoal mb-2 group-hover:text-primary transition-colors">Troopy Fit-Outs</h3>
+          <h3 class="text-xl font-bold text-charcoal mb-2 group-hover:text-primary transition-colors">Troop Carrier (Troopy) Fit-Outs</h3>
           <p class="text-muted-foreground text-sm leading-relaxed mb-4">
             Full expedition builds for the 78 Series Troop Carrier, designed to live out of indefinitely.
           </p>
@@ -236,38 +236,38 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
 
       <div id="hiw-steps" class="relative max-w-3xl mx-auto">
         <!-- Vertical progress track (desktop only) -->
-        <div class="hidden md:block absolute top-[28px] bottom-[28px] w-[2px] bg-stone-dark/15 rounded-full left-[47px]">
+        <div id="hiw-track" class="hidden md:block absolute top-[28px] bottom-[28px] w-[2px] rounded-full left-[47px] z-0" style="opacity: 0; background-color: rgba(0,0,0,0.08); transition: opacity 0.5s ease;">
           <div id="hiw-progress" class="w-full rounded-full" style="height: 0%; background-color: var(--color-primary); transition: height 0.4s ease-out;"></div>
         </div>
 
         <!-- Steps -->
         <div class="space-y-2 md:space-y-4">
-          <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl" style="opacity: 0.3; transition: opacity 0.5s ease;">
-            <div class="hiw-circle shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold" style="background: white; color: var(--color-stone-dark); border: 2px solid var(--color-stone-dark); opacity: 0.3; transition: all 0.5s ease;">1</div>
+          <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl" style="opacity: 0.3; transition: opacity 0.3s ease;">
+            <div class="hiw-circle relative z-10 shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold" style="background: white; color: var(--color-stone-dark); border: 2px solid var(--color-stone-dark); opacity: 0.3;">1</div>
             <div class="pt-2">
               <h3 class="font-bold text-charcoal text-lg mb-1">Free Consultation</h3>
               <p class="text-sm text-muted-foreground leading-relaxed">Tell us about your vehicle and we'll recommend the best setup - no cost, no commitment.</p>
             </div>
           </div>
 
-          <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl" style="opacity: 0.3; transition: opacity 0.5s ease;">
-            <div class="hiw-circle shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold" style="background: white; color: var(--color-stone-dark); border: 2px solid var(--color-stone-dark); opacity: 0.3; transition: all 0.5s ease;">2</div>
+          <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl" style="opacity: 0.3; transition: opacity 0.3s ease;">
+            <div class="hiw-circle relative z-10 shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold" style="background: white; color: var(--color-stone-dark); border: 2px solid var(--color-stone-dark); opacity: 0.3;">2</div>
             <div class="pt-2">
               <h3 class="font-bold text-charcoal text-lg mb-1">Deposit & Design</h3>
               <p class="text-sm text-muted-foreground leading-relaxed">Lock in your build and approve your full 3D design before we order anything.</p>
             </div>
           </div>
 
-          <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl" style="opacity: 0.3; transition: opacity 0.5s ease;">
-            <div class="hiw-circle shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold" style="background: white; color: var(--color-stone-dark); border: 2px solid var(--color-stone-dark); opacity: 0.3; transition: all 0.5s ease;">3</div>
+          <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl" style="opacity: 0.3; transition: opacity 0.3s ease;">
+            <div class="hiw-circle relative z-10 shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold" style="background: white; color: var(--color-stone-dark); border: 2px solid var(--color-stone-dark); opacity: 0.3;">3</div>
             <div class="pt-2">
               <h3 class="font-bold text-charcoal text-lg mb-1">Cut & Build</h3>
               <p class="text-sm text-muted-foreground leading-relaxed">Every panel CNC-cut from premium plywood and hand-assembled in our GC workshop.</p>
             </div>
           </div>
 
-          <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl" style="opacity: 0.3; transition: opacity 0.5s ease;">
-            <div class="hiw-circle shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold" style="background: white; color: var(--color-stone-dark); border: 2px solid var(--color-stone-dark); opacity: 0.3; transition: all 0.5s ease;">4</div>
+          <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl" style="opacity: 0.3; transition: opacity 0.3s ease;">
+            <div class="hiw-circle relative z-10 shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold" style="background: white; color: var(--color-stone-dark); border: 2px solid var(--color-stone-dark); opacity: 0.3;">4</div>
             <div class="pt-2">
               <h3 class="font-bold text-charcoal text-lg mb-1">Install & Pickup</h3>
               <p class="text-sm text-muted-foreground leading-relaxed">We install everything, walk you through the systems and hand back the keys.</p>
@@ -286,6 +286,7 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
       const steps = Array.from(container.querySelectorAll('.hiw-step'));
       const circles = Array.from(container.querySelectorAll('.hiw-circle'));
       const progressBar = document.getElementById('hiw-progress');
+      const track = document.getElementById('hiw-track');
       const total = steps.length;
       let running = false;
 
@@ -294,26 +295,29 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
       const STONE_DARK = getComputedStyle(document.documentElement).getPropertyValue('--color-stone-dark').trim();
 
       function setStep(index: number) {
+        // Update line first so it arrives as the circle activates
+        if (progressBar) {
+          const pct = total > 1 ? (index / (total - 1)) * 100 : 0;
+          progressBar.style.height = `${pct}%`;
+        }
+
         steps.forEach((step, i) => {
           const el = step as HTMLElement;
           const circle = circles[i] as HTMLElement;
           if (i <= index) {
-            el.style.opacity = '1';
             circle.style.background = PRIMARY;
             circle.style.color = PRIMARY_FG;
             circle.style.borderColor = PRIMARY;
             circle.style.opacity = '1';
+            el.style.opacity = '1';
           } else {
-            el.style.opacity = '0.3';
             circle.style.background = 'white';
             circle.style.color = STONE_DARK;
             circle.style.borderColor = STONE_DARK;
             circle.style.opacity = '0.3';
+            el.style.opacity = '0.3';
           }
         });
-        if (progressBar) {
-          progressBar.style.height = `${((index + 1) / total) * 100}%`;
-        }
       }
 
       function resetAll() {
@@ -331,14 +335,10 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
       function runSequence() {
         let current = 0;
         resetAll();
+        if (track) track.style.opacity = '1';
 
         function next() {
           if (current >= total) {
-            // Hold on final state, then loop
-            setTimeout(() => {
-              resetAll();
-              setTimeout(() => { current = 0; next(); }, 500);
-            }, 2500);
             return;
           }
           setStep(current);

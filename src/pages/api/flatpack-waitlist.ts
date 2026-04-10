@@ -28,7 +28,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
         const utmInfo = [utm_source, utm_medium, utm_campaign].filter(Boolean).join(' / ');
         await resend.emails.send({
-          from: (runtime.env.RESEND_FROM_EMAIL as string) || 'hello@bushbound.au',
+          from: `Bushbound Support <${(runtime.env.RESEND_FROM_EMAIL as string) || 'support@bushbound.au'}>`,
           to: (runtime.env.NOTIFICATION_EMAIL as string) || 'team@bushbound.au',
           subject: `New flat pack waitlist signup: ${email}`,
           html: `
