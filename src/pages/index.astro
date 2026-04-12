@@ -4,7 +4,7 @@ export const prerender = true;
 import BaseLayout from '@/layouts/BaseLayout.astro';
 
 const reviews = [
-  { name: "Joshua C.", vehicle: "Troop Carrier (Troopy)", text: "Highly recommend going with Bushbound to just get it done right the first time. Absolutely stoked!" },
+  { name: "Joshua C.", vehicle: "Troop Carrier (Troopy)", text: "Highly recommend going with Bush Bound to just get it done right the first time. Absolutely stoked!" },
   { name: "Brock C.", vehicle: "100 Series", text: "Super high attention to detail, quick turn around time, and clear communication throughout." },
   { name: "Luke W.", vehicle: "VW Transporter", text: "Absolutely nailed it. Couldn't have asked for a better build. Attention to detail is what sets them apart." },
   { name: "Mick D.", vehicle: "80 Series", text: "Deadset luke is a legend. Workmanship is top quality and materials he used are top notch!" },
@@ -15,9 +15,25 @@ const reviews = [
   { name: "Russell H.", vehicle: "Silverado", text: "Excellent work, precisely neat and very well presented." },
 ];
 const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z";
+
+const heroImages = [
+  { src: '/images/reviews/toyota-landcruiser-troopcarrier-jack-1.webp', alt: "Jack F.'s Troop Carrier", href: '/reviews/jack-f-troopy' },
+  { src: '/images/reviews/toyota-landcruiser-troopcarrier-2-1.webp', alt: "Mick D.'s Troop Carrier", href: '/reviews/mick-d-troopy' },
+  { src: '/images/reviews/volkswagen-multivan-3.webp', alt: "Luke W.'s VW Transporter", href: '/reviews/luke-w-transporter' },
+  { src: '/images/reviews/toyota-bush-bound-80-series-4.webp', alt: "Luke C.'s 80 Series", href: '/reviews/luke-c-80-series' },
+  { src: '/images/reviews/toyota-100-series-jai-1.webp', alt: "Jai G.'s 100 Series", href: '/reviews/jai-g-100-series' },
+  { src: '/images/reviews/toyota-100-series-1.webp', alt: "Brock C.'s 100 Series", href: '/reviews/brock-c-100-series' },
+  { src: '/images/reviews/toyota-landcruiser-troopcarrier-white-6.webp', alt: "Norman H.'s Troop Carrier", href: '/reviews/norman-h-troopy' },
+  { src: '/images/reviews/toyota-landcruiser-troopcarrier-1-2.webp', alt: "Joshua C.'s Troop Carrier", href: '/reviews/joshua-c-troopy' },
+  { src: '/images/reviews/chevrolet-silverado-4.webp', alt: "Russell H.'s Silverado", href: '/reviews/russell-h-silverado' },
+  { src: '/images/reviews/toyota-hiace-luis-4.webp', alt: "Luis C.'s Toyota Hiace", href: '/reviews/luis-c-hiace' },
+  { src: '/images/reviews/toyota-landcruiser-76-series-4.webp', alt: "Jacob H.'s 76 Series", href: '/reviews/jacob-h-76-series' },
+  { src: '/images/reviews/volkswagen-multivan-katrina-2.webp', alt: "Katrina S.'s VW Multivan", href: '/reviews/katrina-s-multivan' },
+  { src: '/images/reviews/toyota-prado-3.webp', alt: "Jack R.'s Prado 150", href: '/reviews/jack-r-prado' },
+];
 ---
 
-<BaseLayout title="Custom 4WD & Van Fit-Outs Gold Coast | Expedition Vehicle Builds | Bushbound" description="Custom 4WD and van fit-outs on the Gold Coast, QLD. Designed in 3D, CNC-cut from premium plywood to millimetre precision, and professionally installed. Cabinetry, water systems and off-grid power. Get a free quote.">
+<BaseLayout title="Custom 4WD & Van Fit-Outs Gold Coast | Expedition Vehicle Builds | Bush Bound" description="Custom 4WD and van fit-outs on the Gold Coast, QLD. Designed in 3D, CNC-cut from premium plywood to millimetre precision, and professionally installed. Cabinetry, water systems and off-grid power. Get a free quote.">
 
   <!-- HERO -->
   <section id="hero" class="relative min-h-[calc(100vh-6.25rem)] min-h-[calc(100dvh-6.25rem)] bg-charcoal text-stone-light overflow-hidden">
@@ -112,33 +128,57 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
     <!-- Dark overlay for text readability -->
     <div class="absolute inset-0 z-[2] pointer-events-none bg-charcoal/40"></div>
 
-    <!-- Hero text overlay -->
-    <div class="relative z-10 min-h-[calc(100vh-6.25rem)] min-h-[calc(100dvh-6.25rem)] flex flex-col items-center justify-start text-center px-6 pt-[18vh] sm:pt-[21vh]">
-      <p class="text-sand font-medium text-sm uppercase tracking-widest mb-4">
-        Premium Vehicle Fitouts
-      </p>
-      <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-6" style="text-shadow: 0 2px 20px rgba(0,0,0,0.4);">
-        Built to take you<br />
-        <span class="text-sand">further.</span>
-      </h1>
-      <p class="text-lg sm:text-xl text-stone/90 max-w-xl mx-auto mb-10">
-        We fit out vans, 4WDs and Troop Carriers with storage, power and water - for those who want to explore this country on their own terms.
-      </p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center w-full sm:w-auto">
-        <a
-          href="/quote"
-          class="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 bg-sand text-charcoal font-bold text-base rounded-md hover:bg-sand-light transition-colors"
-        >
-          Get a Free Quote
-        </a>
-        <a
-          href="#how-it-works"
-          class="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 border-2 border-stone-light/40 text-stone-light font-semibold text-base rounded-md bg-white/5 hover:border-sand hover:text-sand hover:bg-sand/10 transition-colors"
-        >
-          See How It Works
-        </a>
-      </div>
+    <!-- Hero content -->
+    <div class="relative z-10 lg:min-h-[calc(100vh-6.25rem)] lg:min-h-[calc(100dvh-6.25rem)] flex items-center px-6 sm:px-10 lg:px-16">
+      <div class="container-wide flex flex-col lg:flex-row items-center gap-8 lg:gap-16 w-full pt-14 sm:pt-16 lg:pt-0 lg:-mt-20 pb-32 lg:pb-0">
 
+        <!-- Left: Text -->
+        <div class="lg:w-1/2 text-center lg:text-left">
+          <p class="text-sand font-medium text-sm uppercase tracking-widest mb-4">
+            Bush Bound Fitouts
+          </p>
+          <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-6" style="text-shadow: 0 2px 20px rgba(0,0,0,0.4);">
+            Gold Coast premium vehicle fit-outs,<br />
+            <span class="text-sand">built for adventure.</span>
+          </h1>
+          <p class="text-lg sm:text-xl text-stone/90 max-w-xl mb-10">
+            We fit out 4WDs, Troop Carriers and vans with storage, power and water. From weekend camping to full-time touring, everything you need to go bush.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start w-full sm:w-auto">
+            <a
+              href="/quote"
+              class="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 bg-sand text-charcoal font-bold text-base rounded-md hover:bg-sand-light transition-colors"
+            >
+              Get a Free Quote
+            </a>
+            <a
+              href="#how-it-works"
+              class="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 border-2 border-stone-light/40 text-stone-light font-semibold text-base rounded-md bg-white/5 hover:border-sand hover:text-sand hover:bg-sand/10 transition-colors"
+            >
+              See How It Works
+            </a>
+          </div>
+        </div>
+
+        <!-- Right: Photo carousel -->
+        <div class="w-full lg:flex lg:items-center lg:w-1/2">
+          <div id="hero-carousel" class="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl">
+            {heroImages.map((img, i) => (
+              <a
+                href={img.href}
+                class:list={['hero-slide absolute inset-0 transition-opacity duration-1000', i === 0 ? 'opacity-100' : 'opacity-0 pointer-events-none']}
+                data-index={i}
+              >
+                <img src={img.src} alt={img.alt} class="w-full h-full object-cover" loading={i === 0 ? 'eager' : 'lazy'} />
+                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-charcoal/80 to-transparent p-5">
+                  <p class="text-stone-light text-sm font-medium">{img.alt}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+
+      </div>
     </div>
 
     <!-- Social proof marquee -->
@@ -161,20 +201,37 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
 
   </section>
 
+  <script>
+    (function() {
+      const slides = document.querySelectorAll('.hero-slide');
+      if (slides.length < 2) return;
+      let current = 0;
+
+      setInterval(() => {
+        const next = (current + 1) % slides.length;
+        (slides[current] as HTMLElement).style.opacity = '0';
+        (slides[current] as HTMLElement).classList.add('pointer-events-none');
+        (slides[next] as HTMLElement).style.opacity = '1';
+        (slides[next] as HTMLElement).classList.remove('pointer-events-none');
+        current = next;
+      }, 4000);
+    })();
+  </script>
+
   <!-- WHAT WE FIT OUT -->
   <section class="section-padding bg-background" id="services">
     <div class="container-narrow">
       <div class="text-center mb-16">
         <p class="text-sand-dark font-medium text-sm uppercase tracking-widest mb-3" data-animate="fade-in">What We Fit Out</p>
         <h2 class="text-3xl sm:text-4xl font-bold text-charcoal" data-animate="fade-up">
-          Custom fit-outs for 4WDs and vans
+          Custom fit-outs for 4WDs, Troopies & vans
         </h2>
         <p class="text-muted-foreground mt-4 max-w-2xl mx-auto" data-animate="fade-up">
-          Whether you're setting up a 78 Series for a lap of Australia or converting a van into a home on wheels, we build expedition fit-outs that match exactly how you travel.
+          Whether you're setting up for weekend camping trips, building a Troop Carrier for a lap of Australia, or converting your van into a home on wheels, we've got you covered.
         </p>
       </div>
 
-      <div class="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto" data-animate="stagger">
+      <div class="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto" data-animate="fade-up">
         <!-- 4WDs -->
         <a href="/services/4wd-fitouts" class="group bg-white rounded-xl p-8 border border-stone-dark/10 hover:border-sand/40 hover:shadow-md transition-all cursor-pointer">
           <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-colors">
@@ -235,42 +292,42 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
       </div>
 
       <div id="hiw-steps" class="relative max-w-3xl mx-auto">
-        <!-- Vertical progress track (desktop only) -->
-        <div id="hiw-track" class="hidden md:block absolute top-[28px] bottom-[28px] w-[2px] rounded-full left-[47px] z-0" style="opacity: 0; background-color: rgba(0,0,0,0.08); transition: opacity 0.5s ease;">
-          <div id="hiw-progress" class="w-full rounded-full" style="height: 0%; background-color: var(--color-primary); transition: height 0.4s ease-out;"></div>
+        <!-- Vertical line (stops at last circle centre) -->
+        <div id="hiw-track" class="hidden md:block absolute w-[2px] left-[47px] z-0" style="top: 48px; bottom: 68px;">
+          <div id="hiw-line" class="w-full bg-primary rounded-full" style="height: 0%;"></div>
         </div>
 
         <!-- Steps -->
         <div class="space-y-2 md:space-y-4">
-          <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl" style="opacity: 0.3; transition: opacity 0.3s ease;">
-            <div class="hiw-circle relative z-10 shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold" style="background: white; color: var(--color-stone-dark); border: 2px solid var(--color-stone-dark); opacity: 0.3;">1</div>
+          <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl opacity-0 translate-y-4 transition-all duration-500">
+            <div class="relative z-10 shrink-0 w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold">1</div>
             <div class="pt-2">
-              <h3 class="font-bold text-charcoal text-lg mb-1">Free Consultation</h3>
-              <p class="text-sm text-muted-foreground leading-relaxed">Tell us about your vehicle and we'll recommend the best setup - no cost, no commitment.</p>
+              <h3 class="font-bold text-charcoal text-lg mb-1">Tell Us What You're After</h3>
+              <p class="text-sm text-muted-foreground leading-relaxed">Submit a free quote request with your vehicle details and what you want. We'll call you within 48 hours for a free consultation.</p>
             </div>
           </div>
 
-          <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl" style="opacity: 0.3; transition: opacity 0.3s ease;">
-            <div class="hiw-circle relative z-10 shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold" style="background: white; color: var(--color-stone-dark); border: 2px solid var(--color-stone-dark); opacity: 0.3;">2</div>
+          <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl opacity-0 translate-y-4 transition-all duration-500">
+            <div class="relative z-10 shrink-0 w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold">2</div>
             <div class="pt-2">
-              <h3 class="font-bold text-charcoal text-lg mb-1">Deposit & Design</h3>
-              <p class="text-sm text-muted-foreground leading-relaxed">Lock in your build and approve your full 3D design before we order anything.</p>
+              <h3 class="font-bold text-charcoal text-lg mb-1">Design Deposit & 3D Design</h3>
+              <p class="text-sm text-muted-foreground leading-relaxed">Lock in your build with a design deposit. We'll create a full 3D design for you to approve before we order a single thing.</p>
             </div>
           </div>
 
-          <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl" style="opacity: 0.3; transition: opacity 0.3s ease;">
-            <div class="hiw-circle relative z-10 shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold" style="background: white; color: var(--color-stone-dark); border: 2px solid var(--color-stone-dark); opacity: 0.3;">3</div>
+          <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl opacity-0 translate-y-4 transition-all duration-500">
+            <div class="relative z-10 shrink-0 w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold">3</div>
             <div class="pt-2">
-              <h3 class="font-bold text-charcoal text-lg mb-1">Cut & Build</h3>
-              <p class="text-sm text-muted-foreground leading-relaxed">Every panel CNC-cut from premium plywood and hand-assembled in our GC workshop.</p>
+              <h3 class="font-bold text-charcoal text-lg mb-1">Materials & Build</h3>
+              <p class="text-sm text-muted-foreground leading-relaxed">Pay the materials deposit, we order everything and build your fitout. Drop off your vehicle and we handle the install.</p>
             </div>
           </div>
 
-          <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl" style="opacity: 0.3; transition: opacity 0.3s ease;">
-            <div class="hiw-circle relative z-10 shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold" style="background: white; color: var(--color-stone-dark); border: 2px solid var(--color-stone-dark); opacity: 0.3;">4</div>
+          <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl opacity-0 translate-y-4 transition-all duration-500">
+            <div class="relative z-10 shrink-0 w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold">4</div>
             <div class="pt-2">
-              <h3 class="font-bold text-charcoal text-lg mb-1">Install & Pickup</h3>
-              <p class="text-sm text-muted-foreground leading-relaxed">We install everything, walk you through the systems and hand back the keys.</p>
+              <h3 class="font-bold text-charcoal text-lg mb-1">Pick Up & Final Payment</h3>
+              <p class="text-sm text-muted-foreground leading-relaxed">We walk you through everything. Once you're happy, pay the final invoice and drive away with your new setup.</p>
             </div>
           </div>
         </div>
@@ -284,81 +341,33 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
       if (!container) return;
 
       const steps = Array.from(container.querySelectorAll('.hiw-step'));
-      const circles = Array.from(container.querySelectorAll('.hiw-circle'));
-      const progressBar = document.getElementById('hiw-progress');
+      const line = document.getElementById('hiw-line');
       const track = document.getElementById('hiw-track');
       const total = steps.length;
-      let running = false;
+      const stepDelay = 600;
 
-      const PRIMARY = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim();
-      const PRIMARY_FG = getComputedStyle(document.documentElement).getPropertyValue('--color-primary-foreground').trim();
-      const STONE_DARK = getComputedStyle(document.documentElement).getPropertyValue('--color-stone-dark').trim();
+      const observer = new IntersectionObserver((entries) => {
+        if (!entries[0].isIntersecting) return;
 
-      function setStep(index: number) {
-        // Update line first so it arrives as the circle activates
-        if (progressBar) {
-          const pct = total > 1 ? (index / (total - 1)) * 100 : 0;
-          progressBar.style.height = `${pct}%`;
-        }
 
         steps.forEach((step, i) => {
-          const el = step as HTMLElement;
-          const circle = circles[i] as HTMLElement;
-          if (i <= index) {
-            circle.style.background = PRIMARY;
-            circle.style.color = PRIMARY_FG;
-            circle.style.borderColor = PRIMARY;
-            circle.style.opacity = '1';
-            el.style.opacity = '1';
-          } else {
-            circle.style.background = 'white';
-            circle.style.color = STONE_DARK;
-            circle.style.borderColor = STONE_DARK;
-            circle.style.opacity = '0.3';
-            el.style.opacity = '0.3';
-          }
+          setTimeout(() => {
+            const el = step as HTMLElement;
+            el.classList.remove('opacity-0', 'translate-y-4');
+            el.classList.add('opacity-100', 'translate-y-0');
+
+            // Grow line to this step's circle centre
+            if (line && track && i > 0) {
+              const trackHeight = track.offsetHeight;
+              const pct = (i / (total - 1)) * 100;
+              line.style.transition = `height ${stepDelay}ms ease-out`;
+              line.style.height = `${pct}%`;
+            }
+          }, i * stepDelay);
         });
-      }
 
-      function resetAll() {
-        steps.forEach((step) => { (step as HTMLElement).style.opacity = '0.3'; });
-        circles.forEach((c) => {
-          const el = c as HTMLElement;
-          el.style.background = 'white';
-          el.style.color = STONE_DARK;
-          el.style.borderColor = STONE_DARK;
-          el.style.opacity = '0.3';
-        });
-        if (progressBar) progressBar.style.height = '0%';
-      }
-
-      function runSequence() {
-        let current = 0;
-        resetAll();
-        if (track) track.style.opacity = '1';
-
-        function next() {
-          if (current >= total) {
-            return;
-          }
-          setStep(current);
-          current++;
-          setTimeout(next, 800);
-        }
-
-        setTimeout(next, 300);
-      }
-
-      const observer = new IntersectionObserver(
-        (entries) => {
-          if (entries[0].isIntersecting && !running) {
-            running = true;
-            runSequence();
-            observer.unobserve(container);
-          }
-        },
-        { threshold: 0.15 }
-      );
+        observer.unobserve(container);
+      }, { threshold: 0.1 });
 
       observer.observe(container);
     })();
@@ -368,7 +377,7 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
   <section class="section-padding bg-background">
     <div class="container-narrow">
       <div class="text-center mb-16">
-        <p class="text-sand-dark font-medium text-sm uppercase tracking-widest mb-3" data-animate="fade-in">Why Bushbound</p>
+        <p class="text-sand-dark font-medium text-sm uppercase tracking-widest mb-3" data-animate="fade-in">Why Bush Bound</p>
         <h2 class="text-3xl sm:text-4xl font-bold text-charcoal" data-animate="fade-up">
           Why choose a professional vehicle fit-out
         </h2>
@@ -377,7 +386,7 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
         </p>
       </div>
 
-      <div class="grid md:grid-cols-2 gap-x-16 gap-y-10" data-animate="stagger">
+      <div class="grid md:grid-cols-2 gap-x-16 gap-y-10" data-animate="fade-up">
         <div class="flex gap-4">
           <div class="w-10 h-10 bg-sand/20 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
             <svg class="w-5 h-5 text-sand-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -459,26 +468,25 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
   <section class="section-padding bg-stone" id="pricing">
     <div class="container-narrow">
       <div class="text-center mb-16">
-        <p class="text-sand-dark font-medium text-sm uppercase tracking-widest mb-3" data-animate="fade-in">Pricing Guide</p>
+        <p class="text-sand-dark font-medium text-sm uppercase tracking-widest mb-3" data-animate="fade-in">What We Build</p>
         <h2 class="text-3xl sm:text-4xl font-bold text-charcoal" data-animate="fade-up">
-          Vehicle fit-out pricing
+          Choose your build level
         </h2>
         <p class="text-muted-foreground mt-4 max-w-2xl mx-auto" data-animate="fade-up">
-          Every build is different, but here's a realistic guide so you can plan your budget. All prices include 3D design, materials, professional installation and a 12-month warranty.
+          Every build is different. Tell us what you need and we'll put together a quote with 3D design, materials, professional installation and a 12-month warranty.
         </p>
       </div>
 
-      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6" data-animate="stagger">
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6" data-animate="fade-up">
         <!-- Essentials -->
         <div class="bg-white rounded-xl p-6 border border-stone-dark/10 flex flex-col">
           <p class="text-xs font-semibold text-sand-dark uppercase tracking-wider mb-2">Essentials</p>
-          <h3 class="text-2xl font-bold text-charcoal mb-1">$2.5K - $5K</h3>
-          <p class="text-sm text-muted-foreground mb-4">Storage & sleeping</p>
+          <h3 class="text-xl font-bold text-charcoal mb-1">Storage & Sleep</h3>
+          <p class="text-sm text-muted-foreground mb-4">Get your gear sorted</p>
           <ul class="text-sm text-muted-foreground space-y-2 flex-1">
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Custom cabinetry</li>
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Drawer systems</li>
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Sleeping platform</li>
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Proven designs</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Drawer system</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Bed platform</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Clean, functional layout</li>
             <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 3-5 day install</li>
           </ul>
           <a href="/quote?type=essentials" class="mt-6 inline-flex items-center justify-center w-full py-3 border-2 border-primary text-primary font-semibold text-sm rounded-md hover:bg-primary hover:text-primary-foreground transition-colors">
@@ -489,11 +497,12 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
         <!-- Touring -->
         <div class="bg-white rounded-xl p-6 border border-stone-dark/10 flex flex-col">
           <p class="text-xs font-semibold text-sand-dark uppercase tracking-wider mb-2">Touring</p>
-          <h3 class="text-2xl font-bold text-charcoal mb-1">$5K - $15K</h3>
-          <p class="text-sm text-muted-foreground mb-4">Storage, sleeping + power</p>
+          <h3 class="text-xl font-bold text-charcoal mb-1">Camp in Comfort</h3>
+          <p class="text-sm text-muted-foreground mb-4">Weekends in luxury</p>
           <ul class="text-sm text-muted-foreground space-y-2 flex-1">
             <li class="flex gap-2"><span class="text-muted-foreground/50 mt-0.5">&#10003;</span> Everything in Essentials, plus:</li>
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 12V dual-battery system</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 12V system with fridge</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Charge phones, laptops, run lights</li>
             <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Solar ready</li>
             <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 3-5 day install</li>
           </ul>
@@ -506,12 +515,13 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
         <div class="bg-white rounded-xl p-6 border-2 border-primary flex flex-col relative">
           <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full">Most Popular</div>
           <p class="text-xs font-semibold text-sand-dark uppercase tracking-wider mb-2">Expedition</p>
-          <h3 class="text-2xl font-bold text-charcoal mb-1">$15K - $30K</h3>
-          <p class="text-sm text-muted-foreground mb-4">Storage, power + water & kitchen</p>
+          <h3 class="text-xl font-bold text-charcoal mb-1">Live Out of It</h3>
+          <p class="text-sm text-muted-foreground mb-4">Go off-grid for weeks</p>
           <ul class="text-sm text-muted-foreground space-y-2 flex-1">
             <li class="flex gap-2"><span class="text-muted-foreground/50 mt-0.5">&#10003;</span> Everything in Touring, plus:</li>
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Complete water system</li>
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Built-in kitchen</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Heavy-duty 12V (coffee machine, compressor)</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Water system + kitchen</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Built to go off-grid for weeks</li>
             <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 1-2 week install</li>
           </ul>
           <a href="/quote?type=expedition" class="mt-6 inline-flex items-center justify-center w-full py-3 bg-primary text-primary-foreground font-semibold text-sm rounded-md hover:bg-primary-light transition-colors">
@@ -522,13 +532,13 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
         <!-- Luxury Custom -->
         <div class="bg-white rounded-xl p-6 border border-stone-dark/10 flex flex-col">
           <p class="text-xs font-semibold text-sand-dark uppercase tracking-wider mb-2">Luxury Custom</p>
-          <h3 class="text-2xl font-bold text-charcoal mb-1">$30K+</h3>
-          <p class="text-sm text-muted-foreground mb-4">Purpose-built, no compromises</p>
+          <h3 class="text-xl font-bold text-charcoal mb-1">Dream Build</h3>
+          <p class="text-sm text-muted-foreground mb-4">No compromises</p>
           <ul class="text-sm text-muted-foreground space-y-2 flex-1">
             <li class="flex gap-2"><span class="text-muted-foreground/50 mt-0.5">&#10003;</span> Everything in Expedition, plus:</li>
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 24V / 48V power options</li>
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Fully custom design</li>
-            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Premium finishes</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Complete custom design and layout</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Premium materials and finishes</li>
+            <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> Every detail built to your spec</li>
             <li class="flex gap-2"><span class="text-primary mt-0.5">&#10003;</span> 1-2 week install</li>
           </ul>
           <a href="/quote?type=luxury-custom" class="mt-6 inline-flex items-center justify-center w-full py-3 border-2 border-primary text-primary font-semibold text-sm rounded-md hover:bg-primary hover:text-primary-foreground transition-colors">
@@ -538,7 +548,7 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
       </div>
 
       <p class="text-center text-sm text-muted-foreground mt-8" data-animate="fade-in">
-        Not sure which tier fits? <a href="/quote?type=consultation" class="text-primary font-medium underline underline-offset-2">Book a free consultation</a> and we'll figure it out together.
+        Not sure which level fits? <a href="/quote?type=consultation" class="text-primary font-medium underline underline-offset-2">Book a free consultation</a> to talk through it.
       </p>
     </div>
   </section>
@@ -813,7 +823,7 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
         </h2>
       </div>
 
-      <div class="space-y-4" data-animate="stagger">
+      <div class="space-y-4" data-animate="fade-up">
         <details class="group bg-white rounded-xl border border-stone-dark/10 overflow-hidden">
           <summary class="flex items-center justify-between p-6 cursor-pointer font-semibold text-charcoal hover:text-primary transition-colors">
             How long does a vehicle fit-out take?
@@ -890,7 +900,7 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
             <svg class="w-5 h-5 shrink-0 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
           </summary>
           <div class="px-6 pb-6 text-sm text-muted-foreground">
-            No. The $500 deposit covers the labour to design your fit-out. You get to view, review and approve the 3D model, but the design files remain Bushbound's intellectual property. We don't sell or share 3D models.
+            No. The $500 deposit covers the labour to design your fit-out. You get to view, review and approve the 3D model, but the design files remain Bush Bound's intellectual property. We don't sell or share 3D models.
           </div>
         </details>
 
@@ -947,22 +957,37 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
     </div>
   </section>
 
-  <!-- CTA -->
-  <section class="section-padding bg-primary text-primary-foreground">
-    <div class="container-narrow text-center">
-      <h2 class="text-3xl sm:text-4xl font-bold mb-4" data-animate="fade-up">
-        Ready to start your vehicle fit-out?
-      </h2>
-      <p class="text-lg text-stone-dark max-w-xl mx-auto mb-8" data-animate="fade-up">
-        Tell us about your vehicle and how you want to use it. We'll get back to you with ideas and a realistic quote. No commitment, no pressure.
-      </p>
-      <a
-        href="/quote"
-        class="inline-flex items-center justify-center px-8 py-4 bg-sand text-charcoal font-bold text-base rounded-md hover:bg-sand-light transition-colors"
-        data-animate="fade-up"
-      >
-        Get a Free Quote
-      </a>
+  <!-- CTA Banner -->
+  <section class="relative overflow-hidden" data-animate="fade-up">
+    <div class="bg-gradient-to-br from-primary-dark via-primary to-primary-light py-16 sm:py-20">
+      <div class="container-narrow text-center relative z-10">
+        <div class="flex items-center justify-center gap-1.5 mb-6">
+          {[1,2,3,4,5].map(() => (
+            <svg class="w-5 h-5 text-sand" fill="currentColor" viewBox="0 0 20 20">
+              <path d={starPath}/>
+            </svg>
+          ))}
+        </div>
+
+        <h2 class="text-3xl sm:text-4xl font-bold text-primary-foreground mb-4">
+          Want a build like this?
+        </h2>
+        <p class="text-stone-light/80 text-lg mb-8 max-w-lg mx-auto">
+          Tell us about your vehicle and we'll give you a call to talk through the design and build something perfect for you.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="/quote" class="inline-flex items-center justify-center px-8 py-4 bg-sand text-charcoal font-bold text-base rounded-md hover:bg-sand-light transition-colors">
+            Get a Free Quote
+          </a>
+          <a href="/quote?type=consultation" class="inline-flex items-center justify-center px-8 py-4 border-2 border-stone-light/30 text-stone-light font-semibold text-base rounded-md hover:border-sand hover:text-sand transition-colors">
+            Book a Consultation
+          </a>
+        </div>
+      </div>
+
+      <div class="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+      <div class="absolute bottom-0 right-0 w-48 h-48 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3"></div>
     </div>
   </section>
 

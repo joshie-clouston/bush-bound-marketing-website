@@ -19,7 +19,6 @@ vehicles:
   - "Toyota HiLux N80"
   - "Toyota HiLux dual cab"
   - "Toyota HiLux extra cab"
-priceRange: "$5K - $22K"
 turnaround: "1-4 weeks"
 order: 31
 isCategory: false

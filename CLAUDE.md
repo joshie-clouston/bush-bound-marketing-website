@@ -1,10 +1,10 @@
-# Bushbound
+# Bush Bound
 
 Custom vehicle fit-outs for 4WDs, vans and work vehicles. Gold Coast, QLD.
 
 ## Brand
 
-- **Name:** Bushbound (one word, capital B)
+- **Name:** Bush Bound (two words, capital B capital B)
 - **Domain:** bushbound.au
 - **Colours:** Forest green (#2D4A3E), sand (#C4A882), charcoal (#1A1A1A), stone (#E8E0D6)
 - **Style:** Rugged adventure, earthy, premium but approachable

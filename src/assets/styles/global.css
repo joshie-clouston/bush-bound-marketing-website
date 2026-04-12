@@ -93,11 +93,17 @@ html {
 }
 
 @utility section-padding {
-  padding-block: var(--spacing-section);
+  padding-block: 3rem;
+  @media (min-width: 640px) {
+    padding-block: var(--spacing-section);
+  }
 }
 
 @utility section-padding-sm {
-  padding-block: var(--spacing-section-sm);
+  padding-block: 2rem;
+  @media (min-width: 640px) {
+    padding-block: var(--spacing-section-sm);
+  }
 }
 
 /* Interactive elements */

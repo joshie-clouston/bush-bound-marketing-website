@@ -18,7 +18,6 @@ features:
 vehicles:
   - "Toyota HiAce LWB"
   - "Toyota HiAce SLWB"
-priceRange: "$10K - $35K"
 turnaround: "3-6 weeks"
 order: 22
 isCategory: false

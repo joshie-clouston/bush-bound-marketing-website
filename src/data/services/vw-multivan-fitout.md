@@ -19,7 +19,6 @@ vehicles:
   - "VW Multivan T5"
   - "VW Multivan T6"
   - "VW Multivan T6.1"
-priceRange: "$8K - $25K"
 turnaround: "2-5 weeks"
 order: 21
 isCategory: false

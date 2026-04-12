@@ -18,7 +18,6 @@ features:
 vehicles:
   - "Nissan Patrol Y61 (GU)"
   - "Nissan Patrol Y62"
-priceRange: "$6K - $25K"
 turnaround: "2-4 weeks"
 order: 32
 isCategory: false

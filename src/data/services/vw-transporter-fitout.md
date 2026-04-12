@@ -19,7 +19,6 @@ vehicles:
   - "VW Transporter T5"
   - "VW Transporter T6"
   - "VW Transporter T6.1"
-priceRange: "$8K - $28K"
 turnaround: "2-5 weeks"
 order: 20
 isCategory: false

@@ -16,7 +16,6 @@ features:
   - "12-month warranty"
 vehicles:
   - "Toyota Prado 150 Series"
-priceRange: "$5K - $18K"
 turnaround: "1-3 weeks"
 order: 30
 isCategory: false

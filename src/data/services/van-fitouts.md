@@ -19,7 +19,6 @@ vehicles:
   - "VW Transporter T5/T6"
   - "VW Multivan"
   - "Toyota HiAce"
-priceRange: "$8K - $35K"
 turnaround: "2-6 weeks"
 order: 2
 isCategory: true

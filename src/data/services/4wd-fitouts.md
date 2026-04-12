@@ -21,7 +21,6 @@ vehicles:
   - "Nissan Patrol Y61/Y62"
   - "Toyota LandCruiser 100 Series"
   - "Toyota LandCruiser 200 Series"
-priceRange: "$5K - $30K"
 turnaround: "1-4 weeks"
 order: 3
 isCategory: true

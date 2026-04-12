@@ -17,7 +17,6 @@ features:
   - "12-month warranty"
 vehicles:
   - "Toyota LandCruiser 76 Series Wagon"
-priceRange: "$12K - $35K"
 turnaround: "3-6 weeks"
 order: 10
 isCategory: false
@@ -36,4 +35,4 @@ Water systems, solar wiring, and additional drawer modules are all available dep
 
 The 76 is the go-to for people who want the legendary 70 Series reliability in a shorter, more manoeuvrable package. It's easier to park, easier to handle on tight tracks, and still has the solid front axle and low-range gearing that makes the 70 Series platform so capable.
 
-Our fit-outs are designed to make the 76 a genuine weekender or short-trip tourer. You won't have the same living space as a 78 Series Troopy, but for a couple doing long weekends and week-long trips, it's hard to beat. The build removes cleanly without permanent modification to the vehicle.
+Our fit-outs are designed to make the 76 a genuine weekender or short-trip tourer. You won't have the same living space as a 78 Series Troop Carrier (Troopy), but for a couple doing long weekends and week-long trips, it's hard to beat. The build removes cleanly without permanent modification to the vehicle.

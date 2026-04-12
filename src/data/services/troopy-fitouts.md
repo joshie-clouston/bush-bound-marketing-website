@@ -1,9 +1,9 @@
 ---
-title: "Troopy Fit-Outs"
-description: "Custom 78 Series Troopy fit-outs on the Gold Coast. CNC-cut plywood expedition builds for the Troop Carrier, built for serious off-grid touring."
-headline: "Troopy Fit-Outs Gold Coast"
+title: "Troop Carrier (Troopy) Fit-Outs"
+description: "Custom 78 Series Troop Carrier (Troopy) fit-outs on the Gold Coast. CNC-cut plywood expedition builds for serious off-grid touring."
+headline: "Troop Carrier (Troopy) Fit-Outs Gold Coast"
 category: troopy
-categoryLabel: "Troopy Fit-Outs"
+categoryLabel: "Troop Carrier (Troopy) Fit-Outs"
 features:
   - "CNC-cut premium plywood cabinetry"
   - "Full 3D design approval before build"
@@ -16,8 +16,7 @@ features:
   - "Solar-ready wiring"
   - "12-month warranty"
 vehicles:
-  - "Toyota LandCruiser 78 Series Troopy"
-priceRange: "$12K - $45K"
+  - "Toyota LandCruiser 78 Series Troop Carrier (Troopy)"
 turnaround: "3-8 weeks"
 order: 1
 isCategory: true

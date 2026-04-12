@@ -6,9 +6,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const runtime = locals.runtime;
 
   try {
-    const { name, email, phone, vehicleType, vehicleModel, serviceType, message, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = (await request.json()) as Record<string, string>;
+    const { name, email, phone, vehicleType, vehicleModel, serviceType, message, referral, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = (await request.json()) as Record<string, string>;
 
-    if (!name || !email || !vehicleType || !serviceType) {
+    if (!name || !email) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
@@ -28,20 +28,21 @@ export const POST: APIRoute = async ({ request, locals }) => {
         const resend = new Resend(runtime.env.RESEND_API_KEY);
 
         await resend.emails.send({
-          from: `Bushbound Support <${runtime.env.RESEND_FROM_EMAIL || 'support@bushbound.au'}>`,
+          from: `Bush Bound Support <${runtime.env.RESEND_FROM_EMAIL || 'support@bushbound.au'}>`,
           to: runtime.env.NOTIFICATION_EMAIL || 'team@bushbound.au',
-          subject: `New quote request from ${name}`,
+          subject: `New quote request from ${name} - ${vehicleModel || 'Vehicle TBD'}`,
           html: `
             <h2>New Quote Request</h2>
             <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
             <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
-            <p><strong>Vehicle Type:</strong> ${vehicleType}</p>
-            <p><strong>Vehicle Model:</strong> ${vehicleModel || 'Not provided'}</p>
-            <p><strong>Service:</strong> ${serviceType}</p>
-            <p><strong>Message:</strong> ${message || 'No message'}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Vehicle:</strong> ${vehicleModel || 'Not provided'}</p>
             <hr />
-            <p><strong>Source:</strong> ${[utm_source, utm_medium, utm_campaign].filter(Boolean).join(' / ') || 'Direct'}</p>
+            <p><strong>What they want:</strong> ${serviceType || 'Not specified'}</p>
+            <p><strong>Notes:</strong> ${message || 'None'}</p>
+            <hr />
+            <p><strong>Heard about us via:</strong> ${referral || 'Not specified'}</p>
+            <p><strong>UTM:</strong> ${[utm_source, utm_medium, utm_campaign].filter(Boolean).join(' / ') || 'Direct'}</p>
           `,
         });
       }

@@ -17,7 +17,6 @@ features:
 vehicles:
   - "Toyota LandCruiser 100 Series"
   - "Toyota LandCruiser 105 Series"
-priceRange: "$5K - $20K"
 turnaround: "1-3 weeks"
 order: 33
 isCategory: false

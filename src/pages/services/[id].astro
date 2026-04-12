@@ -28,7 +28,7 @@ const parentCategory = entry.data.isCategory
   : allServices.find(s => s.id === entry.data.parentCategory);
 ---
 
-<BaseLayout title={`${entry.data.title} | Bushbound`} description={entry.data.description}>
+<BaseLayout title={`${entry.data.title} | Bush Bound`} description={entry.data.description}>
 
   <!-- Breadcrumb -->
   <section class="bg-charcoal pt-6 pb-0">
@@ -62,13 +62,7 @@ const parentCategory = entry.data.isCategory
         </p>
 
         <div class="flex flex-wrap gap-6 text-sm">
-          {entry.data.priceRange && (
-            <div>
-              <p class="text-stone-dark uppercase tracking-wider text-xs font-medium mb-1">Price Guide</p>
-              <p class="text-sand font-bold text-lg">{entry.data.priceRange}</p>
-            </div>
-          )}
-          {entry.data.turnaround && (
+{entry.data.turnaround && (
             <div>
               <p class="text-stone-dark uppercase tracking-wider text-xs font-medium mb-1">Turnaround</p>
               <p class="text-stone-light font-semibold text-lg">{entry.data.turnaround}</p>
@@ -123,10 +117,7 @@ const parentCategory = entry.data.isCategory
           {relatedModels.map((model) => (
             <a href={`/services/${model.id}`} class="group bg-white rounded-xl p-6 border border-stone-dark/10 hover:border-sand/40 transition-colors">
               <h3 class="text-lg font-bold text-charcoal mb-1 group-hover:text-primary transition-colors">{model.data.title}</h3>
-              {model.data.priceRange && (
-                <p class="text-sm text-sand-dark font-semibold mb-2">{model.data.priceRange}</p>
-              )}
-              <p class="text-sm text-muted-foreground line-clamp-2">{model.data.description}</p>
+<p class="text-sm text-muted-foreground line-clamp-2">{model.data.description}</p>
             </a>
           ))}
         </div>

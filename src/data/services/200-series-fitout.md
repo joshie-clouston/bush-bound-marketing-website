@@ -19,7 +19,6 @@ vehicles:
   - "Toyota LandCruiser 200 Series"
   - "Toyota LandCruiser 200 Series Sahara"
   - "Toyota LandCruiser 200 Series GXL"
-priceRange: "$6K - $25K"
 turnaround: "2-4 weeks"
 order: 34
 isCategory: false

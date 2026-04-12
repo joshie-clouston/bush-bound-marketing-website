@@ -2,173 +2,304 @@
 export const prerender = true;
 
 import BaseLayout from '@/layouts/BaseLayout.astro';
+
+const reviewQuotes = [
+  { text: "Highly recommend going with Bush Bound to just get it done right the first time.", name: "Joshua C.", vehicle: "Troop Carrier" },
+  { text: "Absolutely nailed it. Attention to detail is what sets them apart.", name: "Luke W.", vehicle: "VW Transporter" },
+  { text: "Deadset legend. Workmanship is top quality and materials are top notch!", name: "Mick D.", vehicle: "Troop Carrier" },
+  { text: "Super high attention to detail, quick turn around time, and clear communication.", name: "Brock C.", vehicle: "100 Series" },
+];
+
+const checklistItems = {
+  'Storage & Sleeping': [
+    { id: 'drawers', label: 'Drawer system' },
+    { id: 'bed', label: 'Bed / sleeping platform' },
+    { id: 'overhead', label: 'Overhead storage' },
+    { id: 'roofrack', label: 'Roof rack / bars' },
+  ],
+  'Power & Electrical': [
+    { id: '12v', label: '12V dual-battery system' },
+    { id: 'solar', label: 'Solar panels' },
+    { id: 'inverter', label: 'Inverter (240V for laptops, chargers)' },
+    { id: 'lighting', label: 'LED lighting' },
+    { id: 'compressor', label: 'Air compressor (tyre inflation)' },
+  ],
+  'Fridge & Kitchen': [
+    { id: 'fridge', label: 'Fridge / freezer' },
+    { id: 'kitchen', label: 'Slide-out kitchen / bench' },
+    { id: 'sink', label: 'Kitchen sink' },
+    { id: 'cooktop', label: 'Gas cooktop' },
+  ],
+  'Water': [
+    { id: 'watertank', label: 'Water tank' },
+    { id: 'hotwater', label: 'Hot water system' },
+    { id: 'shower', label: 'Outdoor shower' },
+  ],
+  'Finishing': [
+    { id: 'marinecarpet', label: 'Marine carpet lining' },
+    { id: 'plywood', label: 'Premium plywood finish' },
+    { id: 'insulation', label: 'Insulation / sound deadening' },
+  ],
+};
+
+const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z";
 ---
 
-<BaseLayout title="Get a Quote | Bushbound" description="Request a free quote for your custom vehicle fit-out. Tell us about your vehicle and we'll design something perfect.">
+<BaseLayout title="Get a Free Quote | Bush Bound" description="Tell us about your vehicle and what you want. We'll call you within 48 hours for a free consultation to talk through your build.">
 
   <section class="section-padding bg-background">
-    <div class="container-narrow max-w-2xl">
-      <a href="/" class="inline-flex items-center text-sm text-primary font-medium mb-8 hover:text-primary-light transition-colors">
+    <div class="container-wide">
+      <a href="/" class="inline-flex items-center text-sm text-primary font-medium mb-6 hover:text-primary-light transition-colors">
         <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
         </svg>
         Back to home
       </a>
 
-      <div class="mb-10">
-        <h1 class="text-3xl sm:text-4xl font-bold text-charcoal mb-3" data-animate="fade-up">
-          Get a free quote
-        </h1>
-        <p class="text-muted-foreground text-lg" data-animate="fade-up">
-          Tell us about your vehicle and what you're after. We'll get back to you within 48 hours with ideas and a rough quote.
-        </p>
-      </div>
+      <div class="flex flex-col lg:flex-row gap-10 lg:gap-16">
 
-      <form id="quote-form" class="space-y-6" data-animate="fade-up">
-        <!-- Name -->
-        <div>
-          <label for="name" class="block text-sm font-semibold text-charcoal mb-1.5">Name *</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            required
-            autofocus
-            class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors"
-            placeholder="Sarah Mitchell"
-          />
+        <!-- Left: Form -->
+        <div class="lg:w-3/5">
+          <h1 class="text-3xl sm:text-4xl font-bold text-charcoal mb-2">
+            Get a free quote
+          </h1>
+          <p class="text-muted-foreground text-lg mb-8">
+            Tell us about your vehicle and what you're after. We'll give you a call within 48 hours for a free phone consultation to discuss designs and give you a rough quote.
+          </p>
+
+          <form id="quote-form">
+            <!-- Step 1: About You -->
+            <div id="step-1" class="space-y-5">
+              <p class="text-xs font-semibold text-sand-dark uppercase tracking-wider mb-1">Step 1 of 3 - About you</p>
+
+              <div>
+                <label for="name" class="block text-sm font-semibold text-charcoal mb-1.5">Name *</label>
+                <input type="text" id="name" name="name" required class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors" placeholder="Your name" />
+              </div>
+
+              <div>
+                <label for="email" class="block text-sm font-semibold text-charcoal mb-1.5">Email *</label>
+                <input type="email" id="email" name="email" required class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors" placeholder="you@example.com" />
+              </div>
+
+              <div>
+                <label for="phone" class="block text-sm font-semibold text-charcoal mb-1.5">Phone *</label>
+                <input type="tel" id="phone" name="phone" required class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors" placeholder="04XX XXX XXX" />
+              </div>
+
+              <div>
+                <label for="vehicle" class="block text-sm font-semibold text-charcoal mb-1.5">What's your vehicle? *</label>
+                <input type="text" id="vehicle" name="vehicle" required class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors" placeholder="e.g. Toyota Land Cruiser 78 Series, VW Transporter T6, Hilux with canopy" />
+              </div>
+
+              <button type="button" id="next-to-2" class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 bg-primary text-primary-foreground font-semibold rounded-md hover:bg-primary-light transition-colors">
+                Next: What do you want?
+                <svg class="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+              </button>
+            </div>
+
+            <!-- Step 2: What You Want -->
+            <div id="step-2" class="hidden">
+              <p class="text-xs font-semibold text-sand-dark uppercase tracking-wider mb-4">Step 2 of 3 - Build your wish list</p>
+              <p class="text-sm text-muted-foreground mb-6">Tick everything you're interested in. Don't stress if you're not sure on some items. We'll talk through it all on the call.</p>
+
+              <div class="space-y-6">
+                {Object.entries(checklistItems).map(([category, items]) => (
+                  <div>
+                    <h3 class="text-sm font-bold text-charcoal uppercase tracking-wider mb-3">{category}</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {items.map((item) => (
+                        <label class="flex items-center gap-3 p-3 rounded-lg border border-stone-dark/15 bg-white hover:border-primary/40 hover:bg-primary/5 transition-colors cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/10">
+                          <input type="checkbox" name="features" value={item.id} class="w-4 h-4 rounded border-stone-dark/30 text-primary focus:ring-primary/40" />
+                          <span class="text-sm text-charcoal">{item.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div class="flex gap-3 mt-8">
+                <button type="button" id="back-to-1" class="inline-flex items-center justify-center px-6 py-3 border-2 border-stone-dark/20 text-charcoal font-semibold rounded-md hover:border-primary hover:text-primary transition-colors">
+                  <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
+                  Back
+                </button>
+                <button type="button" id="next-to-3" class="flex-1 sm:flex-none inline-flex items-center justify-center px-8 py-3 bg-primary text-primary-foreground font-semibold rounded-md hover:bg-primary-light transition-colors">
+                  Next: Final details
+                  <svg class="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Step 3: Final Details -->
+            <div id="step-3" class="hidden space-y-5">
+              <p class="text-xs font-semibold text-sand-dark uppercase tracking-wider mb-1">Step 3 of 3 - Final details</p>
+
+              <div>
+                <label for="message" class="block text-sm font-semibold text-charcoal mb-1.5">Anything specific you want us to know?</label>
+                <textarea id="message" name="message" rows="4" class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors resize-y" placeholder="Tell us how you use your vehicle, where you travel, or anything else that would help us design the perfect build for you."></textarea>
+              </div>
+
+              <div>
+                <label for="referral" class="block text-sm font-semibold text-charcoal mb-1.5">How did you hear about us?</label>
+                <select id="referral" name="referral" class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors">
+                  <option value="">Select one</option>
+                  <option value="instagram">Instagram</option>
+                  <option value="facebook">Facebook</option>
+                  <option value="tiktok">TikTok</option>
+                  <option value="google">Google search</option>
+                  <option value="word-of-mouth">Word of mouth</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div class="flex gap-3">
+                <button type="button" id="back-to-2" class="inline-flex items-center justify-center px-6 py-3 border-2 border-stone-dark/20 text-charcoal font-semibold rounded-md hover:border-primary hover:text-primary transition-colors">
+                  <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
+                  Back
+                </button>
+                <button type="submit" class="flex-1 sm:flex-none inline-flex items-center justify-center px-8 py-3 bg-sand text-charcoal font-bold rounded-md hover:bg-sand-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                  <span id="submit-text">Send Quote Request</span>
+                  <svg id="submit-spinner" class="hidden w-5 h-5 ml-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <!-- Success message -->
+          <div id="success-message" class="hidden mt-8 p-8 bg-primary/10 border border-primary/20 rounded-xl text-center">
+            <svg class="w-12 h-12 text-primary mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 class="text-xl font-bold text-charcoal mb-1">Quote request sent!</h3>
+            <p class="text-muted-foreground">We'll give you a call within 48 hours to talk through your build. Keep an eye on your inbox for a confirmation email.</p>
+          </div>
+
+          <!-- Error message -->
+          <div id="error-message" class="hidden mt-8 p-6 bg-red-50 border border-red-200 rounded-xl text-center">
+            <h3 class="text-xl font-bold text-charcoal mb-1">Something went wrong</h3>
+            <p class="text-muted-foreground">Please try again or call us directly on <a href="tel:+61424770875" class="text-primary underline">0424 770 875</a></p>
+          </div>
         </div>
 
-        <!-- Email -->
-        <div>
-          <label for="email" class="block text-sm font-semibold text-charcoal mb-1.5">Email *</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            required
-            class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors"
-            placeholder="sarah@example.com"
-          />
+        <!-- Right: Social Proof Sidebar -->
+        <div class="lg:w-2/5">
+          <div class="sticky top-28 space-y-6">
+            <!-- Why Bush Bound -->
+            <div class="bg-white rounded-xl border border-stone-dark/10 p-6">
+              <h3 class="font-bold text-charcoal mb-4">Why Bush Bound?</h3>
+              <ul class="space-y-3 text-sm text-muted-foreground">
+                <li class="flex gap-3">
+                  <svg class="w-5 h-5 text-primary shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <span>Full 3D design so you see your build before we start</span>
+                </li>
+                <li class="flex gap-3">
+                  <svg class="w-5 h-5 text-primary shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <span>CNC-cut premium plywood, built to last</span>
+                </li>
+                <li class="flex gap-3">
+                  <svg class="w-5 h-5 text-primary shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <span>12-month warranty on every build</span>
+                </li>
+                <li class="flex gap-3">
+                  <svg class="w-5 h-5 text-primary shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <span>Gold Coast workshop, professional install</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Review carousel -->
+            <div class="bg-white rounded-xl border border-stone-dark/10 p-6">
+              <div class="flex items-center gap-1 mb-4">
+                {[1,2,3,4,5].map(() => (
+                  <svg class="w-4 h-4 text-sand" fill="currentColor" viewBox="0 0 20 20"><path d={starPath}/></svg>
+                ))}
+              </div>
+              <div id="sidebar-reviews" class="relative min-h-[80px]">
+                {reviewQuotes.map((r, i) => (
+                  <div class:list={['sidebar-review transition-opacity duration-500 absolute inset-0', i === 0 ? 'opacity-100' : 'opacity-0']}>
+                    <p class="text-sm text-charcoal italic mb-2">"{r.text}"</p>
+                    <p class="text-xs text-muted-foreground">{r.name}, {r.vehicle}</p>
+                  </div>
+                ))}
+              </div>
+              <a href="/reviews" class="inline-flex items-center text-sm text-primary font-medium mt-4 hover:underline">
+                See all customer builds
+                <svg class="w-3.5 h-3.5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+              </a>
+            </div>
+
+            <!-- Build photo -->
+            <a href="/reviews" class="block rounded-xl overflow-hidden border border-stone-dark/10 hover:shadow-lg transition-shadow">
+              <img src="/images/reviews/toyota-landcruiser-troopcarrier-jack-1.webp" alt="Bush Bound fit-out example" class="w-full aspect-[4/3] object-cover" loading="lazy" />
+              <div class="p-4 bg-white">
+                <p class="text-sm font-semibold text-charcoal">See our latest builds</p>
+                <p class="text-xs text-muted-foreground">Happy customers, bush bound</p>
+              </div>
+            </a>
+          </div>
         </div>
 
-        <!-- Phone -->
-        <div>
-          <label for="phone" class="block text-sm font-semibold text-charcoal mb-1.5">Phone</label>
-          <input
-            type="tel"
-            id="phone"
-            name="phone"
-            class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors"
-            placeholder="04XX XXX XXX"
-          />
-        </div>
-
-        <!-- Vehicle Type -->
-        <div>
-          <label for="vehicleType" class="block text-sm font-semibold text-charcoal mb-1.5">Vehicle Type *</label>
-          <select
-            id="vehicleType"
-            name="vehicleType"
-            required
-            class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors"
-          >
-            <option value="">Select your vehicle type</option>
-            <option value="4wd">4WD / Wagon</option>
-            <option value="troopy">Troop Carrier (Troopy)</option>
-            <option value="van">Van (Sprinter, HiAce, Transit, etc.)</option>
-            <option value="ute-canopy">Ute with Canopy</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-
-        <!-- Vehicle Model -->
-        <div>
-          <label for="vehicleModel" class="block text-sm font-semibold text-charcoal mb-1.5">Vehicle Make & Model</label>
-          <input
-            type="text"
-            id="vehicleModel"
-            name="vehicleModel"
-            class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors"
-            placeholder="e.g. Toyota Land Cruiser 78 Series"
-          />
-        </div>
-
-        <!-- Service Type -->
-        <div>
-          <label for="serviceType" class="block text-sm font-semibold text-charcoal mb-1.5">What are you after? *</label>
-          <select
-            id="serviceType"
-            name="serviceType"
-            required
-            class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors"
-          >
-            <option value="">Select a tier</option>
-            <option value="essentials">Essentials (cabinetry & storage)</option>
-            <option value="touring">Touring (cabinetry, storage & 12V power)</option>
-            <option value="expedition">Expedition (cabinetry, storage, 12V & water)</option>
-            <option value="luxury-custom">Luxury Custom (whatever you can imagine!)</option>
-            <option value="not-sure">Not sure yet - help me figure it out</option>
-          </select>
-        </div>
-
-        <!-- Message -->
-        <div>
-          <label for="message" class="block text-sm font-semibold text-charcoal mb-1.5">Tell us more</label>
-          <textarea
-            id="message"
-            name="message"
-            rows="4"
-            class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors resize-y"
-            placeholder="What do you need? How do you use your vehicle? Any specific requirements?"
-          ></textarea>
-        </div>
-
-        <!-- Submit -->
-        <button
-          type="submit"
-          class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 bg-primary text-primary-foreground font-bold text-base rounded-md hover:bg-primary-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <span id="submit-text">Send Quote Request</span>
-          <svg id="submit-spinner" class="hidden w-5 h-5 ml-2 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        </button>
-      </form>
-
-      <!-- Success message -->
-      <div id="success-message" class="hidden mt-8 p-6 bg-primary/10 border border-primary/20 rounded-xl text-center">
-        <svg class="w-12 h-12 text-primary mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <h3 class="text-xl font-bold text-charcoal mb-1">Quote request sent!</h3>
-        <p class="text-muted-foreground">We'll be in touch within 48 hours. Keep an eye on your inbox.</p>
-      </div>
-
-      <!-- Error message -->
-      <div id="error-message" class="hidden mt-8 p-6 bg-destructive/10 border border-destructive/20 rounded-xl text-center">
-        <h3 class="text-xl font-bold text-charcoal mb-1">Something went wrong</h3>
-        <p class="text-muted-foreground">Please try again or email us directly at <a href="mailto:hello@bushbound.au" class="text-primary underline">hello@bushbound.au</a></p>
       </div>
     </div>
   </section>
 
   <script>
+    // Multi-step navigation
+    const step1 = document.getElementById('step-1')!;
+    const step2 = document.getElementById('step-2')!;
+    const step3 = document.getElementById('step-3')!;
+
+    function showStep(show: HTMLElement, hide1: HTMLElement, hide2: HTMLElement) {
+      hide1.classList.add('hidden');
+      hide2.classList.add('hidden');
+      show.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Prevent Enter from submitting on steps 1 and 2
+    const quoteForm = document.getElementById('quote-form') as HTMLFormElement;
+    quoteForm?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !step3.classList.contains('hidden')) return; // allow on step 3
+      if (e.key === 'Enter' && (e.target as HTMLElement)?.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        // Trigger the visible Next button instead
+        if (!step1.classList.contains('hidden')) document.getElementById('next-to-2')?.click();
+        else if (!step2.classList.contains('hidden')) document.getElementById('next-to-3')?.click();
+      }
+    });
+
+    // Step 1 validation + next
+    document.getElementById('next-to-2')?.addEventListener('click', () => {
+      const name = document.getElementById('name') as HTMLInputElement;
+      const email = document.getElementById('email') as HTMLInputElement;
+      const phone = document.getElementById('phone') as HTMLInputElement;
+      const vehicle = document.getElementById('vehicle') as HTMLInputElement;
+
+      // Trigger native validation
+      if (!name.value || !email.value || !phone.value || !vehicle.value) {
+        // Find first empty required field and focus it
+        [name, email, phone, vehicle].find(f => !f.value)?.focus();
+        return;
+      }
+      if (!email.validity.valid) { email.focus(); return; }
+
+      showStep(step2, step1, step3);
+    });
+
+    document.getElementById('back-to-1')?.addEventListener('click', () => showStep(step1, step2, step3));
+    document.getElementById('next-to-3')?.addEventListener('click', () => showStep(step3, step1, step2));
+    document.getElementById('back-to-2')?.addEventListener('click', () => showStep(step2, step1, step3));
+
+    // Form submission
     const form = document.getElementById('quote-form') as HTMLFormElement;
     const submitText = document.getElementById('submit-text')!;
     const submitSpinner = document.getElementById('submit-spinner')!;
     const successMessage = document.getElementById('success-message')!;
     const errorMessage = document.getElementById('error-message')!;
-
-    // Pre-select service type from URL params
-    const params = new URLSearchParams(window.location.search);
-    const serviceParam = params.get('type');
-    if (serviceParam) {
-      const serviceSelect = document.getElementById('serviceType') as unknown as HTMLSelectElement;
-      const option = serviceSelect.querySelector(`option[value="${serviceParam}"]`);
-      if (option) serviceSelect.value = serviceParam;
-    }
 
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -179,22 +310,32 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
       submitSpinner.classList.remove('hidden');
       errorMessage.classList.add('hidden');
 
-      const data = Object.fromEntries(new FormData(form));
+      const formData = new FormData(form);
+      const features = formData.getAll('features');
+
+      const data: Record<string, string> = {
+        name: formData.get('name') as string,
+        email: formData.get('email') as string,
+        phone: formData.get('phone') as string,
+        vehicleType: 'custom',
+        vehicleModel: formData.get('vehicle') as string,
+        serviceType: features.join(', ') || 'not specified',
+        message: formData.get('message') as string || '',
+        referral: formData.get('referral') as string || '',
+      };
 
       // Capture UTM params
-      const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
       const utmParams = new URLSearchParams(window.location.search);
-      const utm: Record<string, string> = {};
-      for (const key of utmKeys) {
+      for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content']) {
         const val = utmParams.get(key);
-        if (val) utm[key] = val;
+        if (val) data[key] = val;
       }
 
       try {
         const response = await fetch('/api/quote', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...data, ...utm }),
+          body: JSON.stringify(data),
         });
 
         if (!response.ok) throw new Error('Request failed');
@@ -208,6 +349,18 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
         submitSpinner.classList.add('hidden');
       }
     });
+
+    // Sidebar review carousel
+    const sidebarReviews = document.querySelectorAll('.sidebar-review');
+    if (sidebarReviews.length > 1) {
+      let current = 0;
+      setInterval(() => {
+        const next = (current + 1) % sidebarReviews.length;
+        (sidebarReviews[current] as HTMLElement).style.opacity = '0';
+        (sidebarReviews[next] as HTMLElement).style.opacity = '1';
+        current = next;
+      }, 5000);
+    }
   </script>
 
 </BaseLayout>
