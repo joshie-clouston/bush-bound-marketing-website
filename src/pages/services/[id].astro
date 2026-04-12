@@ -15,17 +15,14 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content } = await render(entry);
 
-// Get related pages (same category, excluding self)
-const allServices = (await getCollection('services', ({ data }) => !data.draft))
-  .sort((a, b) => a.data.order - b.data.order);
+// Get other vehicles (excluding self)
+const allVehicles = (await getCollection('services', ({ data }) => !data.draft))
+  .sort((a, b) => a.data.order - b.data.order)
+  .filter(s => s.id !== entry.id);
 
-const relatedModels = entry.data.isCategory
-  ? allServices.filter(s => !s.data.isCategory && s.data.parentCategory === entry.id)
-  : allServices.filter(s => !s.data.isCategory && s.data.category === entry.data.category && s.id !== entry.id);
-
-const parentCategory = entry.data.isCategory
-  ? null
-  : allServices.find(s => s.id === entry.data.parentCategory);
+// Show same category first, then others
+const sameCategory = allVehicles.filter(s => s.data.category === entry.data.category);
+const otherVehicles = sameCategory.length > 0 ? sameCategory.slice(0, 4) : allVehicles.slice(0, 4);
 ---
 
 <BaseLayout title={`${entry.data.title} | Bush Bound`} description={entry.data.description}>
@@ -34,14 +31,8 @@ const parentCategory = entry.data.isCategory
   <section class="bg-charcoal pt-6 pb-0">
     <div class="container-narrow">
       <nav class="flex items-center gap-2 text-sm text-stone-dark">
-        <a href="/services" class="hover:text-sand transition-colors">Services</a>
+        <a href="/services" class="hover:text-sand transition-colors">Vehicles</a>
         <span>/</span>
-        {parentCategory && (
-          <>
-            <a href={`/services/${parentCategory.id}`} class="hover:text-sand transition-colors">{parentCategory.data.title}</a>
-            <span>/</span>
-          </>
-        )}
         <span class="text-stone-light">{entry.data.title}</span>
       </nav>
     </div>
@@ -51,9 +42,7 @@ const parentCategory = entry.data.isCategory
   <section class="section-padding bg-charcoal text-stone-light">
     <div class="container-narrow">
       <div class="max-w-3xl">
-        {entry.data.categoryLabel && !entry.data.isCategory && (
-          <p class="text-sand font-medium text-sm uppercase tracking-widest mb-4">{entry.data.categoryLabel}</p>
-        )}
+        <span class="inline-flex items-center px-3 py-1 bg-white/10 text-sand text-xs font-semibold rounded-full mb-4">{entry.data.categoryLabel}</span>
         <h1 class="text-4xl sm:text-5xl font-extrabold mb-6">
           {entry.data.headline || entry.data.title}
         </h1>
@@ -62,7 +51,7 @@ const parentCategory = entry.data.isCategory
         </p>
 
         <div class="flex flex-wrap gap-6 text-sm">
-{entry.data.turnaround && (
+          {entry.data.turnaround && (
             <div>
               <p class="text-stone-dark uppercase tracking-wider text-xs font-medium mb-1">Turnaround</p>
               <p class="text-stone-light font-semibold text-lg">{entry.data.turnaround}</p>
@@ -78,7 +67,7 @@ const parentCategory = entry.data.isCategory
     <section class="section-padding bg-stone">
       <div class="container-narrow">
         <h2 class="text-2xl font-bold text-charcoal mb-8" data-animate="fade-up">What's included</h2>
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4" data-animate="stagger">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4" data-animate="fade-up">
           {entry.data.features.map((feature) => (
             <div class="flex items-start gap-3 bg-white rounded-lg p-4 border border-stone-dark/10">
               <span class="text-primary font-bold mt-0.5 shrink-0">&#10003;</span>
@@ -106,18 +95,17 @@ const parentCategory = entry.data.isCategory
     </div>
   </section>
 
-  <!-- Related models -->
-  {relatedModels.length > 0 && (
+  <!-- Other vehicles -->
+  {otherVehicles.length > 0 && (
     <section class="section-padding bg-stone">
       <div class="container-narrow">
-        <h2 class="text-2xl font-bold text-charcoal mb-8" data-animate="fade-up">
-          {entry.data.isCategory ? 'Vehicles we fit out' : 'Other vehicles in this category'}
-        </h2>
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" data-animate="stagger">
-          {relatedModels.map((model) => (
-            <a href={`/services/${model.id}`} class="group bg-white rounded-xl p-6 border border-stone-dark/10 hover:border-sand/40 transition-colors">
+        <h2 class="text-2xl font-bold text-charcoal mb-8" data-animate="fade-up">Other vehicles we fit out</h2>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" data-animate="fade-up">
+          {otherVehicles.map((model) => (
+            <a href={`/services/${model.id}`} class="group bg-white rounded-xl p-6 border border-stone-dark/10 hover:border-primary/30 hover:shadow-sm transition-all">
+              <span class="inline-flex items-center px-2.5 py-0.5 bg-primary/10 text-primary text-xs font-semibold rounded-full mb-2">{model.data.categoryLabel}</span>
               <h3 class="text-lg font-bold text-charcoal mb-1 group-hover:text-primary transition-colors">{model.data.title}</h3>
-<p class="text-sm text-muted-foreground line-clamp-2">{model.data.description}</p>
+              <p class="text-sm text-muted-foreground line-clamp-2">{model.data.description}</p>
             </a>
           ))}
         </div>
@@ -126,28 +114,33 @@ const parentCategory = entry.data.isCategory
   )}
 
   <!-- CTA -->
-  <section class="section-padding bg-charcoal text-stone-light">
-    <div class="container-narrow text-center">
-      <h2 class="text-2xl sm:text-3xl font-bold mb-3" data-animate="fade-up">
-        {entry.data.isCategory
-          ? `Ready to build your ${entry.data.title.toLowerCase().replace(' fit-outs', '').replace(' conversions', '')} fit-out?`
-          : `Get a quote for your ${entry.data.title.replace(' Fit-Out', '').replace(' fit-out', '')}`
-        }
-      </h2>
-      <p class="text-stone-dark mb-8 max-w-lg mx-auto" data-animate="fade-up">
-        Tell us about your vehicle and how you travel. We'll come back with a design and quote.
-      </p>
-      <div class="flex flex-col sm:flex-row gap-3 justify-center" data-animate="fade-up">
-        <a
-          href={`/quote?type=${encodeURIComponent(entry.data.title)}`}
-          class="inline-flex items-center justify-center px-8 py-4 bg-sand text-charcoal font-bold text-base rounded-md hover:bg-sand-light transition-colors"
-        >
-          Get a Free Quote
-        </a>
-        <a href="tel:+61424770875" class="inline-flex items-center justify-center px-8 py-4 border-2 border-stone-dark/40 text-stone-light font-semibold text-base rounded-md hover:border-sand hover:text-sand transition-colors">
-          Call 0424 770 875
-        </a>
+  <section class="relative overflow-hidden">
+    <div class="bg-gradient-to-br from-primary-dark via-primary to-primary-light py-16 sm:py-20">
+      <div class="container-narrow text-center relative z-10">
+        <div class="flex items-center justify-center gap-1.5 mb-6">
+          {[1,2,3,4,5].map(() => (
+            <svg class="w-5 h-5 text-sand" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+          ))}
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-bold text-primary-foreground mb-4">
+          Get a quote for your {entry.data.title.replace(' Fit-Out', '').replace(' fit-out', '')}
+        </h2>
+        <p class="text-stone-light/80 text-lg mb-8 max-w-lg mx-auto">
+          Tell us about your vehicle and we'll give you a call to talk through the design and build something perfect for you.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="/quote" class="inline-flex items-center justify-center px-8 py-4 bg-sand text-charcoal font-bold text-base rounded-md hover:bg-sand-light transition-colors">
+            Get a Free Quote
+          </a>
+          <a href="/quote?type=consultation" class="inline-flex items-center justify-center px-8 py-4 border-2 border-stone-light/30 text-stone-light font-semibold text-base rounded-md hover:border-sand hover:text-sand transition-colors">
+            Book a Consultation
+          </a>
+        </div>
       </div>
+      <div class="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+      <div class="absolute bottom-0 right-0 w-48 h-48 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3"></div>
     </div>
   </section>
 
