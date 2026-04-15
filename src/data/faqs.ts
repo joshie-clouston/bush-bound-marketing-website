@@ -74,7 +74,7 @@ export const faqs: FAQ[] = [
     slug: 'what-power-system-do-i-need',
     question: 'What power system do I need?',
     answer: 'Depends on how you travel. For weekend getaways, a 12V dual-battery system with 200Ah of lithium will cover you comfortably. If you want to run a coffee machine, microwave or air fryer, we offer inverter setups too.',
-    authority: 'Our primary offering is 12V systems because they cover 90% of use cases. 24V and 48V systems are available in our Dream Build tier, installed by a certified auto electrician. All electrical work across every build is done by a certified auto sparky, fully compliant and insurance-covered. We\'ll recommend the right setup based on what you actually want to power.',
+    authority: 'We specialise in 12V systems because they cover the vast majority of use cases. All electrical work across every build is done by a certified auto electrician, fully compliant and insurance-covered. We\'ll recommend the right setup based on what you actually want to power.',
     related: ['how-long-does-a-vehicle-fit-out-take', 'can-i-add-to-my-fit-out-later', 'do-you-offer-warranty-on-your-builds'],
   },
   {
