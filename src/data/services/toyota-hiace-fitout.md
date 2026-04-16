@@ -18,7 +18,13 @@ features:
 vehicles:
   - "Toyota HiAce LWB"
   - "Toyota HiAce SLWB"
-turnaround: "3-6 weeks"
+turnaround: "8-12 weeks"
+heroImage: "/images/reviews/toyota-hiace-luis-4.webp"
+heroCaption: "Luis C.'s Toyota Hiace conversion"
+heroImages:
+  - "/images/reviews/toyota-hiace-luis-4.webp"
+  - "/images/reviews/toyota-hiace-luis-1.webp"
+  - "/images/reviews/toyota-hiace-luis-6.webp"
 order: 22
 isCategory: false
 parentCategory: van-fitouts

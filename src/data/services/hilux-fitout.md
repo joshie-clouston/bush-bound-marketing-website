@@ -19,7 +19,14 @@ vehicles:
   - "Toyota HiLux N80"
   - "Toyota HiLux dual cab"
   - "Toyota HiLux extra cab"
-turnaround: "1-4 weeks"
+turnaround: "8-12 weeks"
+heroImage: "/images/reviews/chevrolet-silverado-4.webp"
+heroCaption: "Example: ute tub fit-out with heavy-duty drawer system"
+heroImages:
+  - "/images/reviews/chevrolet-silverado-4.webp"
+  - "/images/reviews/chevrolet-silverado-2.webp"
+  - "/images/reviews/chevrolet-silverado-6.webp"
+heroDisclaimer: "These images show a Silverado ute tub build. Similar drawer and storage setups are adaptable to the HiLux."
 order: 31
 isCategory: false
 parentCategory: 4wd-fitouts

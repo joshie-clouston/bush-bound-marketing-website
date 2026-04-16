@@ -16,7 +16,13 @@ features:
   - "12-month warranty"
 vehicles:
   - "Toyota Prado 150 Series"
-turnaround: "1-3 weeks"
+turnaround: "8-12 weeks"
+heroImage: "/images/reviews/toyota-prado-2.webp"
+heroCaption: "Jack R.'s Prado 150 fit-out"
+heroImages:
+  - "/images/reviews/toyota-prado-2.webp"
+  - "/images/reviews/toyota-prado-1.webp"
+  - "/images/reviews/toyota-prado-3.webp"
 order: 30
 isCategory: false
 parentCategory: 4wd-fitouts

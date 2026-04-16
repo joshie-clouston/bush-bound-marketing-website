@@ -17,7 +17,13 @@ features:
   - "12-month warranty"
 vehicles:
   - "Toyota LandCruiser 78 Series Troop Carrier (Troopy)"
-turnaround: "4-8 weeks"
+turnaround: "8-12 weeks"
+heroImage: "/images/reviews/toyota-landcruiser-troopcarrier-jack-1.webp"
+heroCaption: "Jack F.'s 78 Series Troop Carrier fit-out"
+heroImages:
+  - "/images/reviews/toyota-landcruiser-troopcarrier-jack-1.webp"
+  - "/images/reviews/toyota-landcruiser-troopcarrier-jack-6.webp"
+  - "/images/reviews/toyota-landcruiser-troopcarrier-white-6.webp"
 order: 11
 isCategory: false
 parentCategory: troopy-fitouts

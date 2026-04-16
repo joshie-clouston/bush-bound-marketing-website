@@ -31,7 +31,7 @@ const otherVehicles = sameCategory.length > 0 ? sameCategory.slice(0, 4) : allVe
   <section class="bg-charcoal pt-6 pb-0">
     <div class="container-narrow">
       <nav class="flex items-center gap-2 text-sm text-stone-dark">
-        <a href="/services" class="hover:text-sand transition-colors">Vehicles</a>
+        <a href="/fit-outs" class="hover:text-sand transition-colors">Vehicles</a>
         <span>/</span>
         <span class="text-stone-light">{entry.data.title}</span>
       </nav>
@@ -61,6 +61,32 @@ const otherVehicles = sameCategory.length > 0 ? sameCategory.slice(0, 4) : allVe
       </div>
     </div>
   </section>
+
+  <!-- Build Photos -->
+  {entry.data.heroImages && entry.data.heroImages.length > 0 && (
+    <section class="bg-background pt-8 sm:pt-12">
+      <div class="container-narrow">
+        <div class="grid grid-cols-3 gap-3">
+          {entry.data.heroImages.map((img: string, i: number) => (
+            <div class="rounded-xl overflow-hidden bg-stone aspect-square">
+              <img
+                src={img}
+                alt={`${entry.data.title} fit-out example ${i + 1}`}
+                class="w-full h-full object-cover"
+                loading={i === 0 ? 'eager' : 'lazy'}
+              />
+            </div>
+          ))}
+        </div>
+        {entry.data.heroDisclaimer && (
+          <p class="text-xs text-muted-foreground mt-3 text-center italic">{entry.data.heroDisclaimer}</p>
+        )}
+        {!entry.data.heroDisclaimer && entry.data.heroCaption && (
+          <p class="text-sm text-muted-foreground mt-3 text-center italic">{entry.data.heroCaption}</p>
+        )}
+      </div>
+    </section>
+  )}
 
   <!-- Features -->
   {entry.data.features.length > 0 && (
@@ -102,7 +128,7 @@ const otherVehicles = sameCategory.length > 0 ? sameCategory.slice(0, 4) : allVe
         <h2 class="text-2xl font-bold text-charcoal mb-8" data-animate="fade-up">Other vehicles we fit out</h2>
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" data-animate="fade-up">
           {otherVehicles.map((model) => (
-            <a href={`/services/${model.id}`} class="group bg-white rounded-xl p-6 border border-stone-dark/10 hover:border-primary/30 hover:shadow-sm transition-all">
+            <a href={`/fit-outs/${model.id}`} class="group bg-white rounded-xl p-6 border border-stone-dark/10 hover:border-primary/30 hover:shadow-sm transition-all">
               <span class="inline-flex items-center px-2.5 py-0.5 bg-primary/10 text-primary text-xs font-semibold rounded-full mb-2">{model.data.categoryLabel}</span>
               <h3 class="text-lg font-bold text-charcoal mb-1 group-hover:text-primary transition-colors">{model.data.title}</h3>
               <p class="text-sm text-muted-foreground line-clamp-2">{model.data.description}</p>

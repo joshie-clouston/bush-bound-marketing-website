@@ -19,7 +19,13 @@ vehicles:
   - "VW Multivan T5"
   - "VW Multivan T6"
   - "VW Multivan T6.1"
-turnaround: "2-5 weeks"
+turnaround: "8-12 weeks"
+heroImage: "/images/reviews/volkswagen-multivan-katrina-2.webp"
+heroCaption: "Katrina S.'s VW Multivan fit-out"
+heroImages:
+  - "/images/reviews/volkswagen-multivan-katrina-2.webp"
+  - "/images/reviews/volkswagen-multivan-katrina-1.webp"
+  - "/images/reviews/volkswagen-multivan-katrina-3.webp"
 order: 21
 isCategory: false
 parentCategory: van-fitouts

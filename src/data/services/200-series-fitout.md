@@ -19,7 +19,14 @@ vehicles:
   - "Toyota LandCruiser 200 Series"
   - "Toyota LandCruiser 200 Series Sahara"
   - "Toyota LandCruiser 200 Series GXL"
-turnaround: "2-4 weeks"
+turnaround: "8-12 weeks"
+heroImage: "/images/reviews/toyota-100-series-jai-12.webp"
+heroCaption: "Example: 100 Series SUV fit-out with drawer system and fridge"
+heroImages:
+  - "/images/reviews/toyota-100-series-jai-12.webp"
+  - "/images/reviews/toyota-100-series-jai-1.webp"
+  - "/images/reviews/toyota-bush-bound-80-series-4.webp"
+heroDisclaimer: "These images show 100 Series and 80 Series SUV builds, adaptable to the 200 Series."
 order: 34
 isCategory: false
 parentCategory: 4wd-fitouts

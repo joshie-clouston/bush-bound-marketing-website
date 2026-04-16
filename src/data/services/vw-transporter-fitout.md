@@ -19,7 +19,13 @@ vehicles:
   - "VW Transporter T5"
   - "VW Transporter T6"
   - "VW Transporter T6.1"
-turnaround: "2-5 weeks"
+turnaround: "8-12 weeks"
+heroImage: "/images/reviews/volkswagen-multivan-3.webp"
+heroCaption: "Luke W.'s VW Transporter fit-out"
+heroImages:
+  - "/images/reviews/volkswagen-multivan-3.webp"
+  - "/images/reviews/volkswagen-multivan-2.webp"
+  - "/images/reviews/volkswagen-multivan-6.webp"
 order: 20
 isCategory: false
 parentCategory: van-fitouts

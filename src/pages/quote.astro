@@ -14,15 +14,16 @@ const checklistItems = {
   'Storage & Sleeping': [
     { id: 'drawers', label: 'Drawer system' },
     { id: 'bed', label: 'Bed / sleeping platform' },
-    { id: 'overhead', label: 'Overhead storage' },
-    { id: 'roofrack', label: 'Roof rack / bars' },
+    { id: 'rooftop-tent', label: 'Rooftop tent / awning' },
+    { id: 'camping-table', label: 'Collapsable camping table' },
   ],
   'Power & Electrical': [
     { id: '12v', label: '12V dual-battery system' },
     { id: 'solar', label: 'Solar panels' },
-    { id: 'inverter', label: 'Inverter (240V for laptops, chargers)' },
+    { id: 'inverter', label: 'Inverter (240V - laptops, chargers)' },
+    { id: 'compressor', label: 'Air compressor' },
+    { id: 'uhf', label: 'UHF radio & aerial install' },
     { id: 'lighting', label: 'LED lighting' },
-    { id: 'compressor', label: 'Air compressor (tyre inflation)' },
   ],
   'Fridge & Kitchen': [
     { id: 'fridge', label: 'Fridge / freezer' },
@@ -34,11 +35,19 @@ const checklistItems = {
     { id: 'watertank', label: 'Water tank' },
     { id: 'hotwater', label: 'Hot water system' },
     { id: 'shower', label: 'Outdoor shower' },
+    { id: 'water-filtration', label: 'Water filtration' },
+  ],
+  'Recovery & Accessories': [
+    { id: 'winch', label: 'Winch' },
+    { id: 'recovery', label: 'Recovery gear storage' },
+    { id: 'bullbar', label: 'Bull bar / rear bar' },
+    { id: 'spotlights', label: 'Spotlights / light bar' },
   ],
   'Finishing': [
     { id: 'marinecarpet', label: 'Marine carpet lining' },
-    { id: 'plywood', label: 'Premium plywood finish' },
+    { id: 'plywood', label: 'Premium ply (black, white, timber)' },
     { id: 'insulation', label: 'Insulation / sound deadening' },
+    { id: 'lacquer', label: 'Hand-lacquered waterproof finish' },
   ],
 };
 
@@ -67,29 +76,31 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
             Tell us about your vehicle and what you're after. We'll give you a call within 48 hours for a free phone consult to discuss designs and give you a rough quote.
           </p>
 
-          <form id="quote-form">
+          <form id="quote-form" class="bg-white rounded-xl border border-stone-dark/10 p-6 sm:p-8">
             <!-- Step 1: About You -->
             <div id="step-1" class="space-y-5">
               <p class="text-xs font-semibold text-sand-dark uppercase tracking-wider mb-1">Step 1 of 3 - About you</p>
 
               <div>
                 <label for="name" class="block text-sm font-semibold text-charcoal mb-1.5">Name *</label>
-                <input type="text" id="name" name="name" required class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors" placeholder="Your name" />
+                <input type="text" id="name" name="name" required class="w-full px-4 py-3 rounded-md border border-stone-dark/20 bg-stone/30 text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors" placeholder="Your name" />
               </div>
 
               <div>
                 <label for="email" class="block text-sm font-semibold text-charcoal mb-1.5">Email *</label>
-                <input type="email" id="email" name="email" required class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors" placeholder="you@example.com" />
+                <input type="email" id="email" name="email" required class="w-full px-4 py-3 rounded-md border border-stone-dark/20 bg-stone/30 text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors" placeholder="you@example.com" />
+                <p id="email-error" class="hidden text-xs text-red-500 mt-1">Enter a valid email address</p>
               </div>
 
               <div>
                 <label for="phone" class="block text-sm font-semibold text-charcoal mb-1.5">Phone *</label>
-                <input type="tel" id="phone" name="phone" required class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors" placeholder="04XX XXX XXX" />
+                <input type="tel" id="phone" name="phone" required pattern="^(\+?61|0)4\d{2}\s?\d{3}\s?\d{3}$" title="Enter a valid Australian mobile number (e.g. 0412 345 678)" class="w-full px-4 py-3 rounded-md border border-stone-dark/20 bg-stone/30 text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors" placeholder="04XX XXX XXX" />
+                <p id="phone-error" class="hidden text-xs text-red-500 mt-1">Enter a valid Australian mobile number (e.g. 0412 345 678)</p>
               </div>
 
               <div>
                 <label for="vehicle" class="block text-sm font-semibold text-charcoal mb-1.5">What's your vehicle? *</label>
-                <input type="text" id="vehicle" name="vehicle" required class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors" placeholder="e.g. Toyota Land Cruiser 78 Series, VW Transporter T6, Hilux with canopy" />
+                <input type="text" id="vehicle" name="vehicle" required class="w-full px-4 py-3 rounded-md border border-stone-dark/20 bg-stone/30 text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors" placeholder="e.g. Toyota Land Cruiser 78 Series, VW Transporter T6, Hilux with canopy" />
               </div>
 
               <button type="button" id="next-to-2" class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 bg-primary text-primary-foreground font-semibold rounded-md hover:bg-primary-light transition-colors">
@@ -104,12 +115,49 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
               <p class="text-sm text-muted-foreground mb-6">Tick everything you're interested in. Don't stress if you're not sure on some items. We'll talk through it all on the call.</p>
 
               <div class="space-y-6">
+                <!-- Budget -->
+                <div>
+                  <h3 class="text-sm font-bold text-charcoal uppercase tracking-wider mb-3">Budget</h3>
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { value: 'under-5k', label: 'Under $5K' },
+                      { value: '5k-25k', label: '$5K - $25K' },
+                      { value: '25k-50k', label: '$25K - $50K' },
+                      { value: '50k-plus', label: '$50K+' },
+                    ].map((opt) => (
+                      <label class="flex items-center justify-center p-3 rounded-lg border border-stone-dark/30 bg-white hover:border-primary/40 hover:bg-primary/5 transition-colors cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/10 text-center">
+                        <input type="radio" name="budget" value={opt.value} class="sr-only" />
+                        <span class="text-sm text-charcoal">{opt.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <!-- Timeline -->
+                <div>
+                  <h3 class="text-sm font-bold text-charcoal uppercase tracking-wider mb-3">Timeline</h3>
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { value: 'planning', label: 'Just planning' },
+                      { value: '6-months', label: 'Within 6 months' },
+                      { value: '3-months', label: 'Within 3 months' },
+                      { value: 'asap', label: 'ASAP' },
+                    ].map((opt) => (
+                      <label class="flex items-center justify-center p-3 rounded-lg border border-stone-dark/30 bg-white hover:border-primary/40 hover:bg-primary/5 transition-colors cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/10 text-center">
+                        <input type="radio" name="timeline" value={opt.value} class="sr-only" />
+                        <span class="text-sm text-charcoal">{opt.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <!-- Feature checklist -->
                 {Object.entries(checklistItems).map(([category, items]) => (
                   <div>
                     <h3 class="text-sm font-bold text-charcoal uppercase tracking-wider mb-3">{category}</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {items.map((item) => (
-                        <label class="flex items-center gap-3 p-3 rounded-lg border border-stone-dark/15 bg-white hover:border-primary/40 hover:bg-primary/5 transition-colors cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border border-stone-dark/30 bg-white hover:border-primary/40 hover:bg-primary/5 transition-colors cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/10">
                           <input type="checkbox" name="features" value={item.id} class="w-4 h-4 rounded border-stone-dark/30 text-primary focus:ring-primary/40" />
                           <span class="text-sm text-charcoal">{item.label}</span>
                         </label>
@@ -273,19 +321,39 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
     });
 
     // Step 1 validation + next
+    const emailError = document.getElementById('email-error')!;
+    const phoneError = document.getElementById('phone-error')!;
+    const ausMobileRegex = /^(\+?61|0)4\d{2}\s?\d{3}\s?\d{3}$/;
+
     document.getElementById('next-to-2')?.addEventListener('click', () => {
       const name = document.getElementById('name') as HTMLInputElement;
       const email = document.getElementById('email') as HTMLInputElement;
       const phone = document.getElementById('phone') as HTMLInputElement;
       const vehicle = document.getElementById('vehicle') as HTMLInputElement;
 
-      // Trigger native validation
+      // Clear errors
+      emailError.classList.add('hidden');
+      phoneError.classList.add('hidden');
+
+      // Check required fields
       if (!name.value || !email.value || !phone.value || !vehicle.value) {
-        // Find first empty required field and focus it
         [name, email, phone, vehicle].find(f => !f.value)?.focus();
         return;
       }
-      if (!email.validity.valid) { email.focus(); return; }
+
+      // Email validation
+      if (!email.validity.valid) {
+        emailError.classList.remove('hidden');
+        email.focus();
+        return;
+      }
+
+      // Australian mobile validation
+      if (!ausMobileRegex.test(phone.value.trim())) {
+        phoneError.classList.remove('hidden');
+        phone.focus();
+        return;
+      }
 
       showStep(step2, step1, step3);
     });
@@ -313,13 +381,16 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
       const formData = new FormData(form);
       const features = formData.getAll('features');
 
+      const budget = formData.get('budget') as string || '';
+      const timeline = formData.get('timeline') as string || '';
+
       const data: Record<string, string> = {
         name: formData.get('name') as string,
         email: formData.get('email') as string,
         phone: formData.get('phone') as string,
         vehicleType: 'custom',
         vehicleModel: formData.get('vehicle') as string,
-        serviceType: features.join(', ') || 'not specified',
+        serviceType: [features.join(', '), budget ? `Budget: ${budget}` : '', timeline ? `Timeline: ${timeline}` : ''].filter(Boolean).join(' | ') || 'not specified',
         message: formData.get('message') as string || '',
         referral: formData.get('referral') as string || '',
       };

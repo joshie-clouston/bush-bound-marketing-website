@@ -18,7 +18,14 @@ features:
 vehicles:
   - "Nissan Patrol Y61 (GU)"
   - "Nissan Patrol Y62"
-turnaround: "2-4 weeks"
+turnaround: "8-12 weeks"
+heroImage: "/images/reviews/toyota-100-series-jai-12.webp"
+heroCaption: "Example: SUV fit-out with carpet-lined drawers and fridge setup"
+heroImages:
+  - "/images/reviews/toyota-100-series-jai-12.webp"
+  - "/images/reviews/toyota-bush-bound-80-series-4.webp"
+  - "/images/reviews/toyota-100-series-1.webp"
+heroDisclaimer: "These images show 100 Series and 80 Series wagon builds, adaptable to the Patrol."
 order: 32
 isCategory: false
 parentCategory: 4wd-fitouts

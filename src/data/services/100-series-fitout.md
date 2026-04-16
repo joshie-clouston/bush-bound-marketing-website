@@ -17,7 +17,13 @@ features:
 vehicles:
   - "Toyota LandCruiser 100 Series"
   - "Toyota LandCruiser 105 Series"
-turnaround: "1-3 weeks"
+turnaround: "8-12 weeks"
+heroImage: "/images/reviews/toyota-100-series-jai-1.webp"
+heroCaption: "Jai G.'s 100 Series fit-out"
+heroImages:
+  - "/images/reviews/toyota-100-series-jai-12.webp"
+  - "/images/reviews/toyota-100-series-jai-1.webp"
+  - "/images/reviews/toyota-100-series-1.webp"
 order: 33
 isCategory: false
 parentCategory: 4wd-fitouts

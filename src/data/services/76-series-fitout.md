@@ -17,7 +17,13 @@ features:
   - "12-month warranty"
 vehicles:
   - "Toyota LandCruiser 76 Series Wagon"
-turnaround: "3-6 weeks"
+turnaround: "8-12 weeks"
+heroImage: "/images/reviews/toyota-landcruiser-76-series-4.webp"
+heroCaption: "Jacob H.'s 76 Series wagon fit-out"
+heroImages:
+  - "/images/reviews/toyota-landcruiser-76-series-4.webp"
+  - "/images/reviews/toyota-landcruiser-76-series-2.webp"
+  - "/images/reviews/toyota-landcruiser-76-series-8.webp"
 order: 10
 isCategory: false
 parentCategory: 4wd-fitouts
