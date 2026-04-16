@@ -176,7 +176,6 @@ export const reviews: Review[] = [
       '/images/reviews/chevrolet-silverado-6.webp',
       '/images/reviews/chevrolet-silverado-1.webp',
       '/images/reviews/chevrolet-silverado-3.webp',
-      '/images/reviews/chevrolet-silverado-5.webp',
     ],
   },
   {
