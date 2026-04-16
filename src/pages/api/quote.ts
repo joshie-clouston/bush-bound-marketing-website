@@ -15,11 +15,15 @@ export const POST: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    // Store in D1
-    await runtime.env.DB.prepare(
-      `INSERT INTO quotes (name, email, phone, vehicle_type, vehicle_model, service_type, message, utm_source, utm_medium, utm_campaign, utm_term, utm_content, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).bind(name, email, phone || null, vehicleType, vehicleModel || null, serviceType, message || null, utm_source || null, utm_medium || null, utm_campaign || null, utm_term || null, utm_content || null, Date.now()).run();
+    // Store in D1 (non-blocking - don't fail if DB is unavailable)
+    try {
+      await runtime.env.DB.prepare(
+        `INSERT INTO quotes (name, email, phone, vehicle_type, vehicle_model, service_type, message, utm_source, utm_medium, utm_campaign, utm_term, utm_content, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(name, email, phone || null, vehicleType || null, vehicleModel || null, serviceType || null, message || null, utm_source || null, utm_medium || null, utm_campaign || null, utm_term || null, utm_content || null, Date.now()).run();
+    } catch (dbError) {
+      console.error('D1 write failed (continuing):', dbError);
+    }
 
     // Send notification email (non-blocking)
     try {
@@ -28,8 +32,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
         const resend = new Resend(runtime.env.RESEND_API_KEY);
 
         await resend.emails.send({
-          from: `Bush Bound Support <${runtime.env.RESEND_FROM_EMAIL || 'support@bushbound.au'}>`,
-          to: runtime.env.NOTIFICATION_EMAIL || 'team@bushbound.au',
+          from: `Bush Bound Support <${runtime.env.RESEND_FROM_EMAIL || 'support@send.bushbound.au'}>`,
+          to: runtime.env.NOTIFICATION_EMAIL || 'luke@bushbound.au',
           subject: `New quote request from ${name} - ${vehicleModel || 'Vehicle TBD'}`,
           html: `
             <h2>New Quote Request</h2>

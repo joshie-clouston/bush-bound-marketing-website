@@ -15,10 +15,14 @@ export const POST: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    // Store in D1
-    await runtime.env.DB.prepare(
-      `INSERT OR IGNORE INTO flatpack_waitlist (email, rego, utm_source, utm_medium, utm_campaign, utm_term, utm_content, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-    ).bind(email, rego || null, utm_source || null, utm_medium || null, utm_campaign || null, utm_term || null, utm_content || null, Date.now()).run();
+    // Store in D1 (non-blocking)
+    try {
+      await runtime.env.DB.prepare(
+        `INSERT OR IGNORE INTO flatpack_waitlist (email, rego, utm_source, utm_medium, utm_campaign, utm_term, utm_content, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(email, rego || null, utm_source || null, utm_medium || null, utm_campaign || null, utm_term || null, utm_content || null, Date.now()).run();
+    } catch (dbError) {
+      console.error('D1 write failed (continuing):', dbError);
+    }
 
     // Send notification email (non-blocking)
     try {
@@ -28,8 +32,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
         const utmInfo = [utm_source, utm_medium, utm_campaign].filter(Boolean).join(' / ');
         await resend.emails.send({
-          from: `Bush Bound Support <${(runtime.env.RESEND_FROM_EMAIL as string) || 'support@bushbound.au'}>`,
-          to: (runtime.env.NOTIFICATION_EMAIL as string) || 'team@bushbound.au',
+          from: `Bush Bound Support <${(runtime.env.RESEND_FROM_EMAIL as string) || 'support@send.bushbound.au'}>`,
+          to: (runtime.env.NOTIFICATION_EMAIL as string) || 'luke@bushbound.au',
           subject: `New flat pack waitlist signup: ${email}`,
           html: `
             <h2>New Flat Pack Waitlist Signup</h2>
