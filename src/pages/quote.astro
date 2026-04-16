@@ -280,14 +280,29 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
               </a>
             </div>
 
-            <!-- Build photo -->
-            <a href="/reviews" class="block rounded-xl overflow-hidden border border-stone-dark/10 hover:shadow-lg transition-shadow">
-              <img src="/images/reviews/toyota-landcruiser-troopcarrier-jack-1.webp" alt="Bush Bound fit-out example" class="w-full aspect-[4/3] object-cover" loading="lazy" />
-              <div class="p-4 bg-white">
+            <!-- Build photo carousel -->
+            <div class="rounded-xl overflow-hidden border border-stone-dark/10">
+              <div class="relative aspect-[4/3]">
+                {[
+                  { src: '/images/reviews/toyota-landcruiser-troopcarrier-jack-1.webp', href: '/reviews/jack-f-troopy' },
+                  { src: '/images/reviews/toyota-landcruiser-troopcarrier-2-1.webp', href: '/reviews/mick-d-troopy' },
+                  { src: '/images/reviews/volkswagen-multivan-3.webp', href: '/reviews/luke-w-transporter' },
+                  { src: '/images/reviews/toyota-bush-bound-80-series-4.webp', href: '/reviews/luke-c-80-series' },
+                  { src: '/images/reviews/toyota-100-series-jai-1.webp', href: '/reviews/jai-g-100-series' },
+                  { src: '/images/reviews/toyota-100-series-1.webp', href: '/reviews/brock-c-100-series' },
+                  { src: '/images/reviews/toyota-landcruiser-troopcarrier-white-6.webp', href: '/reviews/norman-h-troopy' },
+                  { src: '/images/reviews/toyota-landcruiser-troopcarrier-1-2.webp', href: '/reviews/joshua-c-troopy' },
+                ].map((img, i) => (
+                  <a href={img.href} class:list={['sidebar-build absolute inset-0 transition-opacity duration-1000', i === 0 ? 'opacity-100' : 'opacity-0 pointer-events-none']}>
+                    <img src={img.src} alt="Bush Bound fit-out" class="w-full h-full object-cover" loading="lazy" />
+                  </a>
+                ))}
+              </div>
+              <a href="/reviews" class="block p-4 bg-white hover:bg-stone/30 transition-colors">
                 <p class="text-sm font-semibold text-charcoal">See our latest builds</p>
                 <p class="text-xs text-muted-foreground">Happy customers, bush bound</p>
-              </div>
-            </a>
+              </a>
+            </div>
           </div>
         </div>
 
@@ -320,49 +335,65 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
       }
     });
 
-    // Step 1 validation + next
+    // Step 1 validation + submit lead
     const emailError = document.getElementById('email-error')!;
     const phoneError = document.getElementById('phone-error')!;
     const ausMobileRegex = /^(\+?61|0)4\d{2}\s?\d{3}\s?\d{3}$/;
+    let leadId: string | null = null;
 
-    document.getElementById('next-to-2')?.addEventListener('click', () => {
+    document.getElementById('next-to-2')?.addEventListener('click', async () => {
       const name = document.getElementById('name') as HTMLInputElement;
       const email = document.getElementById('email') as HTMLInputElement;
       const phone = document.getElementById('phone') as HTMLInputElement;
       const vehicle = document.getElementById('vehicle') as HTMLInputElement;
 
-      // Clear errors
       emailError.classList.add('hidden');
       phoneError.classList.add('hidden');
 
-      // Check required fields
       if (!name.value || !email.value || !phone.value || !vehicle.value) {
         [name, email, phone, vehicle].find(f => !f.value)?.focus();
         return;
       }
+      if (!email.validity.valid) { emailError.classList.remove('hidden'); email.focus(); return; }
+      if (!ausMobileRegex.test(phone.value.trim())) { phoneError.classList.remove('hidden'); phone.focus(); return; }
 
-      // Email validation
-      if (!email.validity.valid) {
-        emailError.classList.remove('hidden');
-        email.focus();
-        return;
-      }
-
-      // Australian mobile validation
-      if (!ausMobileRegex.test(phone.value.trim())) {
-        phoneError.classList.remove('hidden');
-        phone.focus();
-        return;
-      }
+      // Submit step 1 to create lead
+      try {
+        const res = await fetch('/api/quote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ step: '1', name: name.value, email: email.value, phone: phone.value, vehicle: vehicle.value }),
+        });
+        const json = await res.json() as Record<string, string>;
+        if (json.leadId) leadId = String(json.leadId);
+      } catch { /* continue even if DB fails */ }
 
       showStep(step2, step1, step3);
     });
 
     document.getElementById('back-to-1')?.addEventListener('click', () => showStep(step1, step2, step3));
-    document.getElementById('next-to-3')?.addEventListener('click', () => showStep(step3, step1, step2));
+
+    // Step 2 → Step 3: submit wishlist
+    document.getElementById('next-to-3')?.addEventListener('click', async () => {
+      const formData = new FormData(document.getElementById('quote-form') as HTMLFormElement);
+      const features = formData.getAll('features').join(', ');
+      const budget = formData.get('budget') as string || '';
+      const timeline = formData.get('timeline') as string || '';
+
+      try {
+        await fetch('/api/quote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ step: '2', leadId, serviceType: features, budget, timeline }),
+        });
+      } catch { /* continue */ }
+
+      showStep(step3, step1, step2);
+    });
+
     document.getElementById('back-to-2')?.addEventListener('click', () => showStep(step2, step1, step3));
 
-    // Form submission
+    // Step 3: Final submit + email notification
     const form = document.getElementById('quote-form') as HTMLFormElement;
     const submitText = document.getElementById('submit-text')!;
     const submitSpinner = document.getElementById('submit-spinner')!;
@@ -379,37 +410,39 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
       errorMessage.classList.add('hidden');
 
       const formData = new FormData(form);
-      const features = formData.getAll('features');
-
+      const features = formData.getAll('features').join(', ');
       const budget = formData.get('budget') as string || '';
       const timeline = formData.get('timeline') as string || '';
 
-      const data: Record<string, string> = {
-        name: formData.get('name') as string,
-        email: formData.get('email') as string,
-        phone: formData.get('phone') as string,
-        vehicleType: 'custom',
-        vehicleModel: formData.get('vehicle') as string,
-        serviceType: [features.join(', '), budget ? `Budget: ${budget}` : '', timeline ? `Timeline: ${timeline}` : ''].filter(Boolean).join(' | ') || 'not specified',
-        message: formData.get('message') as string || '',
-        referral: formData.get('referral') as string || '',
-      };
-
       // Capture UTM params
       const utmParams = new URLSearchParams(window.location.search);
-      for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content']) {
+      const utm: Record<string, string> = {};
+      for (const key of ['utm_source', 'utm_medium', 'utm_campaign']) {
         const val = utmParams.get(key);
-        if (val) data[key] = val;
+        if (val) utm[key] = val;
       }
 
       try {
-        const response = await fetch('/api/quote', {
+        const res = await fetch('/api/quote', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
+          body: JSON.stringify({
+            step: '3',
+            leadId,
+            name: formData.get('name'),
+            email: formData.get('email'),
+            phone: formData.get('phone'),
+            vehicle: formData.get('vehicle'),
+            serviceType: features,
+            budget,
+            timeline,
+            message: formData.get('message') || '',
+            referral: formData.get('referral') || '',
+            ...utm,
+          }),
         });
 
-        if (!response.ok) throw new Error('Request failed');
+        if (!res.ok) throw new Error('Failed');
 
         form.classList.add('hidden');
         successMessage.classList.remove('hidden');
@@ -424,13 +457,27 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
     // Sidebar review carousel
     const sidebarReviews = document.querySelectorAll('.sidebar-review');
     if (sidebarReviews.length > 1) {
-      let current = 0;
+      let currentReview = 0;
       setInterval(() => {
-        const next = (current + 1) % sidebarReviews.length;
-        (sidebarReviews[current] as HTMLElement).style.opacity = '0';
+        const next = (currentReview + 1) % sidebarReviews.length;
+        (sidebarReviews[currentReview] as HTMLElement).style.opacity = '0';
         (sidebarReviews[next] as HTMLElement).style.opacity = '1';
-        current = next;
+        currentReview = next;
       }, 5000);
+    }
+
+    // Sidebar build photo carousel
+    const sidebarBuilds = document.querySelectorAll('.sidebar-build');
+    if (sidebarBuilds.length > 1) {
+      let currentBuild = 0;
+      setInterval(() => {
+        const next = (currentBuild + 1) % sidebarBuilds.length;
+        (sidebarBuilds[currentBuild] as HTMLElement).style.opacity = '0';
+        (sidebarBuilds[currentBuild] as HTMLElement).classList.add('pointer-events-none');
+        (sidebarBuilds[next] as HTMLElement).style.opacity = '1';
+        (sidebarBuilds[next] as HTMLElement).classList.remove('pointer-events-none');
+        currentBuild = next;
+      }, 4000);
     }
   </script>
 

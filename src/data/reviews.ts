@@ -189,9 +189,9 @@ export const reviews: Review[] = [
     image: '/images/reviews/toyota-hiace-luis-4.webp',
     images: [
       '/images/reviews/toyota-hiace-luis-4.webp',
-      '/images/reviews/toyota-hiace-luis-1.webp',
       '/images/reviews/toyota-hiace-luis-6.webp',
       '/images/reviews/toyota-hiace-luis-2.webp',
+      '/images/reviews/toyota-hiace-luis-1.webp',
       '/images/reviews/toyota-hiace-luis-8.webp',
       '/images/reviews/toyota-hiace-luis-5.webp',
       '/images/reviews/toyota-hiace-luis-7.webp',
