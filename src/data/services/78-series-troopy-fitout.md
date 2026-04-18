@@ -7,13 +7,13 @@ categoryLabel: "Troop Carrier (Troopy) Fit-Outs"
 features:
   - "CNC-cut premium plywood cabinetry"
   - "Full 3D design approval before build"
-  - "12V / 24V / 48V power systems"
+  - "12V power systems (+ solar, inverter)"
   - "Integrated water systems"
   - "Built-in slide-out kitchen"
   - "Custom drawer systems"
   - "Sleeping platform with storage"
   - "Hand-lacquered waterproof finish"
-  - "Solar-ready wiring"
+
   - "12-month warranty"
 vehicles:
   - "Toyota LandCruiser 78 Series Troop Carrier (Troopy)"

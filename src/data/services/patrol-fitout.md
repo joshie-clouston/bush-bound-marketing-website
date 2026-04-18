@@ -8,12 +8,12 @@ features:
   - "CNC-cut premium plywood cabinetry"
   - "Full 3D design approval before build"
   - "Custom drawer systems"
-  - "12V power systems"
+  - "12V power systems (+ solar, inverter)"
   - "Integrated water systems"
   - "Sleeping platform with storage"
   - "Built-in slide-out kitchen"
   - "Hand-lacquered waterproof finish"
-  - "Solar-ready wiring"
+
   - "12-month warranty"
 vehicles:
   - "Nissan Patrol Y61 (GU)"

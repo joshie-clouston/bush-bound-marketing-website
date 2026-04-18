@@ -8,12 +8,12 @@ features:
   - "CNC-cut premium plywood cabinetry"
   - "Full 3D design approval before build"
   - "Compatible with factory rail system"
-  - "12V power systems"
+  - "12V power systems (+ solar, inverter)"
   - "Built-in slide-out kitchen"
   - "Custom drawer systems"
   - "Sleeping platform with storage"
   - "Hand-lacquered waterproof finish"
-  - "Solar-ready wiring"
+
   - "12-month warranty"
 vehicles:
   - "VW Multivan T5"

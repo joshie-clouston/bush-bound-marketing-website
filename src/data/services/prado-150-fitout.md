@@ -8,11 +8,11 @@ features:
   - "CNC-cut premium plywood cabinetry"
   - "Full 3D design approval before build"
   - "Custom drawer systems"
-  - "12V power systems"
+  - "12V power systems (+ solar, inverter)"
   - "Fridge slide integration"
   - "Sleeping platform with storage"
   - "Hand-lacquered waterproof finish"
-  - "Solar-ready wiring"
+
   - "12-month warranty"
 vehicles:
   - "Toyota Prado 150 Series"

@@ -7,13 +7,13 @@ categoryLabel: "4WD Fit-Outs"
 features:
   - "CNC-cut premium plywood cabinetry"
   - "Full 3D design approval before build"
-  - "12V / 24V power systems"
+  - "12V power systems (+ solar, inverter)"
   - "Integrated water systems"
   - "Built-in slide-out kitchen"
   - "Custom drawer systems"
   - "Sleeping platform with storage"
   - "Hand-lacquered waterproof finish"
-  - "Solar-ready wiring"
+
   - "12-month warranty"
 vehicles:
   - "Toyota LandCruiser 76 Series Wagon"
