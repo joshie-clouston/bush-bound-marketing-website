@@ -4,6 +4,9 @@ export const prerender = true;
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { reviews } from '@/data/reviews';
 
+const excludeFromGallery = ['luis-c-hiace', 'katrina-s-multivan'];
+const galleryReviews = reviews.filter(r => !excludeFromGallery.includes(r.slug));
+
 const categories = [
   { key: 'troopy', label: 'Troop Carrier (Troopy)', tags: ['Troop Carrier (Troopy)'] },
   { key: '4wd', label: '4WD & Wagon', tags: ['100 Series', '80 Series', '76 Series'] },
@@ -12,7 +15,7 @@ const categories = [
 ];
 
 // Group reviews by category
-function getCategory(review: typeof reviews[0]) {
+function getCategory(review: typeof galleryReviews[0]) {
   for (const cat of categories) {
     if (review.tags.some(t => cat.tags.some(ct => t.includes(ct)))) return cat.key;
   }
@@ -21,7 +24,7 @@ function getCategory(review: typeof reviews[0]) {
 
 const grouped = categories.map(cat => ({
   ...cat,
-  reviews: reviews.filter(r => getCategory(r) === cat.key),
+  reviews: galleryReviews.filter(r => getCategory(r) === cat.key),
 })).filter(g => g.reviews.length > 0);
 ---
 

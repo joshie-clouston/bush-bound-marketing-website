@@ -89,13 +89,11 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
               <div>
                 <label for="email" class="block text-sm font-semibold text-charcoal mb-1.5">Email *</label>
                 <input type="email" id="email" name="email" required class="w-full px-4 py-3 rounded-md border border-stone-dark/20 bg-stone/30 text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors" placeholder="you@example.com" />
-                <p id="email-error" class="hidden text-xs text-red-500 mt-1">Enter a valid email address</p>
               </div>
 
               <div>
                 <label for="phone" class="block text-sm font-semibold text-charcoal mb-1.5">Phone *</label>
                 <input type="tel" id="phone" name="phone" required pattern="^(\+?61|0)4\d{2}\s?\d{3}\s?\d{3}$" title="Enter a valid Australian mobile number (e.g. 0412 345 678)" class="w-full px-4 py-3 rounded-md border border-stone-dark/20 bg-stone/30 text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors" placeholder="04XX XXX XXX" />
-                <p id="phone-error" class="hidden text-xs text-red-500 mt-1">Enter a valid Australian mobile number (e.g. 0412 345 678)</p>
               </div>
 
               <div>
@@ -218,12 +216,20 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
           </form>
 
           <!-- Success message -->
-          <div id="success-message" class="hidden mt-8 p-8 bg-primary/10 border border-primary/20 rounded-xl text-center">
-            <svg class="w-12 h-12 text-primary mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h3 class="text-xl font-bold text-charcoal mb-1">Quote request sent!</h3>
-            <p class="text-muted-foreground">We'll give you a call within 48 hours to talk through your build. Keep an eye on your inbox for a confirmation email.</p>
+          <div id="success-message" class="hidden mt-8 rounded-xl overflow-hidden">
+            <div class="bg-gradient-to-br from-primary-dark via-primary to-primary-light p-10 text-center">
+              <svg class="w-16 h-16 text-sand mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <h3 class="text-2xl font-bold text-primary-foreground mb-2">Quote request sent!</h3>
+              <p class="text-stone-light/80 text-lg mb-6">We'll give you a call within 48 hours to talk through your build.</p>
+              <p class="text-stone-light/60 text-sm">Check your inbox for a confirmation email.</p>
+              <div class="mt-6">
+                <a href="/reviews" class="inline-flex items-center justify-center px-6 py-3 bg-sand text-charcoal font-semibold rounded-md hover:bg-sand-light transition-colors text-sm">
+                  See Recent Builds
+                </a>
+              </div>
+            </div>
           </div>
 
           <!-- Error message -->
@@ -311,6 +317,8 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
   </section>
 
   <script>
+    import confetti from 'canvas-confetti';
+
     // Multi-step navigation
     const step1 = document.getElementById('step-1')!;
     const step2 = document.getElementById('step-2')!;
@@ -336,9 +344,6 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
     });
 
     // Step 1 validation + submit lead
-    const emailError = document.getElementById('email-error')!;
-    const phoneError = document.getElementById('phone-error')!;
-    const ausMobileRegex = /^(\+?61|0)4\d{2}\s?\d{3}\s?\d{3}$/;
     let leadId: string | null = null;
 
     document.getElementById('next-to-2')?.addEventListener('click', async () => {
@@ -347,15 +352,10 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
       const phone = document.getElementById('phone') as HTMLInputElement;
       const vehicle = document.getElementById('vehicle') as HTMLInputElement;
 
-      emailError.classList.add('hidden');
-      phoneError.classList.add('hidden');
-
-      if (!name.value || !email.value || !phone.value || !vehicle.value) {
-        [name, email, phone, vehicle].find(f => !f.value)?.focus();
-        return;
-      }
-      if (!email.validity.valid) { emailError.classList.remove('hidden'); email.focus(); return; }
-      if (!ausMobileRegex.test(phone.value.trim())) { phoneError.classList.remove('hidden'); phone.focus(); return; }
+      // Let HTML5 validation handle it
+      const fields = [name, email, phone, vehicle];
+      const invalid = fields.find(f => !f.reportValidity());
+      if (invalid) return;
 
       // Submit step 1 to create lead
       try {
@@ -445,7 +445,15 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
         if (!res.ok) throw new Error('Failed');
 
         form.classList.add('hidden');
+        errorMessage.classList.add('hidden');
         successMessage.classList.remove('hidden');
+
+        // Confetti burst
+        try {
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#2D4A3E', '#C4A882', '#E8E0D6', '#1A1A1A'] });
+        setTimeout(() => confetti({ particleCount: 80, spread: 100, origin: { y: 0.5, x: 0.3 }, colors: ['#2D4A3E', '#C4A882'] }), 300);
+        setTimeout(() => confetti({ particleCount: 80, spread: 100, origin: { y: 0.5, x: 0.7 }, colors: ['#C4A882', '#E8E0D6'] }), 600);
+        } catch { /* confetti is non-critical */ }
       } catch {
         errorMessage.classList.remove('hidden');
         button.disabled = false;
@@ -479,6 +487,7 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
         currentBuild = next;
       }, 4000);
     }
+
   </script>
 
 </BaseLayout>

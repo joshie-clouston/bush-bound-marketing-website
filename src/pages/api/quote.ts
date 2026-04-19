@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { staffNotificationHtml, customerAutoReplyHtml, getTestOverride } from '@/lib/email-templates';
 
 export const prerender = false;
 
@@ -70,25 +71,35 @@ export const POST: APIRoute = async ({ request, locals }) => {
           const { Resend } = await import('resend');
           const resend = new Resend(runtime.env.RESEND_API_KEY);
 
+          const fromEmail = `Bush Bound Support <${runtime.env.RESEND_FROM_EMAIL || 'support@send.bushbound.au'}>`;
+          const testOverride = getTestOverride(runtime.env as Record<string, unknown>);
+
+          // Staff notification
           await resend.emails.send({
-            from: `Bush Bound Support <${runtime.env.RESEND_FROM_EMAIL || 'support@send.bushbound.au'}>`,
-            to: runtime.env.NOTIFICATION_EMAIL || 'luke@bushbound.au',
+            from: fromEmail,
+            to: testOverride || runtime.env.NOTIFICATION_EMAIL || 'luke@bushbound.au',
+            replyTo: email,
             subject: `New quote request from ${name} - ${vehicle || 'Vehicle TBD'}`,
-            html: `
-              <h2>New Quote Request</h2>
-              <p><strong>Name:</strong> ${name}</p>
-              <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
-              <p><strong>Email:</strong> ${email}</p>
-              <p><strong>Vehicle:</strong> ${vehicle || 'Not provided'}</p>
-              <hr />
-              <p><strong>Budget:</strong> ${budget || 'Not specified'}</p>
-              <p><strong>Timeline:</strong> ${timeline || 'Not specified'}</p>
-              <p><strong>What they want:</strong> ${serviceType || 'Not specified'}</p>
-              <hr />
-              <p><strong>Notes:</strong> ${message || 'None'}</p>
-              <p><strong>Heard about us via:</strong> ${referral || 'Not specified'}</p>
-              <p><strong>UTM:</strong> ${[utm_source, utm_medium, utm_campaign].filter(Boolean).join(' / ') || 'Direct'}</p>
-            `,
+            html: staffNotificationHtml([
+              ['Name', name],
+              ['Phone', phone || 'Not provided'],
+              ['Email', email],
+              ['Vehicle', vehicle || 'Not provided'],
+              ['Budget', budget || 'Not specified'],
+              ['Timeline', timeline || 'Not specified'],
+              ['What they want', serviceType || 'Not specified'],
+              ['Notes', message || 'None'],
+              ['Heard about us via', referral || 'Not specified'],
+              ['UTM', [utm_source, utm_medium, utm_campaign].filter(Boolean).join(' / ') || 'Direct'],
+            ]),
+          });
+
+          // Customer confirmation
+          await resend.emails.send({
+            from: fromEmail,
+            to: testOverride || email,
+            subject: `Thanks for your quote request, ${name.split(' ')[0]}!`,
+            html: customerAutoReplyHtml(name, vehicle || 'vehicle'),
           });
         }
       } catch (emailError) {
