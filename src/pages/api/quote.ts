@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { Resend } from 'resend';
 import { staffNotificationHtml, customerAutoReplyHtml, getTestOverride } from '@/lib/email-templates';
 
 export const prerender = false;
@@ -68,8 +69,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       // Send notification email to Luke
       try {
         if (runtime.env.RESEND_API_KEY) {
-          const { Resend } = await import('resend');
-          const resend = new Resend(runtime.env.RESEND_API_KEY);
+          const resend = new Resend(runtime.env.RESEND_API_KEY as string);
 
           const fromEmail = `Bush Bound Support <${runtime.env.RESEND_FROM_EMAIL || 'support@send.bushbound.au'}>`;
           const testOverride = getTestOverride(runtime.env as Record<string, unknown>);
