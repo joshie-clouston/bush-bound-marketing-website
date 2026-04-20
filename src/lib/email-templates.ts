@@ -34,7 +34,7 @@ function wrapper(title: string, body: string): string {
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="vertical-align: middle;">
-                    <img src="${LOGO_URL}" width="36" height="36" alt="Bush Bound" style="display: inline-block; vertical-align: middle; margin-right: 12px; border-radius: 6px;" />
+                    <img src="${LOGO_URL}" width="90" height="36" alt="Bush Bound" style="display: inline-block; vertical-align: middle; margin-right: 12px;" />
                     <span style="color: ${BRAND.stone}; font-size: 20px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; vertical-align: middle;">BUSH BOUND</span>
                   </td>
                 </tr>
