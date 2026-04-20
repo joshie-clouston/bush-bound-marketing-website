@@ -1,7 +1,7 @@
 // Bush Bound branded email templates
 // Brand: Forest green (#2D4A3E), sand (#C4A882), charcoal (#1A1A1A), stone (#E8E0D6)
 
-const LOGO_B64 = 'iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAtKADAAQAAAABAAAAtAAAAABW1ZZ5AAAZR0lEQVR4Ae1dB3wURRf/JznSLpAmzYAQQEAEEeUDFQWC0kXRSBUFBQVBQPisGEJHUUBRUUBBSmiGCNKkKKEEPhCkSMcSWmgSCAnpucv35lLIJXt3e5u7y7K84XfkdvbNzJv/+9/s25m3s24AcunDiRHQBALumugFd4IRyEeACc1U0BQCTGhNmZM7w4RmDmgKASa0pszJnWFCMwc0hQATWlPm5M4woZkDmkKACa0pc3JnmNDMAU0hwITWlDm5M0xo5oCmEGBCa8qc3BkmNHNAUwgwoTVlTu4ME5o5oCkEmNCaMid3hgnNHNAUAkxoTZmTO8OEZg5oCgEmtKbMyZ1hQjMHNIUAE1pT5uTOMKGZA5pCgAmtKXNyZ5jQzAFNIcCE1pQ5uTNMaOaAphBgQmvKnNwZJjRzQFMIMKE1ZU7uDBOaOaApBJjQmjInd4YJzRzQFAJMaE2ZkzvDhGYOaAoBJrSmzMmdYUIzBzSFABNaU+bkzjChmQOaQoAJrSlzcmeY0MwBTSHAhNaUObkzTGjmgKYQYEJrypzcGSY0c0BTCDChNWVO7gwTmjmgKQSY0JoyJ3eGCc0c0BQCTGhNmZM7w4RmDmgKASa0pszJnWFCMwc0hQATWlPm5M4woZkDmkKACa0pc3JnmNDMAU0hwITWlDm5M0xo5oCmEGBCa8qc3Jn/A+KgPNkM3ZE+AAAAAElFTkSuQmCC';
+const LOGO_URL = 'https://bushbound.au/images/email-logo.png';
 
 const BRAND = {
   primary: '#2D4A3E',
@@ -34,7 +34,7 @@ function wrapper(title: string, body: string): string {
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="vertical-align: middle;">
-                    <img src="data:image/png;base64,${LOGO_B64}" width="36" height="36" alt="Bush Bound" style="display: inline-block; vertical-align: middle; margin-right: 12px; border-radius: 6px;" />
+                    <img src="${LOGO_URL}" width="36" height="36" alt="Bush Bound" style="display: inline-block; vertical-align: middle; margin-right: 12px; border-radius: 6px;" />
                     <span style="color: ${BRAND.stone}; font-size: 20px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; vertical-align: middle;">BUSH BOUND</span>
                   </td>
                 </tr>
@@ -109,7 +109,7 @@ export function customerAutoReplyHtml(fullName: string, vehicle: string): string
       </tr>
     </table>
     <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
-    <p style="color: ${BRAND.muted}; font-size: 13px; line-height: 1.5;">If you need to reach us before then, call <strong style="color: ${BRAND.text};">0424 770 875</strong> or reply to this email.</p>
+    <p style="color: ${BRAND.muted}; font-size: 13px; line-height: 1.5;">If you need to reach us before then, call <a href="tel:+61424770875" style="color: ${BRAND.text}; font-weight: bold; text-decoration: none;">0424 770 875</a> or reply to this email.</p>
     <p style="color: ${BRAND.text}; font-size: 15px; line-height: 1.6; margin: 24px 0 0 0;">Cheers,<br /><strong>The Bush Bound Team</strong></p>
   `;
 
