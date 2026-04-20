@@ -10,7 +10,7 @@ export const faqs: FAQ[] = [
   {
     slug: 'how-long-does-a-vehicle-fit-out-take',
     question: 'How long does a vehicle fit-out take?',
-    answer: 'Smaller builds take 2-4 weeks from deposit. Bigger, more complex builds take 8-12 weeks from deposit. Your vehicle is only with us for the installation phase, not the whole build. We\'ll give you a clear timeline during the consultation.',
+    answer: 'Most builds take 8-12 weeks from deposit paid. Your vehicle is only with us for the installation phase, not the whole build. We\'ll give you a clear timeline during the consultation.',
     authority: 'We\'ve completed over a dozen builds across Troop Carriers, 4WDs and vans. The timeline depends on complexity - a drawer and bed setup is much quicker than a full expedition build with power, water and kitchen. Your vehicle isn\'t sitting in the workshop the whole time - we build the cabinetry before you drop it off, so your downtime is minimal.',
     related: ['whats-included-in-the-3d-design', 'whats-the-deposit-and-payment-process', 'can-i-visit-the-workshop'],
   },
@@ -45,14 +45,14 @@ export const faqs: FAQ[] = [
   {
     slug: 'can-i-remove-the-fit-out-without-damaging-my-vehicle',
     question: 'Can I remove the fit-out without damaging my vehicle?',
-    answer: 'Yes. We use factory bolt holes wherever possible. If we need to add mounting points, we use rivets that are painted and rust-proofed before installation.',
+    answer: 'Yes. We use factory bolt holes wherever possible. If we need to add mounting points, we use rivnuts that are painted and rust-proofed before installation.',
     authority: 'Once the fit-out is removed, you\'re left with a few small holes that look like factory bolt holes - easy to cover with a bolt until you want the fit-out back in. This is important for resale value and means you can transfer the fit-out to a new vehicle or sell it separately. Many of our customers sell their fit-out with the old car and come back for a new build.',
     related: ['can-i-add-to-my-fit-out-later', 'why-laminated-plywood-instead-of-aluminium', 'do-you-offer-warranty-on-your-builds'],
   },
   {
     slug: 'whats-the-deposit-and-payment-process',
     question: 'What\'s the deposit and payment process?',
-    answer: 'Three stages. A design deposit kicks off the 3D design process - that covers the labour to model your fit-out. Once you approve the design and commit to the build, there\'s a materials deposit. The remaining balance is paid when you pick up the vehicle and you\'re happy with everything.',
+    answer: 'Three stages. A design deposit kicks off the 3D design process - that covers the labour to model your fit-out. Once you approve the design and commit to the build, there\'s a materials deposit. The remaining balance is paid on collection.',
     authority: 'This staged payment structure protects both sides. You only commit to the full build after seeing and approving the 3D design. The materials deposit covers ordering everything we need. And you don\'t pay the final balance until you\'ve inspected the finished build and you\'re satisfied. No surprises, no pressure.',
     related: ['whats-included-in-the-3d-design', 'how-long-does-a-vehicle-fit-out-take', 'do-i-own-the-3d-designs'],
   },
