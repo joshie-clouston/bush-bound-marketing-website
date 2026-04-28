@@ -182,6 +182,29 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
               <p class="text-xs font-semibold text-sand-dark uppercase tracking-wider mb-1">Step 3 of 3 - Final details</p>
 
               <div>
+                <label for="postcode-input" class="block text-sm font-semibold text-charcoal mb-1.5">Postcode / suburb *</label>
+                <div class="relative">
+                  <input
+                    type="text"
+                    id="postcode-input"
+                    autocomplete="off"
+                    inputmode="text"
+                    required
+                    class="w-full px-4 py-3 rounded-md border border-stone-dark/20 bg-stone/30 text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors"
+                    placeholder="Type a postcode or suburb"
+                  />
+                  <ul
+                    id="postcode-results"
+                    class="hidden absolute z-10 left-0 right-0 mt-1 max-h-64 overflow-auto bg-white border border-stone-dark/20 rounded-md shadow-lg"
+                  ></ul>
+                </div>
+                <p id="postcode-error" class="hidden mt-1.5 text-sm text-red-600">Please select a suburb from the list</p>
+                <input type="hidden" id="suburb" name="suburb" />
+                <input type="hidden" id="state" name="state" />
+                <input type="hidden" id="postcode" name="postcode" />
+              </div>
+
+              <div>
                 <label for="message" class="block text-sm font-semibold text-charcoal mb-1.5">Anything specific you want us to know?</label>
                 <textarea id="message" name="message" rows="4" class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors resize-y" placeholder="Tell us how you use your vehicle, where you travel, or anything else that would help us design the perfect build for you."></textarea>
               </div>
