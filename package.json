@@ -9,7 +9,8 @@
     "preview": "astro preview",
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "npx wrangler d1 execute bushbound-db --local --file=drizzle/migrations/0000_initial.sql && npx wrangler d1 execute bushbound-db --local --file=drizzle/migrations/0001_utm_tracking.sql",
-    "db:migrate:remote": "npx wrangler d1 execute bushbound-db --remote --file=drizzle/migrations/0000_initial.sql && npx wrangler d1 execute bushbound-db --remote --file=drizzle/migrations/0001_utm_tracking.sql"
+    "db:migrate:remote": "npx wrangler d1 execute bushbound-db --remote --file=drizzle/migrations/0000_initial.sql && npx wrangler d1 execute bushbound-db --remote --file=drizzle/migrations/0001_utm_tracking.sql",
+    "db:build-postcodes": "npx tsx scripts/build-postcodes.ts"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.6",
