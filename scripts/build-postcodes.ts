@@ -24,6 +24,20 @@ type OutputEntry = {
   state: string;
 };
 
+function toTitleCase(s: string): string {
+  return s
+    .toLowerCase()
+    .split(/(\s|-)/g)
+    .map((part) => {
+      if (/^[\s-]$/.test(part) || part.length === 0) return part;
+      // Mc / Mac prefix: capitalise the letter after as well
+      if (/^mc[a-z]/.test(part)) return 'Mc' + part[2].toUpperCase() + part.slice(3);
+      if (/^mac[a-z]{2,}/.test(part)) return 'Mac' + part[3].toUpperCase() + part.slice(4);
+      return part[0].toUpperCase() + part.slice(1);
+    })
+    .join('');
+}
+
 async function main() {
   console.log(`Fetching ${SOURCE_URL}...`);
   const res = await fetch(SOURCE_URL);
@@ -42,9 +56,7 @@ async function main() {
   const seen = new Set<string>();
   const out: OutputEntry[] = [];
   for (const e of filtered) {
-    const suburb = e.locality
-      .toLowerCase()
-      .replace(/\b\w/g, (c) => c.toUpperCase());
+    const suburb = toTitleCase(e.locality);
     const key = `${suburb}|${e.state}|${e.postcode}`;
     if (seen.has(key)) continue;
     seen.add(key);
