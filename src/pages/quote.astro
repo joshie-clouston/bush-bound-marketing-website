@@ -182,6 +182,29 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
               <p class="text-xs font-semibold text-sand-dark uppercase tracking-wider mb-1">Step 3 of 3 - Final details</p>
 
               <div>
+                <label for="postcode-input" class="block text-sm font-semibold text-charcoal mb-1.5">Postcode / suburb *</label>
+                <div class="relative">
+                  <input
+                    type="text"
+                    id="postcode-input"
+                    autocomplete="off"
+                    inputmode="text"
+                    required
+                    class="w-full px-4 py-3 rounded-md border border-stone-dark/20 bg-stone/30 text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors"
+                    placeholder="Type a postcode or suburb"
+                  />
+                  <ul
+                    id="postcode-results"
+                    class="hidden absolute z-10 left-0 right-0 mt-1 max-h-64 overflow-auto bg-white border border-stone-dark/20 rounded-md shadow-lg"
+                  ></ul>
+                </div>
+                <p id="postcode-error" class="hidden mt-1.5 text-sm text-red-600">Please select a suburb from the list</p>
+                <input type="hidden" id="suburb" name="suburb" />
+                <input type="hidden" id="state" name="state" />
+                <input type="hidden" id="postcode" name="postcode" />
+              </div>
+
+              <div>
                 <label for="message" class="block text-sm font-semibold text-charcoal mb-1.5">Anything specific you want us to know?</label>
                 <textarea id="message" name="message" rows="4" class="w-full px-4 py-3 rounded-md border border-stone-dark/30 bg-white text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors resize-y" placeholder="Tell us how you use your vehicle, where you travel, or anything else that would help us design the perfect build for you."></textarea>
               </div>
@@ -319,6 +342,147 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
   <script>
     import confetti from 'canvas-confetti';
 
+    // Postcode / suburb combobox
+    type Postcode = { postcode: string; suburb: string; state: string };
+
+    const postcodeInput = document.getElementById('postcode-input') as HTMLInputElement;
+    const postcodeResults = document.getElementById('postcode-results') as HTMLUListElement;
+    const postcodeError = document.getElementById('postcode-error') as HTMLParagraphElement;
+    const suburbHidden = document.getElementById('suburb') as HTMLInputElement;
+    const stateHidden = document.getElementById('state') as HTMLInputElement;
+    const postcodeHidden = document.getElementById('postcode') as HTMLInputElement;
+
+    let postcodeData: Postcode[] | null = null;
+    let postcodeFetchPromise: Promise<Postcode[]> | null = null;
+    let highlightedIndex = -1;
+    let currentMatches: Postcode[] = [];
+
+    async function loadPostcodes(): Promise<Postcode[]> {
+      if (postcodeData) return postcodeData;
+      if (postcodeFetchPromise) return postcodeFetchPromise;
+      postcodeFetchPromise = fetch('/data/au-postcodes.json')
+        .then((r) => {
+          if (!r.ok) throw new Error('Failed to load postcodes');
+          return r.json() as Promise<Postcode[]>;
+        })
+        .then((data) => {
+          postcodeData = data;
+          return data;
+        });
+      return postcodeFetchPromise;
+    }
+
+    function clearSelection() {
+      suburbHidden.value = '';
+      stateHidden.value = '';
+      postcodeHidden.value = '';
+    }
+
+    function renderResults(matches: Postcode[]) {
+      currentMatches = matches;
+      highlightedIndex = -1;
+      if (matches.length === 0) {
+        postcodeResults.classList.add('hidden');
+        postcodeResults.innerHTML = '';
+        return;
+      }
+      postcodeResults.innerHTML = matches
+        .map(
+          (m, i) =>
+            `<li data-index="${i}" class="px-4 py-2 cursor-pointer text-sm text-charcoal hover:bg-primary/10">${m.suburb}, ${m.state} ${m.postcode}</li>`
+        )
+        .join('');
+      postcodeResults.classList.remove('hidden');
+    }
+
+    function filterMatches(query: string): Postcode[] {
+      if (!postcodeData || query.length === 0) return [];
+      const q = query.trim().toLowerCase();
+      const isDigit = /^\d/.test(q);
+      const filtered = postcodeData
+        .filter((e) =>
+          isDigit
+            ? e.postcode.startsWith(q)
+            : e.suburb.toLowerCase().startsWith(q)
+        )
+        .slice(0, 8);
+      return filtered;
+    }
+
+    function selectMatch(match: Postcode) {
+      postcodeInput.value = `${match.suburb}, ${match.state} ${match.postcode}`;
+      suburbHidden.value = match.suburb;
+      stateHidden.value = match.state;
+      postcodeHidden.value = match.postcode;
+      postcodeResults.classList.add('hidden');
+      postcodeError.classList.add('hidden');
+      highlightedIndex = -1;
+    }
+
+    function highlight(i: number) {
+      const items = postcodeResults.querySelectorAll('li');
+      items.forEach((el, idx) => {
+        if (idx === i) el.classList.add('bg-primary/10');
+        else el.classList.remove('bg-primary/10');
+      });
+      highlightedIndex = i;
+      const target = items[i] as HTMLElement | undefined;
+      target?.scrollIntoView({ block: 'nearest' });
+    }
+
+    postcodeInput?.addEventListener('focus', () => {
+      loadPostcodes().catch(() => {
+        postcodeError.textContent = "Couldn't load suburb list — please refresh and try again";
+        postcodeError.classList.remove('hidden');
+      });
+    });
+
+    postcodeInput?.addEventListener('input', async () => {
+      clearSelection();
+      postcodeError.classList.add('hidden');
+      try {
+        await loadPostcodes();
+      } catch {
+        return;
+      }
+      renderResults(filterMatches(postcodeInput.value));
+    });
+
+    postcodeInput?.addEventListener('keydown', (e) => {
+      if (postcodeResults.classList.contains('hidden')) return;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        highlight(Math.min(highlightedIndex + 1, currentMatches.length - 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        highlight(Math.max(highlightedIndex - 1, 0));
+      } else if (e.key === 'Enter') {
+        if (highlightedIndex >= 0 && currentMatches[highlightedIndex]) {
+          e.preventDefault();
+          selectMatch(currentMatches[highlightedIndex]);
+        }
+      } else if (e.key === 'Escape') {
+        postcodeResults.classList.add('hidden');
+      }
+    });
+
+    postcodeResults?.addEventListener('mousedown', (e) => {
+      const li = (e.target as HTMLElement).closest('li');
+      if (!li) return;
+      const idx = parseInt(li.getAttribute('data-index') || '-1', 10);
+      const match = currentMatches[idx];
+      if (match) {
+        e.preventDefault(); // keep focus
+        selectMatch(match);
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (e.target !== postcodeInput && !postcodeResults.contains(e.target as Node)) {
+        postcodeResults.classList.add('hidden');
+      }
+    });
+
     // Multi-step navigation
     const step1 = document.getElementById('step-1')!;
     const step2 = document.getElementById('step-2')!;
@@ -403,6 +567,14 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
 
+      // Validate location selection
+      if (!postcodeHidden.value || !suburbHidden.value || !stateHidden.value) {
+        postcodeError.textContent = 'Please select a suburb from the list';
+        postcodeError.classList.remove('hidden');
+        postcodeInput.focus();
+        return;
+      }
+
       const button = form.querySelector('button[type="submit"]') as HTMLButtonElement;
       button.disabled = true;
       submitText.textContent = 'Sending...';
@@ -438,6 +610,9 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
             timeline,
             message: formData.get('message') || '',
             referral: formData.get('referral') || '',
+            suburb: suburbHidden.value,
+            state: stateHidden.value,
+            postcode: postcodeHidden.value,
             ...utm,
           }),
         });
