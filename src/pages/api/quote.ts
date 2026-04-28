@@ -4,6 +4,16 @@ import { staffNotificationHtml, customerAutoReplyHtml, getTestOverride } from '@
 
 export const prerender = false;
 
+const AU_STATES = new Set(['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT']);
+
+function validateLocation(body: Record<string, string>): { ok: true } | { ok: false; error: string } {
+  const { suburb, state, postcode } = body;
+  if (!suburb || !state || !postcode) return { ok: false, error: 'Location is required' };
+  if (!/^\d{4}$/.test(postcode)) return { ok: false, error: 'Invalid postcode' };
+  if (!AU_STATES.has(state)) return { ok: false, error: 'Invalid state' };
+  return { ok: true };
+}
+
 export const POST: APIRoute = async ({ request, locals }) => {
   const runtime = locals.runtime;
 
@@ -50,14 +60,19 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     // Step 3: Final details + send notification email
     if (step === '3') {
-      const { leadId, message, referral, name, email, phone, vehicle, serviceType, budget, timeline } = body;
+      const { leadId, message, referral, name, email, phone, vehicle, serviceType, budget, timeline, suburb, state, postcode } = body;
+
+      const locationCheck = validateLocation(body);
+      if (!locationCheck.ok) {
+        return new Response(JSON.stringify({ error: locationCheck.error }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      }
 
       // Update DB
       if (leadId) {
         try {
           await runtime.env.DB.prepare(
-            `UPDATE quotes SET message = ?, referral = ?, status = 'complete' WHERE id = ?`
-          ).bind(message || null, referral || null, parseInt(leadId)).run();
+            `UPDATE quotes SET message = ?, referral = ?, suburb = ?, state = ?, postcode = ?, status = 'complete' WHERE id = ?`
+          ).bind(message || null, referral || null, suburb, state, postcode, parseInt(leadId)).run();
         } catch (dbError) {
           console.error('D1 update failed (step 3):', dbError);
         }
@@ -84,6 +99,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
               ['Name', name],
               ['Phone', phone || 'Not provided'],
               ['Email', email],
+              ['Location', `${suburb}, ${state} ${postcode}`],
               ['Vehicle', vehicle || 'Not provided'],
               ['Budget', budget || 'Not specified'],
               ['Timeline', timeline || 'Not specified'],
@@ -110,16 +126,16 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     // Legacy fallback (old form format without step)
-    const { name, email, phone, vehicleType, vehicleModel, serviceType, message, referral, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = body;
+    const { name, email, phone, vehicleType, vehicleModel, serviceType, message, referral, utm_source, utm_medium, utm_campaign, utm_term, utm_content, suburb: legacySuburb, state: legacyState, postcode: legacyPostcode } = body;
     if (!name || !email) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
 
     try {
       await runtime.env.DB.prepare(
-        `INSERT INTO quotes (name, email, phone, vehicle_type, vehicle_model, service_type, message, referral, status, utm_source, utm_medium, utm_campaign, utm_term, utm_content, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'complete', ?, ?, ?, ?, ?, ?)`
-      ).bind(name, email, phone || null, vehicleType || null, vehicleModel || null, serviceType || null, message || null, referral || null, utm_source || null, utm_medium || null, utm_campaign || null, utm_term || null, utm_content || null, Date.now()).run();
+        `INSERT INTO quotes (name, email, phone, vehicle_type, vehicle_model, service_type, message, referral, status, suburb, state, postcode, utm_source, utm_medium, utm_campaign, utm_term, utm_content, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'complete', ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(name, email, phone || null, vehicleType || null, vehicleModel || null, serviceType || null, message || null, referral || null, legacySuburb || null, legacyState || null, legacyPostcode || null, utm_source || null, utm_medium || null, utm_campaign || null, utm_term || null, utm_content || null, Date.now()).run();
     } catch (dbError) {
       console.error('D1 write failed:', dbError);
     }
