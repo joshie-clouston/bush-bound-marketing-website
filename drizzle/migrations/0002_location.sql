@@ -1,0 +1,3 @@
+ALTER TABLE quotes ADD COLUMN suburb TEXT;
+ALTER TABLE quotes ADD COLUMN state TEXT;
+ALTER TABLE quotes ADD COLUMN postcode TEXT;
