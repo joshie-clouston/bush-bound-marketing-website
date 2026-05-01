@@ -548,7 +548,7 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
         await fetch('/api/quote', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ step: '2', leadId, serviceType: features, budget, timeline }),
+          body: JSON.stringify({ step: '2', leadId, wishlist: features, budget, timeline }),
         });
       } catch { /* continue */ }
 
@@ -605,7 +605,7 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
             email: formData.get('email'),
             phone: formData.get('phone'),
             vehicle: formData.get('vehicle'),
-            serviceType: features,
+            wishlist: features,
             budget,
             timeline,
             message: formData.get('message') || '',

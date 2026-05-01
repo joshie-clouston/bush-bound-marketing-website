@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { Resend } from 'resend';
 import { staffNotificationHtml, customerAutoReplyHtml, getTestOverride } from '@/lib/email-templates';
+import { createNotionLead } from '@/lib/notion';
 
 export const prerender = false;
 
@@ -43,13 +44,13 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     // Step 2: Update lead with wishlist, budget, timeline
     if (step === '2') {
-      const { leadId, serviceType, budget, timeline } = body;
+      const { leadId, wishlist, budget, timeline } = body;
 
       if (leadId) {
         try {
           await runtime.env.DB.prepare(
-            `UPDATE quotes SET service_type = ?, budget = ?, timeline = ?, status = 'step2' WHERE id = ?`
-          ).bind(serviceType || null, budget || null, timeline || null, parseInt(leadId)).run();
+            `UPDATE quotes SET wishlist = ?, budget = ?, timeline = ?, status = 'step2' WHERE id = ?`
+          ).bind(wishlist || null, budget || null, timeline || null, parseInt(leadId)).run();
         } catch (dbError) {
           console.error('D1 update failed (step 2):', dbError);
         }
@@ -60,7 +61,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     // Step 3: Final details + send notification email
     if (step === '3') {
-      const { leadId, message, referral, name, email, phone, vehicle, serviceType, budget, timeline, suburb, state, postcode } = body;
+      const { leadId, message, referral, name, email, phone, vehicle, wishlist, budget, timeline, suburb, state, postcode } = body;
 
       const locationCheck = validateLocation(body);
       if (!locationCheck.ok) {
@@ -103,7 +104,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
               ['Vehicle', vehicle || 'Not provided'],
               ['Budget', budget || 'Not specified'],
               ['Timeline', timeline || 'Not specified'],
-              ['What they want', serviceType || 'Not specified'],
+              ['Wishlist', wishlist || 'Not specified'],
               ['Notes', message || 'None'],
               ['Heard about us via', referral || 'Not specified'],
               ['UTM', [utm_source, utm_medium, utm_campaign].filter(Boolean).join(' / ') || 'Direct'],
@@ -122,20 +123,37 @@ export const POST: APIRoute = async ({ request, locals }) => {
         console.error('Email notification failed:', emailError);
       }
 
+      // Mirror lead into Notion for Luke (non-blocking)
+      try {
+        if (runtime.env.NOTION_TOKEN && runtime.env.NOTION_DATABASE_ID) {
+          await createNotionLead(
+            runtime.env.NOTION_TOKEN as string,
+            runtime.env.NOTION_DATABASE_ID as string,
+            {
+              name, email, phone, vehicle, wishlist, budget, timeline,
+              suburb, state, postcode, message, referral,
+              utmSource: utm_source, utmMedium: utm_medium, utmCampaign: utm_campaign,
+            },
+          );
+        }
+      } catch (notionError) {
+        console.error('Notion lead creation failed:', notionError);
+      }
+
       return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     }
 
     // Legacy fallback (old form format without step)
-    const { name, email, phone, vehicleType, vehicleModel, serviceType, message, referral, utm_source, utm_medium, utm_campaign, utm_term, utm_content, suburb: legacySuburb, state: legacyState, postcode: legacyPostcode } = body;
+    const { name, email, phone, vehicleType, vehicleModel, wishlist, message, referral, utm_source, utm_medium, utm_campaign, utm_term, utm_content, suburb: legacySuburb, state: legacyState, postcode: legacyPostcode } = body;
     if (!name || !email) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
 
     try {
       await runtime.env.DB.prepare(
-        `INSERT INTO quotes (name, email, phone, vehicle_type, vehicle_model, service_type, message, referral, status, suburb, state, postcode, utm_source, utm_medium, utm_campaign, utm_term, utm_content, created_at)
+        `INSERT INTO quotes (name, email, phone, vehicle_type, vehicle_model, wishlist, message, referral, status, suburb, state, postcode, utm_source, utm_medium, utm_campaign, utm_term, utm_content, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'complete', ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).bind(name, email, phone || null, vehicleType || null, vehicleModel || null, serviceType || null, message || null, referral || null, legacySuburb || null, legacyState || null, legacyPostcode || null, utm_source || null, utm_medium || null, utm_campaign || null, utm_term || null, utm_content || null, Date.now()).run();
+      ).bind(name, email, phone || null, vehicleType || null, vehicleModel || null, wishlist || null, message || null, referral || null, legacySuburb || null, legacyState || null, legacyPostcode || null, utm_source || null, utm_medium || null, utm_campaign || null, utm_term || null, utm_content || null, Date.now()).run();
     } catch (dbError) {
       console.error('D1 write failed:', dbError);
     }
@@ -148,7 +166,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
           from: `Bush Bound Support <${runtime.env.RESEND_FROM_EMAIL || 'support@send.bushbound.au'}>`,
           to: runtime.env.NOTIFICATION_EMAIL || 'luke@bushbound.au',
           subject: `New quote request from ${name} - ${vehicleModel || 'Vehicle TBD'}`,
-          html: `<h2>New Quote Request</h2><p><strong>Name:</strong> ${name}</p><p><strong>Phone:</strong> ${phone || 'Not provided'}</p><p><strong>Email:</strong> ${email}</p><p><strong>Vehicle:</strong> ${vehicleModel || 'Not provided'}</p><hr /><p><strong>What they want:</strong> ${serviceType || 'Not specified'}</p><p><strong>Notes:</strong> ${message || 'None'}</p>`,
+          html: `<h2>New Quote Request</h2><p><strong>Name:</strong> ${name}</p><p><strong>Phone:</strong> ${phone || 'Not provided'}</p><p><strong>Email:</strong> ${email}</p><p><strong>Vehicle:</strong> ${vehicleModel || 'Not provided'}</p><hr /><p><strong>Wishlist:</strong> ${wishlist || 'Not specified'}</p><p><strong>Notes:</strong> ${message || 'None'}</p>`,
         });
       }
     } catch (emailError) {
