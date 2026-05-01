@@ -21,6 +21,7 @@ export const quotes = sqliteTable('quotes', {
   utmCampaign: text('utm_campaign'),
   utmTerm: text('utm_term'),
   utmContent: text('utm_content'),
+  notionPageId: text('notion_page_id'),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 });
 

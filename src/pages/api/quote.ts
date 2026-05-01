@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { Resend } from 'resend';
 import { staffNotificationHtml, customerAutoReplyHtml, getTestOverride } from '@/lib/email-templates';
-import { createNotionLead } from '@/lib/notion';
+import { createNotionLead, updateNotionLead } from '@/lib/notion';
 
 export const prerender = false;
 
@@ -39,6 +39,22 @@ export const POST: APIRoute = async ({ request, locals }) => {
         console.error('D1 write failed (step 1):', dbError);
       }
 
+      // Create Notion page so partial leads (drop-offs) are still visible to Luke
+      if (leadId && runtime.env.NOTION_TOKEN && runtime.env.NOTION_DATABASE_ID) {
+        try {
+          const pageId = await createNotionLead(
+            runtime.env.NOTION_TOKEN as string,
+            runtime.env.NOTION_DATABASE_ID as string,
+            { name, email, phone, vehicle },
+          );
+          await runtime.env.DB.prepare(
+            `UPDATE quotes SET notion_page_id = ? WHERE id = ?`
+          ).bind(pageId, leadId).run();
+        } catch (notionError) {
+          console.error('Notion create failed (step 1):', notionError);
+        }
+      }
+
       return new Response(JSON.stringify({ success: true, leadId }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     }
 
@@ -53,6 +69,23 @@ export const POST: APIRoute = async ({ request, locals }) => {
           ).bind(wishlist || null, budget || null, timeline || null, parseInt(leadId)).run();
         } catch (dbError) {
           console.error('D1 update failed (step 2):', dbError);
+        }
+
+        if (runtime.env.NOTION_TOKEN) {
+          try {
+            const row = await runtime.env.DB.prepare(
+              `SELECT notion_page_id FROM quotes WHERE id = ?`
+            ).bind(parseInt(leadId)).first<{ notion_page_id: string | null }>();
+            if (row?.notion_page_id) {
+              await updateNotionLead(
+                runtime.env.NOTION_TOKEN as string,
+                row.notion_page_id,
+                { wishlist, budget, timeline },
+              );
+            }
+          } catch (notionError) {
+            console.error('Notion update failed (step 2):', notionError);
+          }
         }
       }
 
@@ -123,21 +156,36 @@ export const POST: APIRoute = async ({ request, locals }) => {
         console.error('Email notification failed:', emailError);
       }
 
-      // Mirror lead into Notion for Luke (non-blocking)
-      try {
-        if (runtime.env.NOTION_TOKEN && runtime.env.NOTION_DATABASE_ID) {
-          await createNotionLead(
-            runtime.env.NOTION_TOKEN as string,
-            runtime.env.NOTION_DATABASE_ID as string,
-            {
-              name, email, phone, vehicle, wishlist, budget, timeline,
-              suburb, state, postcode, message, referral,
-              utmSource: utm_source, utmMedium: utm_medium, utmCampaign: utm_campaign,
-            },
-          );
+      // Update existing Notion page with final-step details (non-blocking)
+      if (leadId && runtime.env.NOTION_TOKEN) {
+        try {
+          const row = await runtime.env.DB.prepare(
+            `SELECT notion_page_id FROM quotes WHERE id = ?`
+          ).bind(parseInt(leadId)).first<{ notion_page_id: string | null }>();
+          if (row?.notion_page_id) {
+            await updateNotionLead(
+              runtime.env.NOTION_TOKEN as string,
+              row.notion_page_id,
+              {
+                suburb, state, postcode, message, referral,
+                utmSource: utm_source, utmMedium: utm_medium, utmCampaign: utm_campaign,
+              },
+            );
+          } else if (runtime.env.NOTION_DATABASE_ID) {
+            // Fallback: no page id (step 1 Notion failed) — create now with everything
+            await createNotionLead(
+              runtime.env.NOTION_TOKEN as string,
+              runtime.env.NOTION_DATABASE_ID as string,
+              {
+                name, email, phone, vehicle, wishlist, budget, timeline,
+                suburb, state, postcode, message, referral,
+                utmSource: utm_source, utmMedium: utm_medium, utmCampaign: utm_campaign,
+              },
+            );
+          }
+        } catch (notionError) {
+          console.error('Notion update failed (step 3):', notionError);
         }
-      } catch (notionError) {
-        console.error('Notion lead creation failed:', notionError);
       }
 
       return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });

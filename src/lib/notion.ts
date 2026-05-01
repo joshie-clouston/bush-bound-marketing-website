@@ -1,4 +1,4 @@
-const NOTION_API = 'https://api.notion.com/v1/pages';
+const NOTION_API = 'https://api.notion.com/v1';
 const NOTION_VERSION = '2022-06-28';
 
 const BUDGET_LABELS: Record<string, string> = {
@@ -16,8 +16,8 @@ const TIMELINE_LABELS: Record<string, string> = {
 };
 
 export type LeadPayload = {
-  name: string;
-  email: string;
+  name?: string | null;
+  email?: string | null;
   phone?: string | null;
   vehicle?: string | null;
   wishlist?: string | null;
@@ -33,39 +33,50 @@ export type LeadPayload = {
   utmCampaign?: string | null;
 };
 
-const richText = (value?: string | null) =>
-  value ? { rich_text: [{ text: { content: value.slice(0, 2000) } }] } : { rich_text: [] };
+const richText = (value: string) => ({
+  rich_text: [{ text: { content: value.slice(0, 2000) } }],
+});
+
+function buildProperties(lead: LeadPayload): Record<string, unknown> {
+  const props: Record<string, unknown> = {};
+
+  if (lead.name) props.Name = { title: [{ text: { content: lead.name } }] };
+  if (lead.email) props['Email '] = { email: lead.email };
+  if (lead.phone) props.Mobile = { phone_number: lead.phone };
+  if (lead.vehicle) props.Model = richText(lead.vehicle);
+  if (lead.wishlist) props.Wishlist = richText(lead.wishlist);
+  if (lead.message) props.Notes = richText(lead.message);
+
+  if (lead.budget && BUDGET_LABELS[lead.budget]) {
+    props.Budget = { select: { name: BUDGET_LABELS[lead.budget] } };
+  }
+  if (lead.timeline && TIMELINE_LABELS[lead.timeline]) {
+    props.Timeline = { select: { name: TIMELINE_LABELS[lead.timeline] } };
+  }
+
+  const location = [lead.suburb, lead.state, lead.postcode].filter(Boolean).join(' ');
+  if (location) props.Location = richText(location);
+
+  const source = [lead.referral, lead.utmSource, lead.utmMedium, lead.utmCampaign]
+    .filter(Boolean)
+    .join(' / ');
+  if (source) props.Source = richText(source);
+
+  return props;
+}
 
 export async function createNotionLead(
   token: string,
   databaseId: string,
   lead: LeadPayload,
-): Promise<void> {
-  const location = [lead.suburb, lead.state, lead.postcode].filter(Boolean).join(' ');
-  const source = [lead.referral, lead.utmSource, lead.utmMedium, lead.utmCampaign]
-    .filter(Boolean)
-    .join(' / ');
-
-  const properties: Record<string, unknown> = {
-    Name: { title: [{ text: { content: lead.name } }] },
-    'Email ': { email: lead.email },
+): Promise<string> {
+  const properties = {
+    ...buildProperties(lead),
     Status: { status: { name: 'Lead' } },
     Enquired: { date: { start: new Date().toISOString().slice(0, 10) } },
-    ...(lead.phone ? { Mobile: { phone_number: lead.phone } } : {}),
-    ...(lead.vehicle ? { Model: richText(lead.vehicle) } : {}),
-    ...(lead.wishlist ? { Wishlist: richText(lead.wishlist) } : {}),
-    ...(location ? { Location: richText(location) } : {}),
-    ...(lead.message ? { Notes: richText(lead.message) } : {}),
-    ...(source ? { Source: richText(source) } : {}),
-    ...(lead.budget && BUDGET_LABELS[lead.budget]
-      ? { Budget: { select: { name: BUDGET_LABELS[lead.budget] } } }
-      : {}),
-    ...(lead.timeline && TIMELINE_LABELS[lead.timeline]
-      ? { Timeline: { select: { name: TIMELINE_LABELS[lead.timeline] } } }
-      : {}),
   };
 
-  const res = await fetch(NOTION_API, {
+  const res = await fetch(`${NOTION_API}/pages`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -79,7 +90,32 @@ export async function createNotionLead(
   });
 
   if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`Notion API ${res.status}: ${errorText}`);
+    throw new Error(`Notion create ${res.status}: ${await res.text()}`);
+  }
+
+  const json = (await res.json()) as { id: string };
+  return json.id;
+}
+
+export async function updateNotionLead(
+  token: string,
+  pageId: string,
+  lead: LeadPayload,
+): Promise<void> {
+  const properties = buildProperties(lead);
+  if (Object.keys(properties).length === 0) return;
+
+  const res = await fetch(`${NOTION_API}/pages/${pageId}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Notion-Version': NOTION_VERSION,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ properties }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Notion update ${res.status}: ${await res.text()}`);
   }
 }
