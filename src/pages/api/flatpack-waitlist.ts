@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { notifyOpsError } from '@/lib/alerts';
 
 export const prerender = false;
 
@@ -22,6 +23,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       ).bind(email, rego || null, utm_source || null, utm_medium || null, utm_campaign || null, utm_term || null, utm_content || null, Date.now()).run();
     } catch (dbError) {
       console.error('D1 write failed (continuing):', dbError);
+      await notifyOpsError(runtime.env as Record<string, unknown>, 'Flatpack waitlist D1 insert', dbError, { email, rego });
     }
 
     // Send notification email (non-blocking)
@@ -46,6 +48,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       }
     } catch (emailError) {
       console.error('Flatpack waitlist email failed:', emailError);
+      await notifyOpsError(runtime.env as Record<string, unknown>, 'Flatpack waitlist email send', emailError, { email });
     }
 
     return new Response(
@@ -54,6 +57,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     );
   } catch (error) {
     console.error('Flatpack waitlist failed:', error);
+    await notifyOpsError(runtime.env as Record<string, unknown>, 'Flatpack waitlist (top-level)', error);
     return new Response(
       JSON.stringify({ error: 'Failed' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

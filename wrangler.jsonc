@@ -23,6 +23,7 @@
   "vars": {
     "RESEND_FROM_EMAIL": "support@send.bushbound.au",
     "NOTIFICATION_EMAIL": "luke@bushbound.au",
+    "ALERT_EMAIL": "josh@founddigital.ai",
     "NOTION_DATABASE_ID": "17b54157-44cd-803e-9a0e-dcb79e3ceaf6"
   }
   // Note: secrets (RESEND_API_KEY, NOTION_TOKEN) set via:

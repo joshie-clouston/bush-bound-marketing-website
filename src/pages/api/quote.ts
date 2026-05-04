@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { Resend } from 'resend';
 import { staffNotificationHtml, customerAutoReplyHtml, getTestOverride } from '@/lib/email-templates';
 import { createNotionLead, updateNotionLead } from '@/lib/notion';
+import { notifyOpsError } from '@/lib/alerts';
 
 export const prerender = false;
 
@@ -37,6 +38,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
         leadId = result.meta.last_row_id as number;
       } catch (dbError) {
         console.error('D1 write failed (step 1):', dbError);
+        await notifyOpsError(runtime.env as Record<string, unknown>, 'D1 insert (step 1)', dbError, { name, email, phone, vehicle });
       }
 
       // Create Notion page so partial leads (drop-offs) are still visible to Luke
@@ -52,6 +54,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
           ).bind(pageId, leadId).run();
         } catch (notionError) {
           console.error('Notion create failed (step 1):', notionError);
+          await notifyOpsError(runtime.env as Record<string, unknown>, 'Notion create (step 1)', notionError, { leadId, name, email });
         }
       }
 
@@ -69,6 +72,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
           ).bind(wishlist || null, budget || null, timeline || null, parseInt(leadId)).run();
         } catch (dbError) {
           console.error('D1 update failed (step 2):', dbError);
+          await notifyOpsError(runtime.env as Record<string, unknown>, 'D1 update (step 2)', dbError, { leadId, wishlist, budget, timeline });
         }
 
         if (runtime.env.NOTION_TOKEN) {
@@ -85,6 +89,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
             }
           } catch (notionError) {
             console.error('Notion update failed (step 2):', notionError);
+            await notifyOpsError(runtime.env as Record<string, unknown>, 'Notion update (step 2)', notionError, { leadId });
           }
         }
       }
@@ -101,19 +106,39 @@ export const POST: APIRoute = async ({ request, locals }) => {
         return new Response(JSON.stringify({ error: locationCheck.error }), { status: 400, headers: { 'Content-Type': 'application/json' } });
       }
 
-      // Update DB
-      if (leadId) {
-        try {
-          await runtime.env.DB.prepare(
-            `UPDATE quotes SET message = ?, referral = ?, suburb = ?, state = ?, postcode = ?, status = 'complete' WHERE id = ?`
-          ).bind(message || null, referral || null, suburb, state, postcode, parseInt(leadId)).run();
-        } catch (dbError) {
-          console.error('D1 update failed (step 3):', dbError);
-        }
-      }
-
       // Capture UTM params
       const { utm_source, utm_medium, utm_campaign } = body;
+
+      // Persist to D1: update if step 1 created a row, otherwise insert a fresh complete row
+      // (so a step 1 silent failure never costs us the lead)
+      let effectiveLeadId: number | null = leadId ? parseInt(leadId) : null;
+      if (effectiveLeadId) {
+        try {
+          await runtime.env.DB.prepare(
+            `UPDATE quotes SET message = ?, referral = ?, suburb = ?, state = ?, postcode = ?, utm_source = ?, utm_medium = ?, utm_campaign = ?, status = 'complete' WHERE id = ?`
+          ).bind(message || null, referral || null, suburb, state, postcode, utm_source || null, utm_medium || null, utm_campaign || null, effectiveLeadId).run();
+        } catch (dbError) {
+          console.error('D1 update failed (step 3):', dbError);
+          await notifyOpsError(runtime.env as Record<string, unknown>, 'D1 update (step 3)', dbError, { leadId, name, email });
+        }
+      } else {
+        try {
+          const result = await runtime.env.DB.prepare(
+            `INSERT INTO quotes (name, email, phone, vehicle_model, wishlist, budget, timeline, message, referral, suburb, state, postcode, utm_source, utm_medium, utm_campaign, status, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'complete', ?)`
+          ).bind(
+            name || 'Unknown', email || 'unknown@unknown', phone || null, vehicle || null,
+            wishlist || null, budget || null, timeline || null, message || null, referral || null,
+            suburb, state, postcode, utm_source || null, utm_medium || null, utm_campaign || null,
+            Date.now(),
+          ).run();
+          effectiveLeadId = result.meta.last_row_id as number;
+          await notifyOpsError(runtime.env as Record<string, unknown>, 'Step 1 was skipped — recovered lead at step 3', new Error('No leadId from step 1; inserted complete row directly'), { effectiveLeadId, name, email });
+        } catch (dbError) {
+          console.error('D1 insert failed (step 3 fallback):', dbError);
+          await notifyOpsError(runtime.env as Record<string, unknown>, 'D1 insert (step 3 fallback)', dbError, { name, email, phone, vehicle });
+        }
+      }
 
       // Send notification email to Luke
       try {
@@ -154,14 +179,15 @@ export const POST: APIRoute = async ({ request, locals }) => {
         }
       } catch (emailError) {
         console.error('Email notification failed:', emailError);
+        await notifyOpsError(runtime.env as Record<string, unknown>, 'Resend email send (step 3)', emailError, { leadId: effectiveLeadId, name, email });
       }
 
       // Update existing Notion page with final-step details (non-blocking)
-      if (leadId && runtime.env.NOTION_TOKEN) {
+      if (effectiveLeadId && runtime.env.NOTION_TOKEN) {
         try {
           const row = await runtime.env.DB.prepare(
             `SELECT notion_page_id FROM quotes WHERE id = ?`
-          ).bind(parseInt(leadId)).first<{ notion_page_id: string | null }>();
+          ).bind(effectiveLeadId).first<{ notion_page_id: string | null }>();
           if (row?.notion_page_id) {
             await updateNotionLead(
               runtime.env.NOTION_TOKEN as string,
@@ -173,7 +199,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
             );
           } else if (runtime.env.NOTION_DATABASE_ID) {
             // Fallback: no page id (step 1 Notion failed) — create now with everything
-            await createNotionLead(
+            const pageId = await createNotionLead(
               runtime.env.NOTION_TOKEN as string,
               runtime.env.NOTION_DATABASE_ID as string,
               {
@@ -182,9 +208,17 @@ export const POST: APIRoute = async ({ request, locals }) => {
                 utmSource: utm_source, utmMedium: utm_medium, utmCampaign: utm_campaign,
               },
             );
+            try {
+              await runtime.env.DB.prepare(
+                `UPDATE quotes SET notion_page_id = ? WHERE id = ?`
+              ).bind(pageId, effectiveLeadId).run();
+            } catch (linkError) {
+              console.error('D1 notion_page_id link failed (step 3 fallback):', linkError);
+            }
           }
         } catch (notionError) {
           console.error('Notion update failed (step 3):', notionError);
+          await notifyOpsError(runtime.env as Record<string, unknown>, 'Notion update (step 3)', notionError, { leadId: effectiveLeadId, name, email });
         }
       }
 
@@ -204,6 +238,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       ).bind(name, email, phone || null, vehicleType || null, vehicleModel || null, wishlist || null, message || null, referral || null, legacySuburb || null, legacyState || null, legacyPostcode || null, utm_source || null, utm_medium || null, utm_campaign || null, utm_term || null, utm_content || null, Date.now()).run();
     } catch (dbError) {
       console.error('D1 write failed:', dbError);
+      await notifyOpsError(runtime.env as Record<string, unknown>, 'D1 insert (legacy)', dbError, { name, email });
     }
 
     try {
@@ -219,11 +254,13 @@ export const POST: APIRoute = async ({ request, locals }) => {
       }
     } catch (emailError) {
       console.error('Email notification failed:', emailError);
+      await notifyOpsError(runtime.env as Record<string, unknown>, 'Resend email send (legacy)', emailError, { name, email });
     }
 
     return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch (error) {
     console.error('Quote submission failed:', error);
+    await notifyOpsError(runtime.env as Record<string, unknown>, 'Quote submission (top-level)', error);
     return new Response(JSON.stringify({ error: 'Failed to submit quote request' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 };

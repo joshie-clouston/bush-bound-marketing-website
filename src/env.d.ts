@@ -6,6 +6,9 @@ type Runtime = import('@astrojs/cloudflare').Runtime<{
   RESEND_API_KEY: string;
   RESEND_FROM_EMAIL: string;
   NOTIFICATION_EMAIL: string;
+  ALERT_EMAIL: string;
+  NOTION_TOKEN: string;
+  NOTION_DATABASE_ID: string;
 }>;
 
 declare namespace App {
