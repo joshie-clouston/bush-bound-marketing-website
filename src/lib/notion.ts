@@ -43,7 +43,7 @@ function buildProperties(lead: LeadPayload): Record<string, unknown> {
   if (lead.name) props.Name = { title: [{ text: { content: lead.name } }] };
   if (lead.email) props['Email '] = { email: lead.email };
   if (lead.phone) props.Mobile = { phone_number: lead.phone };
-  if (lead.vehicle) props.Model = richText(lead.vehicle);
+  if (lead.vehicle) props.Vehicle = richText(lead.vehicle);
   if (lead.wishlist) props.Wishlist = richText(lead.wishlist);
   if (lead.message) props.Notes = richText(lead.message);
 
