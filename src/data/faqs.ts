@@ -74,8 +74,15 @@ export const faqs: FAQ[] = [
     slug: 'what-power-system-do-i-need',
     question: 'What power system do I need?',
     answer: 'Depends on how you travel. For weekend getaways, a 12V dual-battery system with 200Ah of lithium will cover you comfortably. If you want to run a coffee machine, microwave or air fryer, we offer inverter setups too.',
-    authority: 'We specialise in 12V systems because they cover the vast majority of use cases. All electrical work across every build is done by a certified auto electrician, fully compliant and insurance-covered. We\'ll recommend the right setup based on what you actually want to power.',
-    related: ['how-long-does-a-vehicle-fit-out-take', 'can-i-add-to-my-fit-out-later', 'do-you-offer-warranty-on-your-builds'],
+    authority: 'We specialise in 12V systems because they cover the vast majority of use cases. All electrical work across every build, 12V and 240V, is designed and signed off by our dual-qualified electrical engineer and licensed electrician. 240V sign-off is a legal requirement; we hold 12V to the same standard even though the law doesn\'t require it. We\'ll recommend the right setup based on what you actually want to power.',
+    related: ['does-12v-240v-electrical-need-to-be-signed-off-by-an-electrician', 'how-long-does-a-vehicle-fit-out-take', 'do-you-offer-warranty-on-your-builds'],
+  },
+  {
+    slug: 'does-12v-240v-electrical-need-to-be-signed-off-by-an-electrician',
+    question: 'Does my 4WD or van\'s 12V/240V electrical setup need to be signed off by an electrician?',
+    answer: 'Yes for 240V. It\'s a legal requirement under AS/NZS 3001 and Queensland electrical safety law, and every 240V circuit we install is signed off by a licensed electrician. 12V doesn\'t legally require sign-off, but we do it anyway.',
+    authority: 'All Bush Bound wiring, 12V and 240V, is designed and checked by our dual-qualified electrical engineer and licensed electrician. It\'s not just about ticking a legal box. A poorly done 12V connection can start a fire as easily as a bad 240V one, and it\'s sitting metres from where you sleep. Cut corners with a dodgy DIY or your mate who\'s cheap, and you\'re not just risking the wiring itself. Insurers can decline claims linked to illegal or non-compliant electrical modifications, so an uncertified install can cost you your cover on top of your vehicle. Get it done properly the first time and you\'re covered on both fronts, safety and insurance.',
+    related: ['what-power-system-do-i-need', 'do-you-offer-warranty-on-your-builds', 'why-laminated-plywood-instead-of-aluminium'],
   },
   {
     slug: 'can-i-add-to-my-fit-out-later',

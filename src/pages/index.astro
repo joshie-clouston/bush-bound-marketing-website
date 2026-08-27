@@ -3,8 +3,23 @@ export const prerender = true;
 
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { faqs, homepageFaqSlugs } from '@/data/faqs';
+import { reviews as allReviews } from '@/data/reviews';
+import { electricalPhotos } from '@/data/electrical-photos';
+
+const electricalHeroPhoto = electricalPhotos.find((p) => p.slug === 'bay-overview-1')!;
 
 const homepageFaqs = homepageFaqSlugs.map((slug) => faqs.find((f) => f.slug === slug)!);
+
+const featuredReviewSlugs = ['jack-f-troopy', 'luke-w-transporter', 'jai-g-100-series'];
+const featuredCategoryLabels: Record<string, string> = {
+  'jack-f-troopy': 'Troopy',
+  'luke-w-transporter': 'Van',
+  'jai-g-100-series': 'Wagon',
+};
+const featuredReviews = featuredReviewSlugs.map((slug) => ({
+  ...allReviews.find((r) => r.slug === slug)!,
+  categoryLabel: featuredCategoryLabels[slug],
+}));
 
 const reviews = [
   { name: "Joshua C.", vehicle: "Troop Carrier (Troopy)", text: "Highly recommend going with Bush Bound to just get it done right the first time. Absolutely stoked!" },
@@ -141,7 +156,7 @@ const heroImages = [
             Bush Bound Fitouts
           </p>
           <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-6" style="text-shadow: 0 2px 20px rgba(0,0,0,0.4);">
-            Gold Coast premium vehicle fit-outs,<br />
+            Premium Gold Coast vehicle fit-outs,<br />
             <span class="text-sand">built for adventure.</span>
           </h1>
           <p class="text-lg sm:text-xl text-stone/90 max-w-xl mb-10">
@@ -220,6 +235,45 @@ const heroImages = [
       }, 4000);
     })();
   </script>
+
+  <!-- WHAT OUR CUSTOMERS HAVE TO SAY -->
+  <section class="section-padding bg-stone">
+    <div class="container-narrow">
+      <div class="text-center mb-16">
+        <p class="text-sand-dark font-medium text-sm uppercase tracking-widest mb-3" data-animate="fade-in">Reviews</p>
+        <h2 class="text-3xl sm:text-4xl font-bold text-charcoal" data-animate="fade-up">
+          What our customers have to say
+        </h2>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6" data-animate="fade-up">
+        {featuredReviews.map((review) => (
+          <a href={`/reviews/${review.slug}`} class="group bg-white rounded-xl border border-stone-dark/10 overflow-hidden hover:border-primary/30 hover:shadow-sm transition-all">
+            <div class="relative aspect-[4/3] overflow-hidden">
+              <img src={review.image} alt={`${review.name}'s ${review.vehicle}`} class="w-full h-full object-cover" loading="lazy" />
+              <span class="absolute top-3 left-3 px-2.5 py-1 bg-charcoal/80 text-stone-light text-xs font-semibold rounded-full backdrop-blur-sm">{review.categoryLabel}</span>
+            </div>
+            <div class="p-6">
+              <div class="flex text-sand text-sm gap-0.5 mb-3" role="img" aria-label="5 star rating">
+                {[1,2,3,4,5].map(() => (
+                  <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20"><path d={starPath}/></svg>
+                ))}
+              </div>
+              <p class="text-sm text-charcoal/90 leading-relaxed mb-4">&ldquo;{review.testimonial}&rdquo;</p>
+              <p class="text-sm font-semibold text-charcoal group-hover:text-primary transition-colors">{review.name}</p>
+              <p class="text-xs text-muted-foreground mt-0.5">{review.vehicle}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      <div class="text-center mt-10" data-animate="fade-in">
+        <a href="/reviews" class="inline-flex items-center justify-center px-8 py-4 border-2 border-primary text-primary font-semibold text-base rounded-md hover:bg-primary hover:text-primary-foreground transition-colors">
+          More Happy Customers
+        </a>
+      </div>
+    </div>
+  </section>
 
   <!-- WHAT WE FIT OUT -->
   <section class="section-padding bg-background" id="services">
@@ -313,8 +367,8 @@ const heroImages = [
           <div class="hiw-step flex items-start gap-5 md:gap-6 p-4 md:p-5 rounded-xl opacity-0 translate-y-4 transition-all duration-500">
             <div class="relative z-10 shrink-0 w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold">2</div>
             <div class="pt-2">
-              <h3 class="font-bold text-charcoal text-lg mb-1">Design Deposit & 3D Design</h3>
-              <p class="text-sm text-muted-foreground leading-relaxed">Lock in your build with a design deposit. We'll create a full 3D design for you to approve before we order a single thing.</p>
+              <h3 class="font-bold text-charcoal text-lg mb-1">Deposit & 3D Design</h3>
+              <p class="text-sm text-muted-foreground leading-relaxed">Lock in your build date with a deposit. We'll create a full 3D design for you to approve before we order a single thing.</p>
             </div>
           </div>
 
@@ -446,8 +500,8 @@ const heroImages = [
             </svg>
           </div>
           <div>
-            <h3 class="font-bold text-charcoal mb-1">Everything Built In, Nothing Bolted On</h3>
-            <p class="text-sm text-muted-foreground">Dual battery, solar, inverters, lighting and water pumps all designed into the build so you're not adding things later.</p>
+            <h3 class="font-bold text-charcoal mb-1">12V/240V Power and Solar</h3>
+            <p class="text-sm text-muted-foreground">Dual batteries, solar and inverters, all designed in and signed off by a licensed electrician.</p>
           </div>
         </div>
 
@@ -462,6 +516,29 @@ const heroImages = [
             <h3 class="font-bold text-charcoal mb-1">Built on the Gold Coast, QLD</h3>
             <p class="text-sm text-muted-foreground">Drop into our Gold Coast workshop, see a build in progress and chat through your ideas face to face.</p>
           </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ELECTRICAL SAFETY -->
+  <section class="section-padding bg-stone">
+    <div class="container-narrow">
+      <div class="grid md:grid-cols-2 gap-10 md:gap-12 items-center">
+        <div class="text-center md:text-left">
+          <p class="text-sand-dark font-medium text-sm uppercase tracking-widest mb-3" data-animate="fade-in">Electrical Safety</p>
+          <h2 class="text-3xl sm:text-5xl font-extrabold text-charcoal mb-6 leading-tight" data-animate="fade-up">
+            One Bad Wiring Job Can Set Your Vehicle On Fire
+          </h2>
+          <p class="text-lg text-charcoal/80 mb-8" data-animate="fade-up">
+            240V is legally required to be signed off by a licensed electrician. We hold 12V to the same standard, because a fire doesn't care what voltage started it, and neither does your insurer.
+          </p>
+          <a href="/electrical-systems" class="inline-flex items-center justify-center px-8 py-4 bg-primary text-primary-foreground font-bold text-base rounded-md hover:bg-primary-light transition-colors" data-animate="fade-up">
+            Learn More
+          </a>
+        </div>
+        <div class="rounded-xl overflow-hidden aspect-[4/3]" data-animate="fade-up">
+          <img src={electricalHeroPhoto.src} alt={electricalHeroPhoto.alt} class="w-full h-full object-cover" loading="lazy" />
         </div>
       </div>
     </div>
