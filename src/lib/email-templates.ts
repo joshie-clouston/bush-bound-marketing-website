@@ -116,6 +116,10 @@ export function customerAutoReplyHtml(fullName: string, vehicle: string): string
   return wrapper(`Thanks for your quote request, ${name}!`, body);
 }
 
-export function getTestOverride(env: Record<string, unknown>): string | undefined {
-  return (env.TEST_EMAIL_OVERRIDE as string) || undefined;
+// Test rule (all sites): submitting with this email sends BOTH the customer and admin emails here,
+// so form flows can be tested on production without touching real inboxes.
+export const TEST_EMAIL = 'josh@founddigital.ai';
+
+export function emailRecipient(realRecipient: string, submittedEmail?: string | null): string {
+  return submittedEmail?.trim().toLowerCase() === TEST_EMAIL ? TEST_EMAIL : realRecipient;
 }

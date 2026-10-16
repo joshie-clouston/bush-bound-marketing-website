@@ -699,12 +699,24 @@ const heroImages = [
             placeholder="Your email"
             class="w-full px-4 py-3 rounded-md bg-charcoal-light border border-stone-dark/20 text-stone-light placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-sand/40 focus:border-sand transition-colors"
           />
-          <input
-            type="text"
-            name="rego"
-            placeholder="Rego plate (optional - finds your vehicle)"
-            class="w-full px-4 py-3 rounded-md bg-charcoal-light border border-stone-dark/20 text-stone-light placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-sand/40 focus:border-sand transition-colors"
-          />
+          <div class="flex gap-3">
+            <input
+              type="text"
+              name="rego"
+              placeholder="Rego plate (optional)"
+              autocomplete="off"
+              maxlength="10"
+              class="min-w-0 flex-1 px-4 py-3 rounded-md bg-charcoal-light border border-stone-dark/20 text-stone-light placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-sand/40 focus:border-sand transition-colors"
+            />
+            <select
+              name="rego_state"
+              aria-label="Rego state"
+              class="w-24 px-3 py-3 rounded-md bg-charcoal-light border border-stone-dark/20 text-stone-light focus:outline-none focus:ring-2 focus:ring-sand/40 focus:border-sand transition-colors"
+            >
+              <option value="">State</option>
+              {['QLD', 'NSW', 'VIC', 'SA', 'WA', 'TAS', 'NT', 'ACT'].map((st) => <option value={st}>{st}</option>)}
+            </select>
+          </div>
           <button
             type="submit"
             class="w-full px-6 py-3 bg-sand text-charcoal font-bold rounded-md hover:bg-sand-light transition-colors"

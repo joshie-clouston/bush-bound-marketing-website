@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { Resend } from 'resend';
-import { staffNotificationHtml, customerAutoReplyHtml, getTestOverride } from '@/lib/email-templates';
+import { staffNotificationHtml, customerAutoReplyHtml, emailRecipient } from '@/lib/email-templates';
+import { lookupVehicleAnyState, formatVehicle, normalisePlate, type VehicleDetails } from '@/lib/blueflag';
 import { createNotionLead, updateNotionLead } from '@/lib/notion';
 import { notifyOpsError } from '@/lib/alerts';
 
@@ -25,7 +26,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     // Step 1: Create lead with contact details
     if (step === '1') {
-      const { name, email, phone, vehicle } = body;
+      const { name, email, phone, vehicle, rego } = body;
       if (!name || !email) {
         return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
       }
@@ -33,8 +34,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
       let leadId: number | null = null;
       try {
         const result = await runtime.env.DB.prepare(
-          `INSERT INTO quotes (name, email, phone, vehicle_model, status, created_at) VALUES (?, ?, ?, ?, 'step1', ?)`
-        ).bind(name, email, phone || null, vehicle || null, Date.now()).run();
+          `INSERT INTO quotes (name, email, phone, vehicle_model, rego, status, created_at) VALUES (?, ?, ?, ?, ?, 'step1', ?)`
+        ).bind(name, email, phone || null, vehicle || null, rego ? normalisePlate(rego) : null, Date.now()).run();
         leadId = result.meta.last_row_id as number;
       } catch (dbError) {
         console.error('D1 write failed (step 1):', dbError);
@@ -47,7 +48,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
           const pageId = await createNotionLead(
             runtime.env.NOTION_TOKEN as string,
             runtime.env.NOTION_DATABASE_ID as string,
-            { name, email, phone, vehicle },
+            { name, email, phone, vehicle, type: 'Fit Out' },
           );
           await runtime.env.DB.prepare(
             `UPDATE quotes SET notion_page_id = ? WHERE id = ?`
@@ -99,7 +100,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     // Step 3: Final details + send notification email
     if (step === '3') {
-      const { leadId, message, referral, name, email, phone, vehicle, wishlist, budget, timeline, suburb, state, postcode } = body;
+      const { leadId, message, referral, name, email, phone, vehicle, rego, wishlist, budget, timeline, suburb, state, postcode } = body;
 
       const locationCheck = validateLocation(body);
       if (!locationCheck.ok) {
@@ -124,10 +125,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
       } else {
         try {
           const result = await runtime.env.DB.prepare(
-            `INSERT INTO quotes (name, email, phone, vehicle_model, wishlist, budget, timeline, message, referral, suburb, state, postcode, utm_source, utm_medium, utm_campaign, status, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'complete', ?)`
+            `INSERT INTO quotes (name, email, phone, vehicle_model, rego, wishlist, budget, timeline, message, referral, suburb, state, postcode, utm_source, utm_medium, utm_campaign, status, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'complete', ?)`
           ).bind(
-            name || 'Unknown', email || 'unknown@unknown', phone || null, vehicle || null,
+            name || 'Unknown', email || 'unknown@unknown', phone || null, vehicle || null, rego ? normalisePlate(rego) : null,
             wishlist || null, budget || null, timeline || null, message || null, referral || null,
             suburb, state, postcode, utm_source || null, utm_medium || null, utm_campaign || null,
             Date.now(),
@@ -140,18 +141,39 @@ export const POST: APIRoute = async ({ request, locals }) => {
         }
       }
 
+      // Enrich with Blue Flag vehicle details (non-blocking). Registration state is inferred from the plate format, falling back to the customer's state.
+      let vehicleDetails: VehicleDetails | null = null;
+      let vehicleSummary: string | null = null;
+      if (rego && runtime.env.BLUEFLAG_API_KEY) {
+        try {
+          const found = await lookupVehicleAnyState(runtime.env.BLUEFLAG_API_KEY as string, rego, state);
+          if (found) {
+            vehicleDetails = found.vehicle;
+            vehicleSummary = formatVehicle(found.vehicle, rego, found.state);
+            if (effectiveLeadId) {
+              await runtime.env.DB.prepare(
+                `UPDATE quotes SET rego = ?, vin = ?, make = ?, model = ?, colour = ?, body_type = ?, enriched_at = ? WHERE id = ?`
+              ).bind(normalisePlate(rego), vehicleDetails.vin, vehicleDetails.make, vehicleDetails.model, vehicleDetails.colour, vehicleDetails.bodyType, Math.floor(Date.now() / 1000), effectiveLeadId).run();
+            }
+          }
+        } catch (enrichError) {
+          console.error('Vehicle enrichment failed (continuing):', enrichError);
+          await notifyOpsError(runtime.env as Record<string, unknown>, 'Quote vehicle enrichment', enrichError, { leadId: effectiveLeadId, rego, state });
+        }
+      }
+      const crmVehicle = vehicleSummary ? `${vehicle} | ${vehicleSummary}` : vehicle;
+
       // Send notification email to Luke
       try {
         if (runtime.env.RESEND_API_KEY) {
           const resend = new Resend(runtime.env.RESEND_API_KEY as string);
 
           const fromEmail = `Bush Bound Support <${runtime.env.RESEND_FROM_EMAIL || 'support@send.bushbound.au'}>`;
-          const testOverride = getTestOverride(runtime.env as Record<string, unknown>);
 
           // Staff notification
           await resend.emails.send({
             from: fromEmail,
-            to: testOverride || runtime.env.NOTIFICATION_EMAIL || 'luke@bushbound.au',
+            to: emailRecipient((runtime.env.NOTIFICATION_EMAIL as string) || 'luke@bushbound.au', email),
             replyTo: email,
             subject: `New quote request from ${name} - ${vehicle || 'Vehicle TBD'}`,
             html: staffNotificationHtml([
@@ -160,6 +182,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
               ['Email', email],
               ['Location', `${suburb}, ${state} ${postcode}`],
               ['Vehicle', vehicle || 'Not provided'],
+              ['Rego lookup', vehicleSummary || (rego ? `${normalisePlate(rego)}: no match` : 'No rego given')],
               ['Budget', budget || 'Not specified'],
               ['Timeline', timeline || 'Not specified'],
               ['Wishlist', wishlist || 'Not specified'],
@@ -172,7 +195,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
           // Customer confirmation
           await resend.emails.send({
             from: fromEmail,
-            to: testOverride || email,
+            to: emailRecipient(email, email),
             subject: `Thanks for your quote request, ${name.split(' ')[0]}!`,
             html: customerAutoReplyHtml(name, vehicle || 'vehicle'),
           });
@@ -194,6 +217,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
               row.notion_page_id,
               {
                 suburb, state, postcode, message, referral,
+                ...(vehicleSummary && { vehicle: crmVehicle }),
                 utmSource: utm_source, utmMedium: utm_medium, utmCampaign: utm_campaign,
               },
             );
@@ -203,7 +227,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
               runtime.env.NOTION_TOKEN as string,
               runtime.env.NOTION_DATABASE_ID as string,
               {
-                name, email, phone, vehicle, wishlist, budget, timeline,
+                name, email, phone, vehicle: crmVehicle, type: 'Fit Out', wishlist, budget, timeline,
                 suburb, state, postcode, message, referral,
                 utmSource: utm_source, utmMedium: utm_medium, utmCampaign: utm_campaign,
               },

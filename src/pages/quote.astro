@@ -101,6 +101,11 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
                 <input type="text" id="vehicle" name="vehicle" required class="w-full px-4 py-3 rounded-md border border-stone-dark/20 bg-stone/30 text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors" placeholder="e.g. Toyota Land Cruiser 78 Series, VW Transporter T6, Hilux with canopy" />
               </div>
 
+              <div>
+                <label for="rego" class="block text-sm font-semibold text-charcoal mb-1.5">Rego plate <span class="font-normal text-muted-foreground">(optional, helps us spec your build)</span></label>
+                <input type="text" id="rego" name="rego" maxlength="10" autocomplete="off" class="w-full px-4 py-3 rounded-md border border-stone-dark/20 bg-stone/30 text-charcoal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors uppercase" placeholder="e.g. ABC123" />
+              </div>
+
               <button type="button" id="next-to-2" class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 bg-primary text-primary-foreground font-semibold rounded-md hover:bg-primary-light transition-colors">
                 Next
                 <svg class="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
@@ -526,7 +531,7 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
         const res = await fetch('/api/quote', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ step: '1', name: name.value, email: email.value, phone: phone.value, vehicle: vehicle.value }),
+          body: JSON.stringify({ step: '1', name: name.value, email: email.value, phone: phone.value, vehicle: vehicle.value, rego: (document.getElementById('rego') as HTMLInputElement).value }),
         });
         const json = await res.json() as Record<string, string>;
         if (json.leadId) leadId = String(json.leadId);
@@ -605,6 +610,7 @@ const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95
             email: formData.get('email'),
             phone: formData.get('phone'),
             vehicle: formData.get('vehicle'),
+            rego: formData.get('rego') || '',
             wishlist: features,
             budget,
             timeline,

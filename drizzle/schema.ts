@@ -22,6 +22,13 @@ export const quotes = sqliteTable('quotes', {
   utmTerm: text('utm_term'),
   utmContent: text('utm_content'),
   notionPageId: text('notion_page_id'),
+  rego: text('rego'),
+  vin: text('vin'),
+  make: text('make'),
+  model: text('model'),
+  colour: text('colour'),
+  bodyType: text('body_type'),
+  enrichedAt: integer('enriched_at', { mode: 'timestamp' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 });
 
