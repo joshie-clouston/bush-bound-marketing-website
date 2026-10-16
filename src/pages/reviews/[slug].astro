@@ -18,6 +18,7 @@ const firstName = review.name.split(' ')[0];
 <BaseLayout
   title={`${review.vehicle} Fit-Out Review - ${review.name} | Bush Bound`}
   description={`${review.vehicle} fit-out review by Bush Bound. ${review.brief}`}
+  ogImage={review.image}
 >
   <section class="section-padding bg-background">
     <div class="container-narrow">
@@ -53,8 +54,24 @@ const firstName = review.name.split(' ')[0];
         </blockquote>
       </div>
 
+      <!-- Google Review -->
+      <div class="bg-white rounded-xl border border-stone-dark/10 p-8 mb-8">
+        <div class="flex items-center gap-1.5 mb-4">
+          {[1,2,3,4,5].map(() => (
+            <svg class="w-5 h-5 text-sand" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+          ))}
+          <span class="text-sm text-muted-foreground ml-2">Google Review</span>
+        </div>
+        <blockquote class="text-lg text-charcoal leading-relaxed italic">
+          &ldquo;{review.testimonial}&rdquo;
+        </blockquote>
+        <p class="mt-4 font-semibold text-charcoal">{review.name}</p>
+      </div>
+
       <!-- Photo gallery -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-12">
         {review.images.map((img: string, i: number) => (
           <div class:list={[
             'rounded-xl overflow-hidden bg-stone',
@@ -68,22 +85,6 @@ const firstName = review.name.split(' ')[0];
             />
           </div>
         ))}
-      </div>
-
-      <!-- Google Review -->
-      <div class="bg-white rounded-xl border border-stone-dark/10 p-8 mb-12">
-        <div class="flex items-center gap-1.5 mb-4">
-          {[1,2,3,4,5].map(() => (
-            <svg class="w-5 h-5 text-sand" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-          ))}
-          <span class="text-sm text-muted-foreground ml-2">Google Review</span>
-        </div>
-        <blockquote class="text-lg text-charcoal leading-relaxed italic">
-          &ldquo;{review.testimonial}&rdquo;
-        </blockquote>
-        <p class="mt-4 font-semibold text-charcoal">{review.name}</p>
       </div>
 
     </div>
