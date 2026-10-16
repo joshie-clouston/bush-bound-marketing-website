@@ -21,11 +21,36 @@ const allVehicles = (await getCollection('services', ({ data }) => !data.draft))
   .filter(s => s.id !== entry.id);
 
 // Show same category first, then others
+const heroPhoto = entry.data.heroImage ?? entry.data.heroImages[0];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: entry.data.title,
+    description: entry.data.description,
+    serviceType: 'Vehicle fit-out',
+    category: entry.data.categoryLabel,
+    provider: { '@id': new URL('/#business', Astro.site).href },
+    areaServed: { '@type': 'Country', name: 'Australia' },
+    ...(heroPhoto && { image: new URL(heroPhoto, Astro.site).href }),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Vehicles', item: new URL('/fit-outs', Astro.site).href },
+      { '@type': 'ListItem', position: 2, name: entry.data.title },
+    ],
+  },
+];
+
 const sameCategory = allVehicles.filter(s => s.data.category === entry.data.category);
 const otherVehicles = sameCategory.length > 0 ? sameCategory.slice(0, 4) : allVehicles.slice(0, 4);
 ---
 
-<BaseLayout title={`${entry.data.title} | Bush Bound`} description={entry.data.description}>
+<BaseLayout title={`${entry.data.title} | Bush Bound`} description={entry.data.description} ogImage={heroPhoto}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} slot="head" is:inline />
 
   <!-- Breadcrumb -->
   <section class="bg-charcoal pt-6 pb-0">

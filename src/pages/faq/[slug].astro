@@ -15,12 +15,24 @@ const { faq } = Astro.props;
 const relatedFaqs = faq.related
   .map((slug) => faqs.find((f) => f.slug === slug))
   .filter(Boolean);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [{
+    '@type': 'Question',
+    name: faq.question,
+    acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+  }],
+};
 ---
 
 <BaseLayout
   title={`${faq.question} | Bush Bound FAQ`}
   description={faq.answer}
 >
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} slot="head" is:inline />
+
   <section class="section-padding bg-background">
     <div class="container-narrow max-w-3xl">
       <a href="/faq" class="inline-flex items-center text-sm text-primary font-medium mb-6 hover:text-primary-light transition-colors">
