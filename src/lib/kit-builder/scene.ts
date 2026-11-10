@@ -124,6 +124,9 @@ const carpetTexture = () =>
     ctx.putImageData(img, 0, 0);
   });
 
+const phase = (s: number, a: number, b: number) => Math.min(1, Math.max(0, (s - a) / (b - a)));
+const ease = (x: number) => x * x * (3 - 2 * x);
+
 export class KitScene {
   private renderer: THREE.WebGLRenderer;
   private scene = new THREE.Scene();
@@ -133,6 +136,8 @@ export class KitScene {
   private modulesGroup = new THREE.Group();
   private tracked = new Map<string, Tracked>();
   private open = false;
+  /** Linear 0..1 progress for step-by-step animations (the camp table), so each step is easy to follow. */
+  private seqT = 0;
   /** Camera distance we're easing towards (zooms out when opened), unless the customer takes over. */
   private distGoal: number | null = null;
   private look: Look = { fronts: 'hex', carpet: false };
@@ -434,34 +439,85 @@ export class KitScene {
         g.add(this.at(this.box(w - 6, h - 6, 2, this.m.recess), 0, 0, -7));
         for (const fx of [-0.18, 0, 0.18]) g.add(this.at(this.box(18, h - 50, 3, this.m.timber), w * fx, 0, -5));
         const door = this.cabinetFront(w, h, { latch: 'round' });
-        g.add(this.hingedDoor(w, h, 'right', door));
-        g.userData.door = g.children[g.children.length - 1];
+        const pivot = this.hingedDoor(w, h, 'right', door);
+        g.add(pivot);
+        // Door opens at the start of the table sequence and closes once the table is back in.
+        g.userData.seq = (s: number) => {
+          pivot.rotation.y = pivot.userData.openAngle * ease(phase(s, 0, 0.1));
+        };
         break;
       }
 
       case 'camp-table': {
-        // Bush Bound camp table: four slats running the length of the top, four legs.
-        const alongZ = d >= w;
-        const across = alongZ ? w : d;
-        const slat = (across - 3 * 12) / 4;
-        for (let k = 0; k < 4; k++) {
-          const off = -across / 2 + slat / 2 + k * (slat + 12);
-          g.add(alongZ
-            ? this.at(this.box(slat, 18, d, this.m.timber, true), off, h / 2 - 9, 0)
-            : this.at(this.box(w, 18, slat, this.m.timber, true), 0, h / 2 - 9, off));
-        }
-        for (const s of [-1, 1]) {
-          g.add(alongZ
-            ? this.at(this.box(w - 40, 20, 24, this.m.alu), 0, h / 2 - 28, s * (d / 2 - 40))
-            : this.at(this.box(24, 20, d - 40, this.m.alu), s * (w / 2 - 40), h / 2 - 28, 0));
-        }
+        // Bush Bound camp table: four slats running the length of the top, legs at each end.
+        // Folded it's a stack of four slats; it unfolds twice into the full top, then the legs swing down.
+        const rig = new THREE.Group();
+        g.add(rig);
+        const topY = h / 2 - 9;
+        const gap = 12;
+        const slat = (w - 3 * gap) / 4;
+        const pitch = slat + gap;
+        const cx = [-1.5, -0.5, 0.5, 1.5].map((k) => k * pitch);
+        const slats = cx.map(() => {
+          const m = this.box(slat, 18, d, this.m.timber, true);
+          rig.add(m);
+          return m;
+        });
+        // Fold maths: slats B,C flip over hinge 1 (between slots 0 and 1), C,D flip over hinge 2 (centre).
+        const hinge1 = { x: -pitch, y: topY + 27 };
+        const hinge2 = { x: 0, y: topY + 9 };
+        const rot = (p: { x: number; y: number; a: number }, hx: number, hy: number, a: number) => {
+          const dx = p.x - hx;
+          const dy = p.y - hy;
+          return { x: hx + dx * Math.cos(a) - dy * Math.sin(a), y: hy + dx * Math.sin(a) + dy * Math.cos(a), a: p.a + a };
+        };
+        const frame = this.box(w - 40, 20, 24, this.m.alu);
+        const frame2 = this.box(w - 40, 20, 24, this.m.alu);
+        rig.add(this.at(frame, 0, topY - 19, d / 2 - 40), this.at(frame2, 0, topY - 19, -d / 2 + 40));
+        const legLen = h - 30;
+        const legs: THREE.Group[] = [];
         for (const sx of [-1, 1]) {
           for (const sz of [-1, 1]) {
-            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, (h - 30) * MM, 12), this.m.alu);
+            const pivot = new THREE.Group();
+            pivot.position.set(sx * (w / 2 - (sz > 0 ? 50 : 80)) * MM, (topY - 19) * MM, sz * (d / 2 - 40) * MM);
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, legLen * MM, 12), this.m.alu);
             leg.castShadow = true;
-            g.add(this.at(leg, sx * (w / 2 - 50), -15, sz * (d / 2 - 40)));
+            leg.position.y = (-legLen / 2) * MM;
+            pivot.add(leg);
+            pivot.userData.fold = sz > 0 ? -Math.PI / 2 : Math.PI / 2;
+            rig.add(pivot);
+            legs.push(pivot);
           }
         }
+        const from = spec.from ?? [0, 0, 0];
+        // Where the rig sits with the folded stack (centred on slot 0) inside the cubby.
+        const inCubby = new THREE.Vector3(from[0] - cx[0], from[1] - (topY + 27), from[2]);
+        const outside = new THREE.Vector3(inCubby.x, inCubby.y, from[2] + 1300);
+        g.userData.seq = (sq: number) => {
+          // 0.10-0.26 slide out of the cubby, 0.26-0.42 carry to the set-up spot,
+          // 0.42-0.58 first unfold, 0.58-0.74 second unfold, 0.74-0.92 legs down.
+          const out = ease(phase(sq, 0.1, 0.26));
+          const carry = ease(phase(sq, 0.26, 0.42));
+          const pos = inCubby.clone().lerp(outside, out).lerp(new THREE.Vector3(0, 0, 0), carry);
+          rig.position.copy(pos.multiplyScalar(MM));
+          rig.visible = sq > 0.1;
+          const u1 = ease(phase(sq, 0.42, 0.58));
+          const u2 = ease(phase(sq, 0.58, 0.74));
+          slats.forEach((m, k) => {
+            let p = { x: cx[k], y: topY, a: 0 };
+            if (k === 2 || k === 3) p = rot(p, hinge2.x, hinge2.y, Math.PI * (1 - u2));
+            if (k === 1 || k === 2) p = rot(p, hinge1.x, hinge1.y, Math.PI * (1 - u1));
+            m.position.set(p.x * MM, p.y * MM, 0);
+            m.rotation.z = p.a;
+          });
+          const legT = ease(phase(sq, 0.74, 0.92));
+          const showFrame = u2 > 0.98;
+          frame.visible = frame2.visible = showFrame;
+          for (const leg of legs) {
+            leg.visible = showFrame;
+            leg.rotation.x = leg.userData.fold * (1 - legT);
+          }
+        };
         break;
       }
 
@@ -591,7 +647,7 @@ export class KitScene {
 
   private sameShape(a: ModuleSpec, b: ModuleSpec) {
     return (
-      a.kind === b.kind && a.w === b.w && a.h === b.h && a.d === b.d && a.badge === b.badge && a.swing === b.swing && a.tableSlide === b.tableSlide &&
+      a.kind === b.kind && a.w === b.w && a.h === b.h && a.d === b.d && a.badge === b.badge && a.swing === b.swing && a.tableSlide === b.tableSlide && (a.from ?? []).join() === (b.from ?? []).join() &&
       (a.move ?? []).join() === (b.move ?? []).join() && (a.fixtures ?? []).join() === (b.fixtures ?? []).join()
     );
   }
@@ -658,7 +714,8 @@ export class KitScene {
     this.rafActive = true;
     requestAnimationFrame(this.loop);
     const now = performance.now();
-    const dt = Math.min((now - this.lastFrame) / 1000, 0.05);
+    const realDt = Math.min((now - this.lastFrame) / 1000, 0.25);
+    const dt = Math.min(realDt, 0.05);
     this.lastFrame = now;
 
     // Gentle back-and-forth sway until someone grabs it.
@@ -679,6 +736,8 @@ export class KitScene {
     this.controls.update();
 
     const speed = this.reduceMotion ? 1 : 1 - Math.pow(0.0015, dt);
+    const seqTarget = this.open ? 1 : 0;
+    this.seqT = this.reduceMotion ? seqTarget : this.seqT + Math.sign(seqTarget - this.seqT) * Math.min(Math.abs(seqTarget - this.seqT), realDt / 3.2);
     for (const [id, t] of this.tracked) {
       t.pos.lerp(this.basePosition(t.spec), speed);
       t.openT += ((this.open ? 1 : 0) - t.openT) * speed;
@@ -701,13 +760,13 @@ export class KitScene {
       const drop = (1 - Math.min(1, ease)) * 0.35;
       const o = t.openT;
       t.object.position.set(t.pos.x + mv[0] * MM * o, t.pos.y + drop + mv[1] * MM * o, t.pos.z + mv[2] * MM * o);
+      (t.object.userData.seq as ((s: number) => void) | undefined)?.(this.seqT);
       const inner = t.object.userData.inner as { obj: THREE.Object3D; z0: number; dz: number } | undefined;
       if (inner) inner.obj.position.z = inner.z0 + inner.dz * MM * o;
       const door = t.object.userData.door as THREE.Object3D | undefined;
       if (door) door.rotation.y = (door.userData.openAngle ?? -1.75) * o;
       const scale = t.removing ? a : Math.max(0.001, Math.min(ease, 1.06));
-      t.object.scale.setScalar(t.spec.onlyOpen ? Math.max(0.001, scale * o) : scale);
-      t.object.visible = !t.spec.onlyOpen || o > 0.02;
+      t.object.scale.setScalar(scale);
     }
 
     this.renderer.render(this.scene, this.camera);

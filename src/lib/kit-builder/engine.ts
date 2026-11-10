@@ -116,8 +116,8 @@ export interface ModuleSpec {
   move?: [number, number, number];
   /** Door swings open when "Open" is toggled ('left' or 'right' hinge) */
   swing?: 'left' | 'right';
-  /** Only visible while "Open" is toggled */
-  onlyOpen?: boolean;
+  /** Camp table only: where the folded table sits inside its cubby, relative to its set-up spot (mm) */
+  from?: [number, number, number];
   /** Drawer with a pull-out table inside it: how much further the table slides out of the drawer, mm */
   tableSlide?: number;
   fixtures?: Fixture[];
@@ -174,6 +174,7 @@ export function buildLayout(answers: KitAnswers): Layout {
   // or the left-hand column when the right column is taken by a drawer or chest fridge.
   const cubbyCol = store.has('cubby') ? (drawerFridge || chest ? 0 : R) : -1;
   const cubbyW = round(colW * 0.3);
+  let cubbyAt: { x: number; y: number } | null = null;
 
   /** Fronts for one column's cabinet, from the floor to height h. */
   const fillColumn = (i: number, h: number, opts: { fridgeDrawer?: boolean; badge?: boolean } = {}) => {
@@ -184,6 +185,7 @@ export function buildLayout(answers: KitAnswers): Layout {
       const atRight = i === R && i !== 0;
       const cx = atRight ? x0 + inner - cubbyW / 2 : x0 + cubbyW / 2;
       modules.push({ id: 'cubby', kind: 'cubby', x: cx, y: T, z: -(GAP - 8), w: cubbyW - 4, h: h - 2 * T, d: 18, swing: 'right' });
+      cubbyAt = { x: cx, y: T + (h - 2 * T) / 2 };
       w = inner - cubbyW;
       if (!atRight) x0 += cubbyW;
     }
@@ -245,9 +247,14 @@ export function buildLayout(answers: KitAnswers): Layout {
     }
   }
 
-  // Bush Bound camp table, set up on the ground beside the tailgate when "Open" is on.
-  if (store.has('cubby')) {
-    modules.push({ id: 'camp-table', kind: 'camp-table', x: W / 2 + 380, y: -25, z: 200, w: 440, h: 640, d: 720, onlyOpen: true });
+  // Bush Bound camp table: folded inside its cubby, and on "Open" it comes out, unfolds twice
+  // and drops its legs beside the car (right-hand side).
+  // (cubbyAt is set inside fillColumn, which TypeScript can't see, hence the cast.)
+  const cubby = cubbyAt as { x: number; y: number } | null;
+  if (store.has('cubby') && cubby) {
+    const t = { x: W / 2 + 380, y: -25, z: 200, w: 440, h: 640, d: 720 };
+    const from: [number, number, number] = [cubby.x - t.x, cubby.y - (t.y + t.h / 2), -(GAP + 380) - t.z];
+    modules.push({ id: 'camp-table', kind: 'camp-table', ...t, from });
   }
 
   // End panels over the wheel arches: 12V sockets / 240V outlet on the left, monitor and switch on the right.
