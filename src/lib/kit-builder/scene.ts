@@ -59,7 +59,7 @@ const hexTexture = () =>
   canvasTexture((ctx, s) => {
     ctx.fillStyle = '#1c1c1c';
     ctx.fillRect(0, 0, s, s);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.09)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
     ctx.lineWidth = 2;
     const r = s / 12;
     const hw = Math.sqrt(3) * r;
@@ -264,6 +264,17 @@ export class KitScene {
     return this.look.fronts === 'green' ? this.m.green : this.look.fronts === 'timber' ? this.m.timber : this.m.hex;
   }
 
+  /**
+   * A black honeycomb board with exposed birch edges, where only the faces you see get the finish.
+   * Laminate is a skin on the seen face, so the board itself never changes colour.
+   * Faces follow BoxGeometry order: +x, -x, +y, -y, +z, -z.
+   */
+  private board(seen: number[]): THREE.Material[] {
+    const faces: THREE.Material[] = [this.m.hex, this.m.hex, this.m.ply, this.m.ply, this.m.ply, this.m.ply];
+    for (const i of seen) faces[i] = this.front();
+    return faces;
+  }
+
   /** Top surfaces: black honeycomb, or carpet on installed builds. */
   private top(): THREE.Material {
     return this.look.carpet ? this.m.carpet : this.m.hex;
@@ -287,7 +298,7 @@ export class KitScene {
   }
 
   /** Box in mm, centred on the group origin unless moved. */
-  private box(w: number, h: number, d: number, material: THREE.Material, edges: boolean | 'birch' = false): THREE.Mesh {
+  private box(w: number, h: number, d: number, material: THREE.Material | THREE.Material[], edges: boolean | 'birch' = false): THREE.Mesh {
     const geo = new THREE.BoxGeometry(Math.max(w, 0.1) * MM, Math.max(h, 0.1) * MM, Math.max(d, 0.1) * MM);
     scaleBoxUVs(geo, w, h, d);
     const mesh = new THREE.Mesh(geo, material);
@@ -328,7 +339,11 @@ export class KitScene {
   /** A cabinet front with a finger-pull notch and paddle latch, as on our builds. */
   private cabinetFront(w: number, h: number, opts: { latch?: 'paddle' | 'round'; badge?: boolean } = {}): THREE.Group {
     const g = new THREE.Group();
-    g.add(this.box(w, h, 16, this.front()));
+    // Front panel: finish on the seen face (+z), black honeycomb behind, birch edges.
+    const panel = this.board([4]);
+    panel[0] = panel[1] = this.m.ply;
+    panel[5] = this.m.hex;
+    g.add(this.box(w, h, 16, panel));
     const fz = 8.5;
     if (h > 120) {
       const notch = this.box(Math.min(w * 0.22, 130), 22, 2, this.m.notch);
@@ -559,8 +574,8 @@ export class KitScene {
         break;
 
       case 'fridge-cabinet': {
-        // Gables take the laminate finish; the top stays black honeycomb.
-        for (const sx of [-1, 1]) g.add(this.at(this.box(18, h, d, this.front(), 'birch'), sx * (w / 2 - 9), 0, 0));
+        // Gables: only the outer seen face takes the laminate; the board stays black honeycomb with birch edges.
+        for (const sx of [-1, 1]) g.add(this.at(this.box(18, h, d, this.board([sx < 0 ? 1 : 0]), 'birch'), sx * (w / 2 - 9), 0, 0));
         g.add(this.at(this.box(w, 18, d, this.m.hex, 'birch'), 0, h / 2 - 9, 0));
         break;
       }
@@ -757,7 +772,7 @@ export class KitScene {
 
     const speed = this.reduceMotion ? 1 : 1 - Math.pow(0.0015, dt);
     const seqTarget = this.open ? 1 : 0;
-    this.seqT = this.reduceMotion ? seqTarget : this.seqT + Math.sign(seqTarget - this.seqT) * Math.min(Math.abs(seqTarget - this.seqT), realDt / 0.9);
+    this.seqT = this.reduceMotion ? seqTarget : this.seqT + Math.sign(seqTarget - this.seqT) * Math.min(Math.abs(seqTarget - this.seqT), realDt / 1.5);
     if (this.seqOverride !== null) this.seqT = this.seqOverride;
     for (const [id, t] of this.tracked) {
       t.pos.lerp(this.basePosition(t.spec), speed);
