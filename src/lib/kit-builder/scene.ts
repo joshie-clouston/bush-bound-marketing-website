@@ -249,7 +249,7 @@ export class KitScene {
       shell: new THREE.MeshStandardMaterial({ color: 0xc4a882, transparent: true, opacity: 0.05, side: THREE.DoubleSide, depthWrite: false }),
       shellLine: new THREE.LineBasicMaterial({ color: 0xc4a882, transparent: true, opacity: 0.3 }),
       windowLine: new THREE.LineDashedMaterial({ color: 0xc4a882, dashSize: 0.04, gapSize: 0.03, transparent: true, opacity: 0.45 }),
-      ground: new THREE.ShadowMaterial({ opacity: 0.25 }),
+      ground: new THREE.ShadowMaterial({ opacity: 0.18 }),
       fridgeLid: new THREE.MeshStandardMaterial({ color: 0x3a3a3a, roughness: 0.5 }),
       fridgeInside: new THREE.MeshStandardMaterial({ color: 0x9aa3a8, roughness: 0.6 }),
       fridgeLiner: new THREE.MeshStandardMaterial({ color: 0xdfe3e6, roughness: 0.5, emissive: 0x2a2d30 }),
@@ -452,7 +452,6 @@ export class KitScene {
         stripPanel[0] = stripPanel[1] = this.m.ply;
         stripPanel[5] = this.m.hex;
         table.add(this.at(this.box(w + 8, strip, 16, stripPanel), 0, (strip - 18) / 2 - 2, d / 2 + 8));
-        table.add(this.at(this.box(Math.min(120, w * 0.25), 6, 10, this.m.black), 0, (strip - 18) / 2 - 2, d / 2 + 21));
         table.position.set(0, (-h / 2 + 6) * MM, 0);
         g.add(table);
         g.userData.inner = { obj: table, z0: table.position.z, dz: spec.tableSlide };

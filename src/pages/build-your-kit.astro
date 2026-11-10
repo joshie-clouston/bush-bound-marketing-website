@@ -18,7 +18,7 @@ const comparison = [
   { label: 'Build time', diy: 'Most weekends for a couple of months', kit: 'One weekend' },
 ];
 
-const viewerBtn = 'min-h-[44px] bg-charcoal/85 hover:bg-charcoal text-stone-light text-xs font-semibold px-3 rounded-md transition-colors';
+const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text-stone-light text-xs font-semibold px-3 rounded-md transition-colors';
 ---
 
 <BaseLayout
@@ -50,22 +50,22 @@ const viewerBtn = 'min-h-[44px] bg-charcoal/85 hover:bg-charcoal text-stone-ligh
 
         <!-- 3D viewer (pinned while you scroll) -->
         <div class="lg:col-span-7 lg:order-2 sticky top-[6.25rem] lg:top-[7.25rem] self-start z-20 -mx-5 sm:mx-0">
-          <div id="viewer" class="relative flex flex-col h-[34vh] min-h-[240px] lg:h-[calc(100vh-9rem)] lg:max-h-[720px] sm:rounded-xl overflow-hidden bg-gradient-to-b from-[#f6f2ec] to-[#ddd4c8] border-y sm:border border-stone-dark/40 shadow-lg lg:shadow-none">
+          <div id="viewer" class="relative flex flex-col h-[34vh] min-h-[240px] lg:h-[calc(100vh-9rem)] lg:max-h-[720px] sm:rounded-xl overflow-hidden bg-gradient-to-b from-[#7a7e7c] to-[#4d5150] shadow-lg lg:shadow-none">
             <div class="relative flex-1 min-h-0"><div id="viewer-canvas" class="absolute inset-0"></div></div>
 
             <div class="absolute top-2.5 left-3 right-3 z-10 flex items-start justify-between gap-3 pointer-events-none">
               <div class="min-w-0">
-                <p id="viewer-vehicle" class="text-charcoal font-bold text-sm sm:text-base truncate">LandCruiser 200 Series</p>
-                <p id="viewer-changes" class="text-muted-foreground text-xs mt-0.5 line-clamp-1 sm:line-clamp-2"></p>
+                <p id="viewer-vehicle" class="text-stone-light font-bold text-sm sm:text-base truncate">LandCruiser 200 Series</p>
+                <p id="viewer-changes" class="text-stone-light/80 text-xs mt-0.5 line-clamp-1 sm:line-clamp-2"></p>
               </div>
               <div class="text-right shrink-0">
                 <p data-bracket class="bg-sand text-charcoal text-sm font-extrabold px-2.5 py-1 rounded-full whitespace-nowrap">…</p>
-                <p class="text-[10px] text-muted-foreground mt-0.5">Estimated range</p>
+                <p class="text-[10px] text-stone-light/75 mt-0.5">Estimated range</p>
               </div>
             </div>
 
-            <div class="sm:absolute sm:bottom-2.5 sm:left-3 sm:right-3 flex items-center sm:items-end justify-between gap-2 px-3 py-1 sm:p-0 bg-stone sm:bg-transparent">
-              <p class="text-muted-foreground text-[11px] leading-snug hidden sm:block max-w-[45%]">
+            <div class="sm:absolute sm:bottom-2.5 sm:left-3 sm:right-3 flex items-center sm:items-end justify-between gap-2 px-3 py-1 sm:p-0 bg-[#4d5150] sm:bg-transparent">
+              <p class="text-stone-light/75 text-[11px] leading-snug hidden sm:block max-w-[45%]">
                 <span class="hidden lg:inline">Drag to rotate · Ctrl + scroll to zoom.</span>
                 Tap Open to see the drawers, bed and table in action.
               </p>
@@ -75,7 +75,7 @@ const viewerBtn = 'min-h-[44px] bg-charcoal/85 hover:bg-charcoal text-stone-ligh
               </div>
             </div>
 
-            <div id="viewer-fallback" class="hidden absolute inset-0 items-center justify-center p-6 text-center text-muted-foreground text-sm">
+            <div id="viewer-fallback" class="hidden absolute inset-0 items-center justify-center p-6 text-center text-stone-light/80 text-sm">
               Your browser can't show the 3D preview, but the options and quote request still work fine.
             </div>
           </div>
