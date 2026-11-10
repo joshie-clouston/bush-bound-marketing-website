@@ -451,31 +451,43 @@ export class KitScene {
         break;
 
       case 'drawer': {
-        g.add(this.drawerTray(w, h, d));
         if (!spec.tableSlide) {
+          g.add(this.drawerTray(w, h, d));
           g.add(this.at(this.cabinetFront(w + 8, h + 6, { badge: spec.badge }), 0, 0, d / 2 + 8));
           break;
         }
-        // Drawer with a pull-out table inside it, resting on the drawer floor. It slides out through a
-        // slot near the bottom of the drawer front, so you see a fine line above the table's front edge.
+        // Drawer with a pull-out table at the very bottom: the drawer sides run all the way down around
+        // the table, with the drawer floor just above it. The table's front edge is the bottom strip of
+        // the drawer front, with a fine line above it, and it slides out from inside the drawer.
         const front = (w2: number, h2: number) => {
           const panel = this.board([4]);
           panel[0] = panel[1] = this.m.ply;
           panel[5] = this.m.hex;
           return this.box(w2, h2, 16, panel);
         };
-        const floorTop = -h / 2 + 27; // top of the drawer tray floor
-        const railH = floorTop - (-h / 2 - 3); // drawer front below the slot
-        const strip = 22; // the table's front edge
+        const t = 12;
+        const iw = w - 12;
+        const bottom = -h / 2 + 2;
+        const top = h / 2 - 15;
+        const sideH = top - bottom;
+        const sideY = (top + bottom) / 2;
+        for (const sx of [-1, 1]) g.add(this.at(this.box(t, sideH, d, this.m.ply, true), sx * (iw / 2 - t / 2), sideY, 0));
+        g.add(this.at(this.box(iw, sideH, t, this.m.ply, true), 0, sideY, -d / 2 + t / 2));
+        const tableH = 18;
+        const floorY = bottom + tableH + 4 + t / 2; // drawer floor sits just above the table
+        g.add(this.at(this.box(iw, t, d, this.m.ply, true), 0, floorY, 0));
+        g.add(this.at(this.box(iw, top - (floorY + t / 2), t, this.m.ply, true), 0, (top + floorY + t / 2) / 2, d / 2 - t / 2));
+        const strip = 22;
         const line = 4;
-        const mainBottom = floorTop + strip + line;
+        const frontBottom = -h / 2 - 3;
+        const mainBottom = frontBottom + strip + line;
         const mainH = h / 2 + 3 - mainBottom;
         g.add(this.at(this.cabinetFront(w + 8, mainH, { badge: spec.badge }), 0, (h / 2 + 3 + mainBottom) / 2, d / 2 + 8));
-        g.add(this.at(front(w + 8, railH), 0, -h / 2 - 3 + railH / 2, d / 2 + 8));
         const table = new THREE.Group();
-        table.add(this.at(this.box(w - 40, 18, d - 40, this.m.hex, 'birch'), 0, 0, -20));
-        table.add(this.at(front(w + 8, strip), 0, strip / 2 - 9, d / 2 + 8));
-        table.position.set(0, (floorTop + 9) * MM, 0);
+        const tableY = bottom + 2 + tableH / 2;
+        table.add(this.at(this.box(iw - 2 * t - 6, tableH, d - 20, this.m.hex, 'birch'), 0, 0, -10));
+        table.add(this.at(front(w + 8, strip), 0, frontBottom + strip / 2 - tableY, d / 2 + 8));
+        table.position.set(0, tableY * MM, 0);
         g.add(table);
         g.userData.inner = { obj: table, z0: table.position.z, dz: spec.tableSlide };
         break;
