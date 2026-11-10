@@ -102,7 +102,7 @@ export interface Device {
 export const DEVICES: Device[] = [
   { id: 'phones', label: 'Phones & head torches', base: true, whPerDay: 25, watts: 20, ac: false },
   { id: 'lights', label: 'Camp lights', base: true, whPerDay: 40, watts: 30, ac: false },
-  { id: 'laptop', label: 'Laptop', base: true, whPerDay: 150, watts: 100, ac: false, tip: 'Skip the inverter for laptops. A 100W USB-C outlet charges most of them straight off 12V with no conversion losses.' },
+  { id: 'laptop', label: 'Laptop', base: true, whPerDay: 150, watts: 100, ac: false, tip: 'Most laptops charge fine off the USB-C outlet, straight off 12V. More efficient than plugging the brick into the 240V outlet.' },
   { id: 'camera', label: 'Camera or drone batteries', base: true, whPerDay: 80, watts: 60, ac: false },
   { id: 'starlink', label: 'Starlink', whPerDay: 300, watts: 45, ac: false, tip: 'Starlink Mini runs off 12V and pulls around 25 to 40W. Leave it on all day and it\'s your biggest load after the fridge, so we size the battery for it.' },
   { id: 'cpap', label: 'CPAP machine', whPerDay: 300, watts: 60, ac: false, tip: 'Run your CPAP off a 12V DC converter, not the inverter. It roughly halves the draw. Turning the humidifier off saves even more.' },
@@ -157,11 +157,12 @@ export function getFridge(id: string | undefined): Fridge | null {
 
 export type FeatureId = 'table' | 'kitchen' | 'tank' | 'compressor';
 
-export const FEATURES: { id: FeatureId; label: string; sub: string; price: number; tip?: string }[] = [
-  { id: 'table', label: 'Pull-out table', sub: 'Slides out the back, instant bench', price: 390 },
-  { id: 'compressor', label: 'Air compressor', sub: 'Built in, air outlet on the side panel', price: 690, tip: 'Built-in compressor means no digging it out from under the gear. Hose on, air up, done.' },
-  { id: 'kitchen', label: 'Kitchen slide-out', sub: 'Stove + prep bench drawer', price: 790 },
-  { id: 'tank', label: 'Water tank', sub: 'Slimline tank under the drawers', price: 690 },
+/** `inBase` features are part of the Wagon Base Kit price; unticking them gives a credit. */
+export const FEATURES: { id: FeatureId; label: string; sub: string; price: number; inBase: boolean }[] = [
+  { id: 'table', label: 'Pull-out table', sub: 'Slides out the back, instant bench', price: 390, inBase: true },
+  { id: 'compressor', label: 'Air compressor', sub: 'Built in, air outlet on the side panel', price: 690, inBase: true },
+  { id: 'kitchen', label: 'Kitchen slide-out', sub: 'Stove + prep bench drawer', price: 790, inBase: false },
+  { id: 'tank', label: 'Water tank', sub: 'Slimline tank under the drawers', price: 690, inBase: false },
 ];
 
 /** What's ticked before the customer gets to the features step (matches our base wagon build). */
@@ -178,11 +179,11 @@ export interface Dims {
   height: number;
 }
 
-export const DIM_FIELDS: { key: keyof Dims; label: string; help: string; min: number; max: number }[] = [
-  { key: 'width', label: 'Boot width', help: 'Wall to wall, just above the wheel arches', min: 900, max: 1800 },
-  { key: 'arches', label: 'Between the wheel arches', help: 'Narrowest point at floor level', min: 700, max: 1600 },
-  { key: 'depth', label: 'Depth', help: 'From the start of the boot to the back of the rear seats', min: 600, max: 2500 },
-  { key: 'height', label: 'Boot height', help: 'Floor to roof lining', min: 600, max: 1500 },
+export const DIM_FIELDS: { key: keyof Dims; letter: string; label: string; help: string; min: number; max: number }[] = [
+  { key: 'width', letter: 'A', label: 'Boot width', help: 'Widest point, wall to wall, just above the wheel arch humps', min: 900, max: 1800 },
+  { key: 'arches', letter: 'B', label: 'Between the wheel arches', help: 'The gap between the two wheel arch humps, at floor level', min: 700, max: 1600 },
+  { key: 'depth', letter: 'C', label: 'Floor length', help: 'Inside edge of the boot opening to the back of the rear seats (seats up)', min: 600, max: 2500 },
+  { key: 'height', letter: 'D', label: 'Boot height', help: 'Boot floor to the roof lining', min: 600, max: 1500 },
 ];
 
 export const DEFAULT_ARCHES = 1200;
@@ -242,14 +243,14 @@ export const QUESTIONS: Question[] = [
     help: 'Sleeping inside means a bed extension over the folded 2nd row.',
     options: [
       { value: 'no', label: 'Nah, tent or swag', sub: 'Drawers only, max storage', says: 'Too easy. You keep the back seats and all the space.' },
-      { value: 'sometimes', label: 'Sometimes', sub: 'Slatted pull-out extension', says: 'Slats it is. Floor space by day, a bed when the weather turns.' },
+      { value: 'sometimes', label: 'Sometimes', sub: 'Slatted pull-out bed extension', says: 'Slats it is. Floor space by day, a bed when the weather turns.' },
       { value: 'yes', label: 'Most nights', sub: 'Fixed full-length bed', says: 'A proper fixed bed, flush with the drawer deck. No setup at 9pm in the rain.' },
     ],
   },
   {
     id: 'fridge',
     title: 'Which fridge?',
-    help: 'Our base wagon layout has an upright fridge in its own cabinet over the pull-out table. Drawer and chest fridges change the layout.',
+    help: 'The Wagon Base Kit has an upright fridge in its own cabinet over the pull-out table. Drawer and chest fridges change the layout. Already got a fridge? Tick the box below and we\'ll leave it off your quote.',
     options: [
       ...FRIDGES.map((f) => ({
         value: f.id,
@@ -269,16 +270,16 @@ export const QUESTIONS: Question[] = [
   {
     id: 'features',
     title: 'Tick your features',
-    help: 'Our base build comes with a pull-out table and built-in compressor. Untick what you don\'t want, add what you do.',
+    help: 'The pull-out table and built-in compressor are part of the Wagon Base Kit. Untick them to save, or add a kitchen or water tank.',
     multi: true,
     options: FEATURES.map((f) => ({ value: f.id, label: f.label, sub: f.sub })),
   },
   {
     id: 'power',
     title: 'What do you want to run?',
-    help: 'The base kit already runs phones, laptops and lights. Pick everything you\'d use and we\'ll tell you if you need an upgrade, and where you can save.',
+    help: 'Our standard power pack runs phones, laptops and lights. Pick everything you\'d use and we\'ll tell you if you need more, and where you can save.',
     multi: true,
-    options: DEVICES.map((d) => ({ value: d.id, label: d.label, sub: d.base ? 'Covered by the base kit' : d.ac ? '240V, may need an upgrade' : '12V, may need an upgrade' })),
+    options: DEVICES.map((d) => ({ value: d.id, label: d.label, sub: d.base ? 'Covered by the standard power pack' : d.ac ? '240V, may need a bigger setup' : '12V, may need a bigger setup' })),
   },
   {
     id: 'finish',
@@ -303,11 +304,11 @@ export const QUESTIONS: Question[] = [
   {
     id: 'electrical',
     title: 'How about the 12V?',
-    help: 'The base kit comes with 12V and USB sockets, a 240V outlet and a battery monitor. Who\'s wiring it?',
+    help: 'Our power pack adds 12V and USB sockets, a 240V outlet and a battery monitor, sized to what you picked. Who\'s wiring it?',
     options: [
-      { value: 'installed', label: 'Bush Bound installs it', sub: 'Qualified electrician sign-off', says: 'Best option. It\'s wired, tested and signed off before you leave.' },
-      { value: 'diy', label: 'Send me the parts', sub: 'Labelled parts, you fit it', says: 'No worries. The cabinetry comes pre-cut for cable runs and mounts.' },
-      { value: 'none', label: 'Cabinets only', sub: 'Power-ready, add it later', says: 'All good. We still cut the cable runs so you can add it later.' },
+      { value: 'installed', label: 'Power pack, Bush Bound installs it', sub: 'At our Gold Coast workshop, electrician sign-off', says: 'Best option. It\'s wired, tested and signed off before you leave.' },
+      { value: 'diy', label: 'Power pack, send me the parts', sub: 'Labelled parts, your auto electrician fits it', says: 'No worries. The cabinetry comes pre-cut for cable runs and mounts.' },
+      { value: 'none', label: 'No power for now', sub: 'Cabinets only, cable runs cut for later', says: 'All good. We still cut the cable runs so you can add it later.' },
     ],
   },
 ];
@@ -318,12 +319,16 @@ export const QUESTIONS: Question[] = [
 
 export const BASE_KIT = {
   name: 'Wagon Base Kit',
-  tagline: 'Our go-to wagon layout: evenly split drawers, fridge cabinet, 12V and 240V.',
-  base: 2950,
+  tagline: 'Evenly split drawers, an upright fridge cabinet, pull-out table and built-in air compressor.',
+  /** Includes the upright fridge cabinet and the inBase features */
+  base: 4480,
 };
 
 export const PRICING = {
+  /** Credit when there's no upright fridge cabinet (drawer fridge or no fridge) */
   fridgeCabinet: 450,
+  /** Chest fridge drop slide instead of the cabinet */
+  chestSlide: 450,
   sleepSlats: 590,
   sleepFixed: 790,
   finishMultiplier: { budget: 0.92, balanced: 1, premium: 1.15 },

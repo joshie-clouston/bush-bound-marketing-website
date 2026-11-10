@@ -100,11 +100,23 @@ export class KitScene {
     this.renderer.domElement.setAttribute('role', 'img');
     // No right-click "save image" on the canvas.
     this.renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+    this.renderer.domElement.style.display = 'block';
+    // Plain mouse-wheel scrolls the page; only Ctrl/Cmd + wheel (or a trackpad pinch) zooms.
+    // Registered before OrbitControls so it can swallow the event first.
+    this.renderer.domElement.addEventListener(
+      'wheel',
+      (e) => {
+        if (!e.ctrlKey && !e.metaKey) e.stopImmediatePropagation();
+      },
+      { capture: true },
+    );
 
     this.camera = new THREE.PerspectiveCamera(38, 1, 0.05, 50);
     this.camera.position.set(0.85, 1.4, 1.8);
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    // Let a vertical swipe scroll the page on phones; sideways drags still rotate the model.
+    this.renderer.domElement.style.touchAction = 'pan-y';
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.08;
     this.controls.enablePan = false;
@@ -622,7 +634,7 @@ export class KitScene {
   private resize() {
     const { clientWidth: w, clientHeight: h } = this.container;
     if (!w || !h) return;
-    this.renderer.setSize(w, h, false);
+    this.renderer.setSize(w, h);
     this.camera.aspect = w / h;
     this.camera.fov = w / h < 1 ? 50 : 38;
     this.camera.updateProjectionMatrix();

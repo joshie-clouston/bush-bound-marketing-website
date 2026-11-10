@@ -38,7 +38,12 @@ export interface KitAnswers {
   dims?: Partial<Dims>;
   use?: 'weekender' | 'touring' | 'remote' | 'work';
   sleep?: 'no' | 'sometimes' | 'yes';
+  sleepers?: 1 | 2;
   fridge?: FridgeId | 'none';
+  /** Customer already owns the fridge, so leave it off the quote */
+  ownFridge?: boolean;
+  /** Free text when they picked "Something else" */
+  vehicleName?: string;
   features?: FeatureId[];
   power?: DeviceId[];
   finish?: 'budget' | 'balanced' | 'premium';
@@ -63,6 +68,9 @@ export function sanitiseAnswers(input: unknown): KitAnswers {
       out[q.id] = value;
     }
   }
+  if (raw.sleepers === 1 || raw.sleepers === 2) out.sleepers = raw.sleepers;
+  if (raw.ownFridge === true) out.ownFridge = true;
+  if (typeof raw.vehicleName === 'string' && raw.vehicleName.trim()) out.vehicleName = raw.vehicleName.trim().slice(0, 80);
   if (raw.dims && typeof raw.dims === 'object') {
     const dims: Partial<Dims> = {};
     for (const f of DIM_FIELDS) {
@@ -151,7 +159,8 @@ const T = 18; // panel thickness used for the look of the preview
 const GAP = 20; // inset from the tailgate
 const round = (n: number, step = 10) => Math.round(n / step) * step;
 
-export function buildLayout(answers: KitAnswers, power?: PowerPlan): Layout {
+export function buildLayout(answers: KitAnswers): Layout {
+  // Roof solar is recommended in the summary but not drawn: it lives on the roof, not in the fit-out.
   const preset = getVehicle(answers.vehicle);
   const dims = resolveDims(answers);
   // The preview works off the customer's own measurements.
@@ -298,10 +307,6 @@ export function buildLayout(answers: KitAnswers, power?: PowerPlan): Layout {
     }
   }
 
-  if (power && power.solarW > 0 && powered) {
-    const panelLength = Math.min(1500, 600 + power.solarW * 2.2);
-    modules.push({ id: 'solar', kind: 'solar', x: 0, y: v.roofHeight + 60, z: -(v.sleepLength / 2), w: Math.min(W - 100, 1100), h: 35, d: panelLength });
-  }
 
   return {
     vehicle: v,
@@ -345,7 +350,7 @@ export function planPower(answers: KitAnswers): PowerPlan {
 
   const baseItems = [
     '12V and USB charging sockets',
-    '240V outlet for laptops and small appliances',
+    '240V outlet for chargers and small appliances',
     'Battery monitor and switch panel',
     'House battery with DC-DC charging from the car',
   ];
@@ -415,31 +420,39 @@ export interface Recommendation {
   fridgeLines: PriceLine[];
   electricalLines: PriceLine[];
   kitTotal: number;
+  fridgeTotal: number;
   electricalTotal: number;
   total: number;
+  /** Fridges that suit this customer best, for a "best fit" badge */
+  bestFridges: FridgeId[];
 }
 
 const featureLabel = (id: FeatureId) => FEATURES.find((f) => f.id === id)!.label;
 
 export function recommend(answers: KitAnswers): Recommendation {
   const power = planPower(answers);
-  const layout = buildLayout(answers, power);
+  const layout = buildLayout(answers);
   const v = layout.vehicle;
   const fridge = layout.fridge;
   const feats = features(answers);
   const powered = hasPower(answers);
-  const ticked = FEATURES.filter((f) => feats.has(f.id));
 
-  const addOns: string[] = ticked.map((f) => f.label);
+  // Changes from the Wagon Base Kit, for the chips in the viewer and summary.
+  const addOns: string[] = FEATURES.filter((f) => !f.inBase && feats.has(f.id)).map((f) => f.label);
+  for (const f of FEATURES) if (f.inBase && !feats.has(f.id)) addOns.push(`No ${f.label.toLowerCase()}`);
+  if (fridge?.type === 'drawer') addOns.push('Drawer fridge');
+  if (fridge?.type === 'chest') addOns.push('Chest fridge slide');
+  if (!fridge) addOns.push('No fridge');
   if (answers.sleep === 'sometimes') addOns.push('Bed slats');
   if (answers.sleep === 'yes') addOns.push('Fixed bed');
-  if (power.needsUpgrade) addOns.push('Power upgrade');
+  if (powered) addOns.push(power.needsUpgrade ? 'Power pack+' : 'Power pack');
+  const couple = layout.sleeping && answers.sleepers === 2;
 
   // Why this layout, in plain English. Only the customer's own measurements are quoted,
   // never our cabinet dimensions.
   const n = layout.columns;
   const why: string[] = [
-    `Drawers split evenly into ${n === 2 ? 'two' : 'three'} equal columns across the ${layout.dims.arches.toLocaleString('en-AU')}mm between your wheel arches, so nothing's wasted.`,
+    `Drawers split evenly into ${n === 2 ? 'two' : 'three'} equal columns across the ${answers.dims?.arches ? `${layout.dims.arches.toLocaleString('en-AU')}mm between your wheel arches` : 'space between the wheel arches'}, so nothing's wasted.`,
   ];
   if (fridge?.type === 'upright') why.push(`${fridge.label} in its own cabinet at waist height on the right. The door opens straight towards you, like the one at home.${feats.has('table') ? ' Pull-out table tucked in underneath.' : ''}`);
   if (fridge?.type === 'drawer') why.push(`${fridge.label} built flush into the right-hand column. Slides out like any other drawer.`);
@@ -464,11 +477,23 @@ export function recommend(answers: KitAnswers): Recommendation {
   if (powered && !power.needsUpgrade && (answers.power?.length ?? 0) > 0) {
     tips.push({ text: 'Good news: everything you picked runs fine on the base power setup. No need to spend more on electrics.' });
   }
-  if (fridge?.type === 'drawer' && (answers.use === 'remote' || answers.use === 'touring')) {
-    tips.push({ text: 'Drawer fridges are brilliant for drinks and lunch, but for a week or more away most people want 60L+. An upright 65L is our go-to for touring.' });
+  if (couple && layout.bedIsSingle) {
+    tips.push({ text: `Two of you sleeping: with ${fridge?.type === 'chest' ? 'a chest fridge' : 'an upright fridge'} in the right-hand column the bed is a single beside it. For a full-width bed, go a drawer fridge (50L is the biggest that keeps the top flat), or keep this fridge and put one person in a swag or rooftop tent.` });
+  } else if (layout.bedIsSingle) {
+    tips.push({ text: 'Sleeping solo, so a single bed beside the fridge works a treat and you keep the big fridge.' });
   }
-  if (layout.bedIsSingle) {
-    tips.push({ text: 'With a fridge in the right-hand column, the bed is a single beside it. Travelling as a couple? A drawer fridge keeps the top flat for a full-width bed.' });
+  if (fridge?.type === 'drawer' && (answers.use === 'remote' || answers.use === 'touring')) {
+    tips.push({
+      text: couple
+        ? 'A drawer fridge is the right call for two sleeping inside. For trips over a week, top it up with a soft cooler bag for the extra cold stuff.'
+        : 'Drawer fridges are brilliant for drinks and lunch, but for a week or more away most people want 60L+. An upright 65L is our go-to for touring.',
+    });
+  }
+  if (powered && answers.electrical === 'installed' && answers.build !== 'installed') {
+    tips.push({ text: 'Our electrician fits the power pack at our Gold Coast workshop, so you\'ll need to bring the car in for that part. Interstate? Pick "send me the parts" and any auto electrician can fit it.' });
+  }
+  if (answers.ownFridge && fridge) {
+    tips.push({ text: `Bringing your own fridge: we'll size the ${fridge.type === 'upright' ? 'cabinet' : fridge.type === 'chest' ? 'slide' : 'drawer'} to suit. Pop the make and model in the notes when you lock in your kit.` });
   }
   if (layout.headroom !== null && layout.headroom < 600) {
     tips.push({ text: `Heads up: headroom over the bed is tight in your boot${feats.has('tank') ? ', and the under-drawer tank lifts it a bit more' : ''}. Fine for sleeping, a squeeze for sitting up.` });
@@ -482,31 +507,46 @@ export function recommend(answers: KitAnswers): Recommendation {
   if (answers.build === 'diy') tips.push({ text: 'Most people build our kits in a weekend with a drill, a few clamps and a mate. Every panel is numbered and the floor template marks exactly where to drill, clear of fuel tanks and wiring.' });
 
   // Pricing (placeholders, see src/data/kit-builder.ts).
+  // The Wagon Base Kit price includes the upright fridge cabinet, pull-out table and compressor.
   const kitLines: PriceLine[] = [{ label: `${BASE_KIT.name} for ${v.short}`, amount: BASE_KIT.base }];
-  if (fridge && fridge.type !== 'drawer') kitLines.push({ label: fridge.type === 'upright' ? 'Upright fridge cabinet' : 'Fridge drop slide', amount: PRICING.fridgeCabinet });
-  for (const f of ticked) kitLines.push({ label: f.id === 'tank' ? `${layout.tankLitres}L under-drawer water tank` : f.label, amount: f.price });
+  if (fridge?.type === 'chest') kitLines.push({ label: 'Chest fridge drop slide instead of cabinet', amount: PRICING.chestSlide - PRICING.fridgeCabinet });
+  if (fridge?.type === 'drawer') kitLines.push({ label: 'Drawer fridge column instead of cabinet', amount: -PRICING.fridgeCabinet });
+  if (!fridge) kitLines.push({ label: 'No fridge cabinet', amount: -PRICING.fridgeCabinet });
+  for (const f of FEATURES) {
+    if (f.inBase && !feats.has(f.id)) kitLines.push({ label: `No ${f.label.toLowerCase()}`, amount: -f.price });
+    if (!f.inBase && feats.has(f.id)) kitLines.push({ label: f.id === 'tank' ? `${layout.tankLitres}L under-drawer water tank` : f.label, amount: f.price });
+  }
   if (answers.sleep === 'sometimes') kitLines.push({ label: 'Slatted bed extension', amount: PRICING.sleepSlats });
   if (answers.sleep === 'yes') kitLines.push({ label: 'Fixed bed platform', amount: PRICING.sleepFixed });
   const finishMult = PRICING.finishMultiplier[answers.finish ?? 'balanced'];
   if (finishMult !== 1) {
     const subtotal = kitLines.reduce((s, l) => s + l.amount, 0);
-    kitLines.push({ label: FINISH_LABELS[answers.finish ?? 'balanced'], amount: Math.round((subtotal * (finishMult - 1)) / 10) * 10 });
+    kitLines.push({ label: finishMult < 1 ? `${FINISH_LABELS[answers.finish ?? 'balanced']} (saving)` : FINISH_LABELS[answers.finish ?? 'balanced'], amount: Math.round((subtotal * (finishMult - 1)) / 10) * 10 });
   }
   const build = answers.build ?? 'diy';
   if (PRICING.build[build] > 0) kitLines.push({ label: BUILD_LABELS[build], amount: PRICING.build[build] });
+  const kitTotal = kitLines.reduce((s, l) => s + l.amount, 0);
 
-  const fridgeLines: PriceLine[] = fridge ? [{ label: `${fridge.label} (we can supply)`, amount: fridge.price }] : [];
-  const kitTotal = kitLines.reduce((s, l) => s + l.amount, 0) + fridgeLines.reduce((s, l) => s + l.amount, 0);
+  const fridgeLines: PriceLine[] = fridge && !answers.ownFridge ? [{ label: `${fridge.label} (we can supply)`, amount: fridge.price }] : [];
+  const fridgeTotal = fridgeLines.reduce((s, l) => s + l.amount, 0);
 
   const electricalLines: PriceLine[] = [];
   if (powered) {
-    electricalLines.push({ label: 'Base power: 12V, USB, 240V', amount: ELECTRICAL_PRICING.basePower });
+    electricalLines.push({ label: 'Power pack: 12V, USB, 240V, monitor', amount: ELECTRICAL_PRICING.basePower });
     if (power.upgrades.battery > 0) electricalLines.push({ label: `Battery upgrade to ${power.batteryAh}Ah`, amount: (power.upgrades.battery / 100) * ELECTRICAL_PRICING.batteryPer100Ah });
     if (power.upgrades.solar > 0) electricalLines.push({ label: `${power.solarW}W roof solar`, amount: (power.solarW / 100) * ELECTRICAL_PRICING.solarPer100W });
     if (power.upgrades.inverter > 0) electricalLines.push({ label: `${power.upgrades.inverter}W inverter upgrade`, amount: ELECTRICAL_PRICING.inverterUpgrade[power.upgrades.inverter] ?? 0 });
     if (answers.electrical === 'installed') electricalLines.push({ label: 'Install + electrician sign-off', amount: ELECTRICAL_PRICING.install });
   }
   const electricalTotal = electricalLines.reduce((s, l) => s + l.amount, 0);
+
+  const bestFridges: FridgeId[] = couple
+    ? ['drawer-50', 'drawer-30']
+    : answers.use === 'weekender'
+      ? ['upright-50', 'drawer-50']
+      : answers.use === 'work'
+        ? ['drawer-30', 'upright-50']
+        : ['upright-65', 'chest-60'];
 
   const includes = [
     'Your layout drawn up by our team to your measurements, approved by you before we cut',
@@ -531,8 +571,10 @@ export function recommend(answers: KitAnswers): Recommendation {
     fridgeLines,
     electricalLines,
     kitTotal,
+    fridgeTotal,
     electricalTotal,
-    total: kitTotal + electricalTotal,
+    total: kitTotal + fridgeTotal + electricalTotal,
+    bestFridges,
   };
 }
 
@@ -548,13 +590,13 @@ export function summaryText(answers: KitAnswers, rec: Recommendation): string {
   const d = rec.layout.dims;
   const mm = (n: number) => `${n.toLocaleString('en-AU')}mm`;
   return [
-    `${rec.kitName} for ${getVehicle(answers.vehicle).label}${rec.addOns.length ? ` + ${rec.addOns.join(', ')}` : ''}`,
+    `${rec.kitName} for ${answers.vehicle === 'other' && answers.vehicleName ? answers.vehicleName : getVehicle(answers.vehicle).label}${rec.addOns.length ? ` (${rec.addOns.join(', ')})` : ''}`,
     `Measurements${answers.dims && Object.keys(answers.dims).length ? '' : ' (typical, not measured)'}: boot width ${mm(d.width)}, between arches ${mm(d.arches)}, depth ${mm(d.depth)}, height ${mm(d.height)}`,
-    `Trip: ${q('use')} | Sleeping: ${q('sleep')} | Fridge: ${rec.layout.fridge?.label ?? 'None'}`,
+    `Trip: ${q('use')} | Sleeping: ${q('sleep')}${rec.layout.sleeping ? ` (${answers.sleepers === 2 ? 'two' : 'one'})` : ''} | Fridge: ${rec.layout.fridge?.label ?? 'None'}${answers.ownFridge ? ' (customer has their own)' : ''}`,
     `Features: ${[...features(answers)].map(featureLabel).join(', ') || 'None'}`,
     `Power: ${q('power')}`,
     `Electrical: ${q('electrical')} | ${rec.power.tierName}${rec.power.upgradeItems.length ? ` (${rec.power.upgradeItems.join('; ')})` : ''}`,
     `Finish: ${q('finish')} | Build: ${q('build')}`,
-    `Indicative: kit $${rec.kitTotal.toLocaleString('en-AU')} + electrical $${rec.electricalTotal.toLocaleString('en-AU')} = $${rec.total.toLocaleString('en-AU')}`,
+    `Indicative: kit $${rec.kitTotal.toLocaleString('en-AU')} + fridge $${rec.fridgeTotal.toLocaleString('en-AU')} + electrical $${rec.electricalTotal.toLocaleString('en-AU')} = $${rec.total.toLocaleString('en-AU')}`,
   ].join('\n');
 }
