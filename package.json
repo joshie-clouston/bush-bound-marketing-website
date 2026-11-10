@@ -20,12 +20,14 @@
     "astro": "^5.4.1",
     "canvas-confetti": "^1.9.4",
     "drizzle-orm": "^0.41.0",
-    "resend": "^4.2.0"
+    "resend": "^4.2.0",
+    "three": "^0.187.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",
     "@types/animejs": "^3.1.12",
     "@types/canvas-confetti": "^1.9.0",
+    "@types/three": "^0.187.0",
     "drizzle-kit": "^0.30.5",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.3",

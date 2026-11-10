@@ -75,7 +75,7 @@ function wrapper(title: string, body: string): string {
 </html>`;
 }
 
-export function staffNotificationHtml(fields: [string, string][]): string {
+export function staffNotificationHtml(fields: [string, string][], title = 'New Quote Request'): string {
   const rows = fields
     .map(([label, value]) => `
       <tr>
@@ -85,13 +85,13 @@ export function staffNotificationHtml(fields: [string, string][]): string {
     .join('');
 
   const body = `
-    <h1 style="margin: 0 0 24px 0; font-size: 20px; color: ${BRAND.charcoal};">New Quote Request</h1>
+    <h1 style="margin: 0 0 24px 0; font-size: 20px; color: ${BRAND.charcoal};">${title}</h1>
     <table width="100%" cellpadding="0" cellspacing="0">
       ${rows}
     </table>
   `;
 
-  return wrapper('New Quote Request', body);
+  return wrapper(title, body);
 }
 
 export function customerAutoReplyHtml(fullName: string, vehicle: string): string {
@@ -122,4 +122,24 @@ export const TEST_EMAIL = 'josh@founddigital.ai';
 
 export function emailRecipient(realRecipient: string, submittedEmail?: string | null): string {
   return submittedEmail?.trim().toLowerCase() === TEST_EMAIL ? TEST_EMAIL : realRecipient;
+}
+
+export function kitCustomerHtml(fullName: string, kitName: string, vehicle: string, items: string[], total: string): string {
+  const name = fullName.split(' ')[0];
+  const list = items
+    .map((item) => `<li style="margin: 0 0 6px 0; color: ${BRAND.text}; font-size: 14px;">${item}</li>`)
+    .join('');
+  const body = `
+    <h1 style="margin: 0 0 8px 0; font-size: 20px; color: ${BRAND.charcoal};">Your ${kitName} is locked in</h1>
+    <p style="color: ${BRAND.text}; font-size: 15px; line-height: 1.6; margin: 16px 0;">Hey ${name},</p>
+    <p style="color: ${BRAND.text}; font-size: 15px; line-height: 1.6; margin: 16px 0;">Thanks for building your ${vehicle} kit with us. Luke will check your answers, model your layout in 3D and send it through for approval within 48 hours. Nothing gets cut until you're happy with it.</p>
+    <p style="color: ${BRAND.muted}; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin: 24px 0 8px 0;">What you picked</p>
+    <ul style="padding-left: 18px; margin: 0;">${list}</ul>
+    <p style="color: ${BRAND.text}; font-size: 15px; line-height: 1.6; margin: 16px 0;">Indicative total: <strong>${total}</strong>. Your final price is confirmed with your 3D design.</p>
+    <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
+    <p style="color: ${BRAND.muted}; font-size: 13px; line-height: 1.5;">Questions in the meantime? Call <a href="tel:+61424770875" style="color: ${BRAND.text}; font-weight: bold; text-decoration: none;">0424 770 875</a> or reply to this email.</p>
+    <p style="color: ${BRAND.text}; font-size: 15px; line-height: 1.6; margin: 24px 0 0 0;">Cheers,<br /><strong>The Bush Bound Team</strong></p>
+  `;
+
+  return wrapper(`Your ${kitName} is locked in`, body);
 }

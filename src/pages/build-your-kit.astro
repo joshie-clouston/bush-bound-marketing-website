@@ -1,0 +1,525 @@
+---
+export const prerender = true;
+
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+const usps = [
+  { title: 'CNC cut to the millimetre', text: 'No panel saw, no wobbly jigsaw lines. Every panel is machine cut, numbered and pre-drilled.' },
+  { title: 'Floor template included', text: 'Drill exactly where it\'s safe. Our template keeps you clear of fuel tanks, brake lines and wiring.' },
+  { title: 'Materials dialled in', text: 'The same premium birch ply, slides and hardware we use in our full workshop builds.' },
+  { title: 'Build it in a weekend', text: 'A drill, a few clamps and a mate. Or add our build and install service if you\'d rather not.' },
+];
+
+const comparison = [
+  { label: 'Design time', diy: 'Weeks of YouTube and sketching', kit: 'Done for you in 3D, approved before we cut' },
+  { label: 'Cutting', diy: 'Panel saw or circular saw, rough edges', kit: 'CNC cut, clean edges, perfect joins' },
+  { label: 'Materials', diy: 'Guesswork at the hardware store', kit: 'Premium birch ply and rated slides' },
+  { label: 'Floor mounting', diy: 'Fingers crossed you miss the fuel tank', kit: 'Vehicle-specific floor template' },
+  { label: 'Build time', diy: 'Most weekends for a couple of months', kit: 'One weekend' },
+];
+---
+
+<BaseLayout
+  title="Build Your Flat Pack Fit-Out Kit | DIY 4WD Wagon Kits | Bush Bound"
+  description="Design your own flat pack 4WD fit-out kit for your LandCruiser, Patrol, Prado and more. Answer a few questions, watch your layout build in 3D, and get expert advice on fridge, water and 12V power."
+>
+  <!-- INTRO -->
+  <section class="bg-charcoal text-stone-light">
+    <div class="container-wide pt-10 pb-8 sm:pt-14 sm:pb-10">
+      <p class="text-sand font-medium text-sm uppercase tracking-widest mb-3">Flat Pack Fit-Out Kits</p>
+      <h1 class="text-3xl sm:text-5xl font-extrabold max-w-3xl">Build your wagon fit-out. Watch it come together.</h1>
+      <p class="text-stone-dark mt-4 max-w-2xl text-base sm:text-lg">
+        Answer a few quick questions about how you travel. Your layout builds live in 3D as you go, and we'll tell you straight what you need and what you don't.
+      </p>
+    </div>
+  </section>
+
+  <!-- BUILDER -->
+  <section class="bg-background" id="builder">
+    <div class="container-wide py-6 lg:py-10">
+      <div class="grid lg:grid-cols-12 gap-6 lg:gap-10">
+
+        <!-- 3D viewer -->
+        <div class="lg:col-span-7 lg:order-2">
+          <div class="sticky top-[6.25rem] lg:top-[7.25rem] z-10 -mx-5 sm:mx-0">
+            <div id="viewer" class="relative h-[42vh] min-h-[260px] lg:h-[calc(100vh-9rem)] lg:max-h-[720px] sm:rounded-xl overflow-hidden bg-gradient-to-b from-[#24302b] via-charcoal to-charcoal">
+              <div id="viewer-canvas" class="absolute inset-0"></div>
+
+              <!-- Overlay: vehicle + dims -->
+              <div class="absolute top-3 left-3 right-3 flex items-start justify-between gap-3 pointer-events-none">
+                <div>
+                  <p id="viewer-vehicle" class="text-stone-light font-bold text-sm sm:text-base">LandCruiser 200 Series</p>
+                  <p id="viewer-dims" class="text-stone-dark/80 text-xs mt-0.5"></p>
+                </div>
+                <span id="viewer-kit" class="bg-sand text-charcoal text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap">Essentials Kit</span>
+              </div>
+
+              <!-- Overlay: controls -->
+              <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-3">
+                <p class="text-stone-dark/70 text-[11px] max-w-[60%] leading-snug hidden sm:block">Indicative preview. Your final design is modelled in Fusion and cut to your vehicle's floor template.</p>
+                <div class="flex gap-2 ml-auto">
+                  <button id="toggle-open" type="button" aria-pressed="false" class="bg-stone-light/10 hover:bg-stone-light/20 backdrop-blur text-stone-light text-xs font-semibold px-3 py-2 rounded-md transition-colors">Open drawers</button>
+                  <button id="reset-view" type="button" class="bg-stone-light/10 hover:bg-stone-light/20 backdrop-blur text-stone-light text-xs font-semibold px-3 py-2 rounded-md transition-colors" aria-label="Reset 3D view">Reset view</button>
+                </div>
+              </div>
+
+              <div id="viewer-fallback" class="hidden absolute inset-0 items-center justify-center p-6 text-center text-stone-dark text-sm">
+                Your browser can't show the 3D preview, but the questions and recommendation below still work fine.
+              </div>
+            </div>
+
+            <!-- Module chips -->
+            <ul id="module-chips" class="hidden lg:flex flex-wrap gap-2 mt-3" aria-label="What's in your layout"></ul>
+          </div>
+        </div>
+
+        <!-- Questionnaire -->
+        <div class="lg:col-span-5 lg:order-1">
+          <div id="question-panel" class="bg-white rounded-xl border border-stone-dark/20 p-5 sm:p-7 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <button id="back-btn" type="button" class="text-sm font-medium text-primary hover:text-primary-light disabled:opacity-0 transition-opacity flex items-center gap-1" disabled>
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                Back
+              </button>
+              <p id="step-count" class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Step 1 of 10</p>
+            </div>
+            <div class="h-1.5 bg-stone rounded-full overflow-hidden mb-6">
+              <div id="progress-bar" class="h-full bg-primary rounded-full transition-all duration-500" style="width: 10%"></div>
+            </div>
+
+            <div id="question-body" aria-live="polite"></div>
+
+            <!-- Advisor bubble -->
+            <div id="advisor" class="hidden mt-5 flex gap-3 items-start">
+              <img src="/favicon.svg" alt="" class="w-8 h-8 rounded-full bg-charcoal p-1 shrink-0" />
+              <div class="bg-stone rounded-xl rounded-tl-sm px-4 py-3 text-sm text-charcoal">
+                <p class="text-[11px] font-bold text-sand-dark uppercase tracking-wider mb-0.5">Bush Bound says</p>
+                <p id="advisor-text"></p>
+              </div>
+            </div>
+
+            <!-- Device tips (power step) -->
+            <div id="device-tips" class="space-y-3 mt-5"></div>
+          </div>
+
+          <!-- Summary (shown at the end) -->
+          <div id="summary" class="hidden space-y-6"></div>
+
+          <!-- Answered steps (jump back) -->
+          <ol id="answered" class="mt-5 flex flex-wrap gap-2" aria-label="Your answers"></ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY A KIT -->
+  <section class="section-padding bg-stone">
+    <div class="container-wide">
+      <div class="text-center mb-12">
+        <p class="text-sand-dark font-medium text-sm uppercase tracking-widest mb-3" data-animate="fade-in">Why a Bush Bound kit</p>
+        <h2 class="text-3xl sm:text-4xl font-bold text-charcoal" data-animate="fade-up">All the craftsmanship, none of the sawdust</h2>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6" data-animate="stagger">
+        {usps.map((u) => (
+          <div class="bg-white rounded-xl p-6 border border-stone-dark/10">
+            <h3 class="text-lg font-bold text-charcoal mb-2">{u.title}</h3>
+            <p class="text-sm text-muted-foreground">{u.text}</p>
+          </div>
+        ))}
+      </div>
+
+      <div class="mt-12 bg-white rounded-xl border border-stone-dark/10 overflow-hidden" data-animate="fade-up">
+        <div class="grid grid-cols-3 text-xs sm:text-sm font-semibold bg-charcoal text-stone-light">
+          <div class="p-3 sm:p-4"></div>
+          <div class="p-3 sm:p-4">Doing it from scratch</div>
+          <div class="p-3 sm:p-4 text-sand">Bush Bound kit</div>
+        </div>
+        {comparison.map((row) => (
+          <div class="grid grid-cols-3 text-xs sm:text-sm border-t border-stone-dark/10">
+            <div class="p-3 sm:p-4 font-semibold text-charcoal">{row.label}</div>
+            <div class="p-3 sm:p-4 text-muted-foreground">{row.diy}</div>
+            <div class="p-3 sm:p-4 text-charcoal">{row.kit}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <script>
+    import { QUESTIONS, DEVICES, getVehicle, type Question } from '@/data/kit-builder';
+    import { recommend, sanitiseAnswers, type KitAnswers, type Recommendation } from '@/lib/kit-builder/engine';
+    import { getUtmParams } from '@/lib/utm';
+    import type { KitScene } from '@/lib/kit-builder/scene';
+
+    const STORAGE_KEY = 'bb-kit-builder-v1';
+    const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+    const money = (n: number) => `$${n.toLocaleString('en-AU')}`;
+    const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+
+    let answers: KitAnswers = {};
+    let step = 0;
+    let scene: KitScene | null = null;
+    let lastSays = '';
+
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+      if (saved && typeof saved === 'object') {
+        answers = sanitiseAnswers(saved.answers);
+        step = Math.min(Math.max(0, saved.step | 0), QUESTIONS.length);
+      }
+    } catch { /* storage unavailable, start fresh */ }
+
+    function save() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, step })); } catch { /* ignore */ }
+    }
+
+    // -----------------------------------------------------------------------
+    // 3D viewer
+    // -----------------------------------------------------------------------
+
+    function webglAvailable() {
+      try {
+        const c = document.createElement('canvas');
+        return !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl')));
+      } catch {
+        return false;
+      }
+    }
+
+    async function initScene() {
+      if (!webglAvailable()) {
+        const fb = $('viewer-fallback');
+        fb.classList.remove('hidden');
+        fb.classList.add('flex');
+        return;
+      }
+      const { KitScene } = await import('@/lib/kit-builder/scene');
+      scene = new KitScene($('viewer-canvas'));
+      refresh();
+    }
+
+    $('toggle-open').addEventListener('click', (e) => {
+      const btn = e.currentTarget as HTMLButtonElement;
+      const open = btn.getAttribute('aria-pressed') !== 'true';
+      btn.setAttribute('aria-pressed', String(open));
+      btn.textContent = open ? 'Close drawers' : 'Open drawers';
+      scene?.setOpen(open);
+    });
+    $('reset-view').addEventListener('click', () => scene?.resetView());
+
+    const MODULE_LABELS: Record<string, string> = {
+      drawer: 'Drawers',
+      kitchen: 'Kitchen drawer',
+      fridge: 'Fridge slide',
+      platform: 'Fixed bed',
+      infill: 'Bed infills',
+      wing: 'Side cabinets',
+      battery: 'Battery + monitor',
+      tank: 'Water tank',
+      solar: 'Roof solar',
+    };
+
+    function refresh() {
+      const rec = recommend(answers);
+      const v = rec.vehicle;
+      $('viewer-vehicle').textContent = answers.vehicle && answers.vehicle !== 'other' ? v.label : answers.vehicle === 'other' ? 'Your wagon (typical size)' : `${v.label} (pick yours)`;
+      $('viewer-dims').textContent = `~${v.cargoLength}mm long · ${v.archWidth}mm between arches${rec.layout.tankLitres ? ` · ${rec.layout.tankLitres}L tank` : ''}`;
+      $('viewer-kit').textContent = rec.kitName;
+
+      const kinds = [...new Set(rec.layout.modules.map((m) => m.kind))].filter((k) => MODULE_LABELS[k]);
+      $('module-chips').innerHTML = kinds
+        .map((k) => `<li class="text-xs font-medium bg-white border border-stone-dark/20 text-charcoal px-2.5 py-1 rounded-full">${MODULE_LABELS[k]}</li>`)
+        .join('');
+
+      scene?.update(rec.layout, answers.finish);
+      return rec;
+    }
+
+    // -----------------------------------------------------------------------
+    // Questionnaire
+    // -----------------------------------------------------------------------
+
+    function isAnswered(q: Question) {
+      const value = (answers as Record<string, unknown>)[q.id];
+      return q.multi ? Array.isArray(value) : value !== undefined;
+    }
+
+    function optionLabel(q: Question) {
+      const value = (answers as Record<string, unknown>)[q.id];
+      if (Array.isArray(value)) return value.length ? `${value.length} device${value.length > 1 ? 's' : ''}` : 'Nothing';
+      return q.options.find((o) => o.value === value)?.label ?? '';
+    }
+
+    function renderAnswered() {
+      $('answered').innerHTML = QUESTIONS.map((q, i) => {
+        if (!isAnswered(q) || i === step) return '';
+        return `<li><button type="button" data-jump="${i}" class="text-xs bg-white border border-stone-dark/20 hover:border-primary text-charcoal px-2.5 py-1 rounded-full transition-colors"><span class="text-muted-foreground">${escapeHtml(q.title.replace('?', ''))}:</span> ${escapeHtml(optionLabel(q))}</button></li>`;
+      }).join('');
+    }
+
+    $('answered').addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-jump]');
+      if (!btn) return;
+      goTo(Number(btn.dataset.jump));
+    });
+
+    function showAdvisor(text: string) {
+      const el = $('advisor');
+      if (!text) {
+        el.classList.add('hidden');
+        return;
+      }
+      $('advisor-text').textContent = text;
+      el.classList.remove('hidden');
+    }
+
+    function renderDeviceTips() {
+      const picked = DEVICES.filter((d) => answers.power?.includes(d.id) && d.tip);
+      $('device-tips').innerHTML = picked
+        .map((d) => `
+          <div class="border-l-4 ${d.ac ? 'border-sand' : 'border-primary'} bg-stone-light rounded-r-lg px-4 py-3 text-sm">
+            <p class="font-semibold text-charcoal mb-0.5">${escapeHtml(d.label)}</p>
+            <p class="text-muted-foreground">${escapeHtml(d.tip!)}</p>
+            ${d.link ? `<a href="${d.link.href}" target="_blank" rel="noopener noreferrer" class="inline-block mt-1.5 text-primary font-semibold hover:underline">${escapeHtml(d.link.label)} &rarr;</a>` : ''}
+          </div>`)
+        .join('');
+    }
+
+    function renderQuestion() {
+      const q = QUESTIONS[step];
+      $('question-panel').classList.remove('hidden');
+      $('summary').classList.add('hidden');
+      $<HTMLButtonElement>('back-btn').disabled = step === 0;
+      $('step-count').textContent = `Step ${step + 1} of ${QUESTIONS.length}`;
+      $('progress-bar').style.width = `${((step + 1) / (QUESTIONS.length + 1)) * 100}%`;
+
+      const value = (answers as Record<string, unknown>)[q.id];
+      const selected = (v: string) => (Array.isArray(value) ? value.includes(v) : value === v);
+      const grid = q.id === 'vehicle' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3' : q.multi ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1';
+
+      let help = q.help;
+      if (q.id === 'power' && answers.fridge && answers.fridge !== 'none') help += ' Your fridge is already counted.';
+
+      $('question-body').innerHTML = `
+        <h2 class="text-2xl font-bold text-charcoal">${escapeHtml(q.title)}</h2>
+        <p class="text-sm text-muted-foreground mt-1.5 mb-5">${escapeHtml(help)}</p>
+        <div class="grid ${grid} gap-2.5" role="${q.multi ? 'group' : 'radiogroup'}" aria-label="${escapeHtml(q.title)}">
+          ${q.options
+            .map((o) => `
+              <button type="button" data-value="${o.value}" role="${q.multi ? 'checkbox' : 'radio'}" aria-checked="${selected(o.value)}"
+                class="option text-left rounded-lg border-2 px-4 py-3 transition-all ${selected(o.value) ? 'border-primary bg-primary/5' : 'border-stone-dark/30 hover:border-primary/60 bg-white'}">
+                <span class="flex items-center justify-between gap-2">
+                  <span class="block font-semibold text-charcoal text-sm sm:text-base">${escapeHtml(o.label)}</span>
+                  ${q.multi ? `<span class="w-5 h-5 shrink-0 rounded border-2 flex items-center justify-center ${selected(o.value) ? 'bg-primary border-primary text-white' : 'border-stone-dark'}">${selected(o.value) ? '&#10003;' : ''}</span>` : ''}
+                </span>
+                ${o.sub ? `<span class="block text-xs text-muted-foreground mt-0.5">${escapeHtml(o.sub)}</span>` : ''}
+              </button>`)
+            .join('')}
+        </div>
+        ${q.multi ? `<button type="button" id="multi-next" class="mt-5 w-full py-3 bg-primary text-primary-foreground font-semibold rounded-md hover:bg-primary-light transition-colors">${(answers.power?.length ?? 0) === 0 ? 'Nothing for me, next' : 'Next'}</button>` : ''}
+      `;
+
+      const current = q.options.find((o) => selected(o.value));
+      showAdvisor(q.multi ? '' : current?.says ?? '');
+      if (q.id === 'power') renderDeviceTips();
+      else $('device-tips').innerHTML = '';
+      renderAnswered();
+    }
+
+    $('question-body').addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      const q = QUESTIONS[step];
+
+      if (target.closest('#multi-next')) {
+        if (!Array.isArray(answers.power)) answers.power = [];
+        goTo(step + 1);
+        return;
+      }
+
+      const btn = target.closest<HTMLButtonElement>('.option');
+      if (!btn) return;
+      const value = btn.dataset.value!;
+
+      if (q.multi) {
+        const list = new Set((answers as Record<string, string[]>)[q.id] ?? []);
+        list.has(value) ? list.delete(value) : list.add(value);
+        (answers as Record<string, unknown>)[q.id] = [...list];
+        save();
+        refresh();
+        renderQuestion();
+        return;
+      }
+
+      (answers as Record<string, unknown>)[q.id] = value;
+      save();
+      refresh();
+      renderQuestion();
+
+      // Let them see the model change and read the reaction, then move on.
+      const says = q.options.find((o) => o.value === value)?.says ?? '';
+      lastSays = says;
+      const delay = says ? 1100 : 450;
+      window.setTimeout(() => {
+        if (QUESTIONS[step] === q && (answers as Record<string, unknown>)[q.id] === value && lastSays === says) goTo(step + 1);
+      }, delay);
+    });
+
+    $('back-btn').addEventListener('click', () => goTo(step - 1));
+
+    function goTo(next: number) {
+      step = Math.max(0, Math.min(next, QUESTIONS.length));
+      save();
+      if (step >= QUESTIONS.length) renderSummary();
+      else renderQuestion();
+      // On mobile, keep the question in view under the sticky viewer.
+      if (window.innerWidth < 1024) $('question-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // -----------------------------------------------------------------------
+    // Summary + order
+    // -----------------------------------------------------------------------
+
+    function lines(items: { label: string; amount: number }[]) {
+      return items.map((l) => `<div class="flex justify-between gap-4 py-1.5"><span class="text-muted-foreground">${escapeHtml(l.label)}</span><span class="font-medium text-charcoal whitespace-nowrap">${money(l.amount)}</span></div>`).join('');
+    }
+
+    function renderSummary() {
+      const rec: Recommendation = refresh();
+      const v = getVehicle(answers.vehicle);
+      $('question-panel').classList.add('hidden');
+      renderAnswered();
+      const firstUnanswered = QUESTIONS.findIndex((q) => !isAnswered(q));
+
+      $('summary').classList.remove('hidden');
+      $('summary').innerHTML = `
+        <div class="bg-charcoal text-stone-light rounded-xl p-6 sm:p-7">
+          <p class="text-sand text-xs font-bold uppercase tracking-widest mb-2">Our recommendation</p>
+          <h2 class="text-3xl font-extrabold">${escapeHtml(rec.kitName)}</h2>
+          <p class="text-stone-dark mt-1">${escapeHtml(rec.tagline)} Cut for your ${escapeHtml(v.short)}.</p>
+          ${firstUnanswered >= 0 ? `<button type="button" data-jump-q="${firstUnanswered}" class="mt-3 text-sm text-sand underline">You skipped a question. Answer it for a sharper recommendation</button>` : ''}
+          <h3 class="text-sm font-bold uppercase tracking-wider text-sand mt-6 mb-2">Why this layout</h3>
+          <ul class="space-y-2 text-sm">
+            ${rec.why.map((w) => `<li class="flex gap-2"><span class="text-sand mt-0.5">&#10003;</span><span>${escapeHtml(w)}</span></li>`).join('')}
+          </ul>
+        </div>
+
+        <div class="bg-white rounded-xl border border-stone-dark/20 p-6">
+          <h3 class="font-bold text-charcoal text-lg">Power: ${escapeHtml(rec.power.tierName)}</h3>
+          ${rec.power.batteryAh
+            ? `<p class="text-sm text-muted-foreground mt-1">You'll use about <strong class="text-charcoal">${rec.power.dailyWh.toLocaleString('en-AU')}Wh a day</strong>. Here's what we'd fit:</p>
+               <ul class="mt-3 space-y-1.5 text-sm">${rec.power.products.map((p) => `<li class="flex gap-2"><span class="text-primary">&#9679;</span>${escapeHtml(p)}</li>`).join('')}</ul>
+               <a href="/electrical-systems" class="inline-block mt-3 text-sm text-primary font-semibold hover:underline">See our electrical work &rarr;</a>`
+            : `<p class="text-sm text-muted-foreground mt-1">Nothing that needs a second battery. We'll still cut cable runs into the cabinetry so adding 12V later is easy.</p>`}
+        </div>
+
+        ${rec.tips.length ? `
+        <div class="bg-stone rounded-xl p-6">
+          <h3 class="font-bold text-charcoal text-lg mb-3">Straight-up advice</h3>
+          <ul class="space-y-3 text-sm">
+            ${rec.tips.map((t) => `<li class="text-charcoal">${escapeHtml(t.text)}${t.link ? ` <a href="${t.link.href}" target="_blank" rel="noopener noreferrer" class="text-primary font-semibold hover:underline whitespace-nowrap">${escapeHtml(t.link.label)} &rarr;</a>` : ''}</li>`).join('')}
+          </ul>
+        </div>` : ''}
+
+        <div class="bg-white rounded-xl border border-stone-dark/20 p-6">
+          <h3 class="font-bold text-charcoal text-lg">What's in the box</h3>
+          <ul class="mt-3 space-y-1.5 text-sm text-muted-foreground">
+            ${rec.includes.map((i) => `<li class="flex gap-2"><span class="text-primary">&#10003;</span>${escapeHtml(i)}</li>`).join('')}
+          </ul>
+
+          <div class="mt-6 border-t border-stone-dark/20 pt-4 text-sm">
+            <p class="text-xs font-bold uppercase tracking-wider text-sand-dark mb-1">Indicative pricing</p>
+            ${lines(rec.kitLines)}
+            ${rec.electricalLines.length ? `<div class="border-t border-dashed border-stone-dark/30 mt-2 pt-2">${lines(rec.electricalLines)}</div>` : ''}
+            <div class="flex justify-between gap-4 pt-3 mt-2 border-t border-stone-dark/20 text-base">
+              <span class="font-bold text-charcoal">Estimated total</span>
+              <span class="font-extrabold text-charcoal">${money(rec.total)}</span>
+            </div>
+            <p class="text-xs text-muted-foreground mt-2">${answers.build === 'installed' ? 'Installed at our Gold Coast workshop.' : 'Plus freight, quoted with your design.'} Final price is locked in when you approve your 3D design. Inc. GST.</p>
+          </div>
+        </div>
+
+        <form id="order-form" class="bg-white rounded-xl border-2 border-primary p-6 space-y-4" novalidate>
+          <div>
+            <h3 class="font-bold text-charcoal text-xl">Lock in your kit</h3>
+            <p class="text-sm text-muted-foreground mt-1">No payment yet. We'll check your answers, model your layout in 3D and send it through for approval. Nothing gets cut until you're happy.</p>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-3">
+            <label class="block text-sm"><span class="font-medium text-charcoal">Name</span>
+              <input name="name" required autocomplete="name" class="mt-1 w-full rounded-md border border-stone-dark/40 px-3 py-2.5 focus:border-primary focus:outline-none" /></label>
+            <label class="block text-sm"><span class="font-medium text-charcoal">Mobile</span>
+              <input name="phone" type="tel" autocomplete="tel" class="mt-1 w-full rounded-md border border-stone-dark/40 px-3 py-2.5 focus:border-primary focus:outline-none" /></label>
+            <label class="block text-sm"><span class="font-medium text-charcoal">Email</span>
+              <input name="email" type="email" required autocomplete="email" class="mt-1 w-full rounded-md border border-stone-dark/40 px-3 py-2.5 focus:border-primary focus:outline-none" /></label>
+            <label class="block text-sm"><span class="font-medium text-charcoal">Postcode</span>
+              <input name="postcode" inputmode="numeric" maxlength="4" autocomplete="postal-code" class="mt-1 w-full rounded-md border border-stone-dark/40 px-3 py-2.5 focus:border-primary focus:outline-none" /></label>
+          </div>
+          <label class="block text-sm"><span class="font-medium text-charcoal">Anything else? <span class="text-muted-foreground font-normal">(model year, gear you carry, must-haves)</span></span>
+            <textarea name="notes" rows="3" maxlength="2000" class="mt-1 w-full rounded-md border border-stone-dark/40 px-3 py-2.5 focus:border-primary focus:outline-none"></textarea></label>
+          <p id="order-error" class="hidden text-sm text-destructive"></p>
+          <button type="submit" class="w-full py-3.5 bg-primary text-primary-foreground font-bold rounded-md hover:bg-primary-light transition-colors disabled:opacity-60">Send me my 3D design</button>
+          <button type="button" data-jump-q="0" class="w-full text-sm text-primary font-medium hover:underline">Change my answers</button>
+        </form>
+      `;
+    }
+
+    $('summary').addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-jump-q]');
+      if (btn) goTo(Number(btn.dataset.jumpQ));
+    });
+
+    $('summary').addEventListener('submit', async (e) => {
+      const form = (e.target as HTMLElement).closest<HTMLFormElement>('#order-form');
+      if (!form) return;
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
+      const error = $('order-error');
+      error.classList.add('hidden');
+
+      if (!data.name?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email || '')) {
+        error.textContent = 'Pop in your name and a valid email so we can send your design.';
+        error.classList.remove('hidden');
+        return;
+      }
+      if (data.postcode && !/^\d{4}$/.test(data.postcode)) {
+        error.textContent = 'Postcode should be 4 digits.';
+        error.classList.remove('hidden');
+        return;
+      }
+
+      const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+      submit.disabled = true;
+      submit.textContent = 'Sending...';
+
+      try {
+        const res = await fetch('/api/kit-builder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ answers, contact: data, ...getUtmParams() }),
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+        form.outerHTML = `
+          <div class="bg-primary text-primary-foreground rounded-xl p-6 sm:p-7">
+            <h3 class="text-2xl font-extrabold">You're locked in, ${escapeHtml(data.name.split(' ')[0])}.</h3>
+            <p class="mt-2 text-stone-dark">We've got your layout. Luke will check it over, model it in 3D for your ${escapeHtml(getVehicle(answers.vehicle).short)} and send it through for approval. We'll be in touch within 48 hours.</p>
+          </div>`;
+        const { default: confetti } = await import('canvas-confetti');
+        confetti({ particleCount: 120, spread: 70, origin: { y: 0.7 }, colors: ['#2D4A3E', '#C4A882', '#E8E0D6'] });
+      } catch {
+        submit.disabled = false;
+        submit.textContent = 'Send me my 3D design';
+        error.innerHTML = 'Something went wrong sending that. Give it another go, or call us on <a class="underline" href="tel:+61424770875">0424 770 875</a>.';
+        error.classList.remove('hidden');
+      }
+    });
+
+    // -----------------------------------------------------------------------
+    // Boot
+    // -----------------------------------------------------------------------
+
+    refresh();
+    if (step >= QUESTIONS.length) renderSummary();
+    else renderQuestion();
+    initScene();
+  </script>
+</BaseLayout>

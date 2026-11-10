@@ -1,0 +1,10 @@
+{
+  "autodeskProduct": "Fusion360",
+  "type": "script",
+  "author": "Bush Bound",
+  "description": {
+    "": "Apply a kit builder parameters CSV to the open Bush Bound kit template."
+  },
+  "supportedOS": "windows|mac",
+  "editEnabled": true
+}

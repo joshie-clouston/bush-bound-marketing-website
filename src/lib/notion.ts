@@ -20,7 +20,7 @@ export type LeadPayload = {
   email?: string | null;
   phone?: string | null;
   vehicle?: string | null;
-  type?: 'Fit Out' | 'Flatpack Waitlist' | null;
+  type?: 'Fit Out' | 'Flatpack Waitlist' | 'Flatpack Kit' | null;
   wishlist?: string | null;
   budget?: string | null;
   timeline?: string | null;
