@@ -498,28 +498,24 @@ export class KitScene {
           }
         }
         const from = spec.from ?? [0, 0, 0];
-        // Set-up, like the real thing: lay it upside down beside the car, unfold it upwards twice
-        // (middle first, then the outer slats), pop the legs up out of the underside, then flip it
-        // over onto its legs. The rig is built right way up and turned upside down (about its long
-        // axis) for everything before the flip.
-        // Folded stack centre in rig space is (cx[2], topY - 27); upside down that's (-cx[2], 27 - topY).
-        const inCubby = new THREE.Vector3(from[0] + cx[2], from[1] + (topY - 27), from[2]);
+        // The folded table stands on its tall edge in the cubby, slides out lengthwise, turns flat as
+        // it's carried round to the right-hand side, then unfolds from the top down (middle first,
+        // then the outer slats) and the legs drop out from underneath. Close reverses it.
+        // Folded stack centre in rig space is (cx[2], topY - 27); standing on edge (rotated 90 deg
+        // about the long axis) that's (27 - topY, cx[2]).
+        const inCubby = new THREE.Vector3(from[0] + (topY - 27), from[1] - cx[2], from[2]);
         const outside = new THREE.Vector3(inCubby.x, inCubby.y, from[2] + 1300);
-        const onGround = new THREE.Vector3(0, 30, 0); // upside down, top resting on the ground
         g.userData.seq = (sq: number) => {
-          // 0.08-0.20 slide out of the cubby, 0.20-0.32 lay it upside down beside the car,
-          // 0.34-0.48 middle opens upwards, 0.48-0.62 outer slats open upwards,
-          // 0.64-0.80 legs pop up out of the underside, 0.82-1.00 flip it over onto its legs.
-          const out = ease(phase(sq, 0.08, 0.2));
-          const carry = ease(phase(sq, 0.2, 0.32));
-          const flip = ease(phase(sq, 0.82, 1));
-          const pos = inCubby.clone().lerp(outside, out).lerp(onGround, carry).lerp(new THREE.Vector3(0, 0, 0), flip);
-          pos.y += Math.sin(flip * Math.PI) * 160;
+          // 0.08-0.22 slide out of the cubby, 0.22-0.38 turn flat and carry to the set-up spot,
+          // 0.40-0.56 middle unfolds, 0.56-0.72 outer slats unfold, 0.75-0.95 legs drop.
+          const out = ease(phase(sq, 0.08, 0.22));
+          const carry = ease(phase(sq, 0.22, 0.38));
+          const pos = inCubby.clone().lerp(outside, out).lerp(new THREE.Vector3(0, 0, 0), carry);
           rig.position.copy(pos.multiplyScalar(MM));
-          rig.rotation.z = Math.PI * (1 - flip);
+          rig.rotation.z = (Math.PI / 2) * (1 - carry);
           rig.visible = sq > 0.08;
-          const middle = ease(phase(sq, 0.34, 0.48));
-          const outer = ease(phase(sq, 0.48, 0.62));
+          const middle = ease(phase(sq, 0.4, 0.56));
+          const outer = ease(phase(sq, 0.56, 0.72));
           slats.forEach((m, k) => {
             let p = { x: cx[k], y: topY, a: 0 };
             if (k === 0) p = rot(p, -pitch, topY - 9, Math.PI * (1 - outer));
@@ -528,7 +524,7 @@ export class KitScene {
             m.position.set(p.x * MM, p.y * MM, 0);
             m.rotation.z = p.a;
           });
-          const legT = ease(phase(sq, 0.64, 0.8));
+          const legT = ease(phase(sq, 0.75, 0.95));
           const flat = outer > 0.98;
           frame.visible = frame2.visible = flat;
           for (const leg of legs) {
@@ -761,7 +757,7 @@ export class KitScene {
 
     const speed = this.reduceMotion ? 1 : 1 - Math.pow(0.0015, dt);
     const seqTarget = this.open ? 1 : 0;
-    this.seqT = this.reduceMotion ? seqTarget : this.seqT + Math.sign(seqTarget - this.seqT) * Math.min(Math.abs(seqTarget - this.seqT), realDt / 5);
+    this.seqT = this.reduceMotion ? seqTarget : this.seqT + Math.sign(seqTarget - this.seqT) * Math.min(Math.abs(seqTarget - this.seqT), realDt / 4.5);
     if (this.seqOverride !== null) this.seqT = this.seqOverride;
     for (const [id, t] of this.tracked) {
       t.pos.lerp(this.basePosition(t.spec), speed);
