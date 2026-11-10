@@ -25,26 +25,31 @@ Why people pay for a kit instead of doing it from scratch:
 
 ## What this PR ships (MVP)
 
-1. **Questionnaire** with 10 steps: vehicle, trip type, sleeping, fridge, kitchen, water, what you want to power, finish, who builds it, 12V install.
-2. **Live 3D preview of the Wagon Base Kit**, modelled on our 80 Series base layout:
-   - big drawer on the left, with the Bush Bound badge
-   - fridge tower (drop slide) over a second drawer and the air compressor door on the right
-   - 12V/USB sockets and a 240V outlet on the left panel; battery monitor, switch and air coupler on the right
-   - grey carpet tops
+1. **Questionnaire**, 10 steps: vehicle, **boot measurements**, trip type, sleeping, **fridge**, **features**, what you want to power, finish, who builds it, 12V install.
+2. **Measurements.** Boot width, width between the wheel arches (defaults to 1,200mm), depth from the start of the boot to the rear seats, and boot height. They're prefilled with typical numbers for the chosen vehicle. The model resizes as they type, and the four measurements are drawn on it as labelled dimension lines (with a "Hide sizes" toggle). Only the customer's own measurements appear, never our cabinet dimensions.
+3. **Even split.** The space between the arches is divided into equal columns: two, or three on wide boots (1,500mm+ between the arches).
+4. **Fridge choice**, grouped by type:
+   - **Upright** 50/65/85L: front-opening, in its own cabinet over the pull-out table, like our 80 Series base build. The door swings open in the preview.
+   - **Drawer fridge** 30/50L: built into the right-hand column.
+   - **Chest fridge** 40/60/75L: on a drop slide in the right-hand column.
+   - **No fridge.**
 
-   Answers then change the model: kitchen drawer, slatted bed extension or fixed bed + mattress, under-drawer tank, no-fridge (the tower becomes a full-height drawer), finish (birch, forest green, or green with hex-top), and roof solar if needed. "Open drawers" slides it all out. It's lazy-loaded and falls back cleanly without WebGL.
-3. **Expert advice built in.** A "Bush Bound says" reaction to each answer, device tips (coffee machine → AeroPress, CPAP on DC), and layout heads-ups (single bed beside the fridge tower, headroom, tank size, remote water planning).
-4. **Power, base kit first.** The base kit covers phones, laptops, lights and the compressor. It only recommends upgrades (bigger battery, solar, bigger inverter) when what the customer picks needs them, and says so when it doesn't.
-5. **Recommendation + indicative price.** Wagon Base Kit + add-ons, finish, build service and electrical.
-6. **"Lock in your kit" form.** No payment yet. Saves to D1 (`quotes`, `vehicle_type = 'flatpack-kit'`, `status = 'kit-request'`), creates a Notion lead (Type = "Flatpack Kit"), emails Luke a summary and the customer a confirmation.
+   Sizes, power draw and prices are **guesses**: swap in the exact models in `FRIDGES`.
+5. **Features (tick boxes):** pull-out table and air compressor (ticked by default, matching the base build), kitchen slide-out, water tank. With an upright fridge, the table lives in the cabinet under it, next to the compressor hatch. Otherwise it's a slim slide under the first column's top.
+6. **Live 3D preview** in the Bush Bound look: green fronts with birch edges, finger-pull notches, paddle latches, carpet tops, side panels with 12V/USB/240V sockets, monitor, switch and air coupler (when the side panels are wide enough), plus bed slats or a fixed bed, tank and solar.
+7. **Expert advice**: device tips, fridge fit warnings (too wide for an even split, too tall for the boot), single-bed-beside-the-fridge, headroom, tank size, remote water planning.
+8. **Power, base kit first**: only recommends upgrades when the picked fridge and devices need them.
+9. **Recommendation + indicative price**, including the fridge as an optional "we can supply" line.
+10. **"Lock in your kit" form**: D1 (`quotes`), Notion lead, staff summary email (includes the customer's measurements) and customer confirmation.
 
-Everything you'd want to edit (vehicles, questions, copy, devices, base power spec, prices) is in `src/data/kit-builder.ts`. The server rebuilds the recommendation from the answers, so it never trusts prices sent from the browser.
+Everything you'd want to edit is in `src/data/kit-builder.ts`. The server rebuilds the recommendation from the answers, so it never trusts prices sent from the browser.
 
 ## Before launch: must do
 
 - [ ] **Set real prices.** `BASE_KIT`, `PRICING` and `ELECTRICAL_PRICING` are placeholders.
 - [ ] **Confirm the base power spec** (`BASE_POWER`: battery Ah and inverter W). It decides when an upgrade gets recommended.
-- [ ] **Sanity-check vehicle sizes** in `VEHICLES`. They're rough and only set the preview's proportions.
+- [ ] **Send the exact fridge models** to replace the guessed `FRIDGES` list (sizes, Wh/day, prices).
+- [ ] **Sanity-check the typical vehicle sizes** in `VEHICLES` used to prefill the measurements step.
 - [ ] **Add a "Flatpack Kit" option** to the Notion Type select if the integration can't create it.
 - [ ] **Decide on lead times** for the success screen and emails (currently "within 48 hours").
 

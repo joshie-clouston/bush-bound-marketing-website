@@ -71,6 +71,8 @@ export class KitScene {
   private controls: OrbitControls;
   private envelope = new THREE.Group();
   private modulesGroup = new THREE.Group();
+  private dimsGroup = new THREE.Group();
+  private dimsKey = '';
   private tracked = new Map<string, Tracked>();
   private open = false;
   private finish: Finish = 'balanced';
@@ -121,7 +123,7 @@ export class KitScene {
 
     this.buildMaterials();
     this.buildLights();
-    this.scene.add(this.envelope, this.modulesGroup);
+    this.scene.add(this.envelope, this.modulesGroup, this.dimsGroup);
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(container);
@@ -166,6 +168,9 @@ export class KitScene {
       shellLine: new THREE.LineBasicMaterial({ color: 0xc4a882, transparent: true, opacity: 0.3 }),
       windowLine: new THREE.LineDashedMaterial({ color: 0xc4a882, dashSize: 0.04, gapSize: 0.03, transparent: true, opacity: 0.45 }),
       ground: new THREE.ShadowMaterial({ opacity: 0.25 }),
+      dimLine: new THREE.LineBasicMaterial({ color: 0xc4a882, depthTest: false, transparent: true }),
+      fridgeLid: new THREE.MeshStandardMaterial({ color: 0x3a3a3a, roughness: 0.5 }),
+      fridgeInside: new THREE.MeshStandardMaterial({ color: 0x9aa3a8, roughness: 0.6 }),
     };
   }
 
@@ -215,7 +220,7 @@ export class KitScene {
 
   private buildEnvelope(layout: Layout) {
     const v = layout.vehicle;
-    const key = `${v.id}|${layout.seatsFolded}`;
+    const key = `${v.id}|${layout.seatsFolded}|${v.floorWidth}|${v.archWidth}|${v.cargoLength}|${v.roofHeight}`;
     if (key === this.envelopeKey) return;
     this.envelopeKey = key;
     this.envelope.clear();
@@ -367,19 +372,14 @@ export class KitScene {
         break;
       }
 
-      case 'door':
-        g.add(this.cabinetFront(w, h, { latch: 'round' }));
-        break;
-
       case 'end-panel': {
         g.add(this.box(w, h, d, this.front()));
         g.add(this.at(this.box(w + 4, 12, d + 2, this.top()), 0, h / 2 + 6, 0));
         const s = Math.min(1, (w - 30) / 100, h / 300);
         const fz = d / 2 + 4;
-        const fx = spec.fixtures ?? [];
         // Stack fittings down the rear face of the panel.
         const slots: Record<Fixture, number> = { sockets: h * 0.18, gpo: -h * 0.3, monitor: h * 0.26, switch: -h * 0.04, air: -h * 0.3 };
-        for (const f of fx) g.add(this.at(this.fixture(f, s), 0, slots[f], fz));
+        for (const f of spec.fixtures ?? []) g.add(this.at(this.fixture(f, s), 0, slots[f], fz));
         break;
       }
 
@@ -387,30 +387,74 @@ export class KitScene {
         g.add(this.box(w, h, d, this.top()));
         break;
 
-      case 'fridge-tower': {
-        // Open ply frame: two sides and a top, edges exposed.
-        for (const sx of [-1, 1]) g.add(this.at(this.box(18, h, d, this.m.ply, true), sx * (w / 2 - 9), 0, 0));
-        g.add(this.at(this.box(w, 18, d, this.m.ply, true), 0, h / 2 - 9, 0));
-        g.add(this.at(this.box(w, 8, d, this.m.black), 0, -h / 2 + 4, 0));
+      case 'hatch':
+        g.add(this.cabinetFront(w, h, { latch: 'round' }));
+        break;
+
+      case 'table': {
+        // Pull-out table: front panel with a tabletop that slides out behind it.
+        g.add(this.at(this.box(w - 12, 18, d, this.top() === this.m.carpet ? this.m.ply : this.m.hex, true), 0, h / 2 - 12, 0));
+        if (h > 100) g.add(this.at(this.box(w - 12, h - 40, d * 0.5, this.m.ply, true), 0, -14, d * 0.25));
+        g.add(this.at(this.cabinetFront(w + 8, h + 6), 0, 0, d / 2 + 8));
         break;
       }
 
-      case 'fridge': {
-        const body = new THREE.Mesh(new RoundedBoxGeometry(w * MM, h * MM, d * MM, 3, 0.015), this.m.fridge);
+      case 'drawer-fridge': {
+        // Fridge in a drawer: dark front with a bar handle, fridge body on the runners.
+        g.add(this.at(this.box(w - 20, h - 30, d * 0.8, this.m.fridge), 0, -10, d * 0.1));
+        g.add(this.at(this.box(w - 60, 8, d * 0.75, this.m.fridgeLid), 0, h / 2 - 22, d * 0.1));
+        g.add(this.at(this.box(w + 8, h + 6, 16, this.m.fridge), 0, 0, d / 2 + 8));
+        g.add(this.at(this.box(w * 0.5, 18, 20, this.m.steel), 0, h / 2 - 40, d / 2 + 24));
+        g.add(this.at(new THREE.Mesh(new THREE.PlaneGeometry(0.05, 0.018), this.m.screen), w / 2 - 60, h / 2 - 40, d / 2 + 16.5));
+        break;
+      }
+
+      case 'fridge-cabinet': {
+        // Open ply frame around the upright fridge, edges exposed.
+        for (const sx of [-1, 1]) g.add(this.at(this.box(18, h, d, this.m.ply, true), sx * (w / 2 - 9), 0, 0));
+        g.add(this.at(this.box(w, 18, d, this.m.ply, true), 0, h / 2 - 9, 0));
+        break;
+      }
+
+      case 'fridge-upright': {
+        // Front-opening fridge. The door (with organiser pockets) is hinged on the left.
+        const body = new THREE.Mesh(new RoundedBoxGeometry(w * MM, h * MM, (d - 30) * MM, 3, 0.012), this.m.fridge);
         body.castShadow = true;
+        body.position.z = -15 * MM;
         g.add(body);
-        // Organiser bag on the rear face, like the Undercover-style pockets on our builds.
-        const fz = d / 2 + 2;
-        g.add(this.at(this.box(w - 40, h - 70, 4, this.m.organiser), 0, -10, fz));
+        g.add(this.at(this.box(w - 40, h - 40, 4, this.m.fridgeInside), 0, 0, d / 2 - 31));
+        const pivot = new THREE.Group();
+        pivot.position.set((-w / 2) * MM, 0, (d / 2 - 15) * MM);
+        const door = new THREE.Group();
+        door.position.x = (w / 2) * MM;
+        door.add(this.box(w, h, 30, this.m.fridge));
+        const fz = 17;
+        door.add(this.at(this.box(w - 40, h - 70, 4, this.m.organiser), 0, -10, fz));
         const pocketRow = (count: number, y: number, ph: number) => {
           const pw = (w - 60) / count;
-          for (let i = 0; i < count; i++) g.add(this.at(this.box(pw - 6, ph, 10, this.m.pocket), -((w - 60) / 2) + pw * (i + 0.5), y, fz + 5));
+          for (let i = 0; i < count; i++) door.add(this.at(this.box(pw - 6, ph, 10, this.m.pocket), -((w - 60) / 2) + pw * (i + 0.5), y, fz + 5));
         };
         pocketRow(4, h * 0.22, h * 0.18);
         pocketRow(1, -h * 0.02, h * 0.13);
         pocketRow(5, -h * 0.3, h * 0.2);
-        g.add(this.at(this.box(70, 20, 14, this.m.black), 0, h / 2 - 16, fz + 4));
-        g.add(this.at(this.box(w + 20, 8, d, this.m.steel), 0, -h / 2 - 4, 0));
+        door.add(this.at(this.box(70, 20, 14, this.m.black), 0, h / 2 - 16, fz + 4));
+        pivot.add(door);
+        g.add(pivot);
+        g.userData.door = pivot;
+        break;
+      }
+
+      case 'fridge-chest': {
+        const body = new THREE.Mesh(new RoundedBoxGeometry(w * MM, h * 0.82 * MM, d * MM, 3, 0.02), this.m.fridge);
+        body.castShadow = true;
+        body.position.y = (-h * 0.09) * MM;
+        g.add(body);
+        const lid = new THREE.Mesh(new RoundedBoxGeometry(w * MM, h * 0.18 * MM, d * MM, 3, 0.02), this.m.fridgeLid);
+        lid.castShadow = true;
+        lid.position.y = (h * 0.41) * MM;
+        g.add(lid);
+        g.add(this.at(this.box(60, 30, 10, this.m.steel), 0, h * 0.25, d / 2 + 5));
+        g.add(this.at(this.box(w + 40, 30, d + 20, this.m.steel), 0, -h / 2 - 15, 0));
         break;
       }
 
@@ -469,7 +513,67 @@ export class KitScene {
   }
 
   private sameShape(a: ModuleSpec, b: ModuleSpec) {
-    return a.kind === b.kind && a.w === b.w && a.h === b.h && a.d === b.d && a.badge === b.badge && (a.fixtures ?? []).join() === (b.fixtures ?? []).join();
+    return a.kind === b.kind && a.w === b.w && a.h === b.h && a.d === b.d && a.badge === b.badge && a.swing === b.swing && (a.fixtures ?? []).join() === (b.fixtures ?? []).join();
+  }
+
+  // -------------------------------------------------------------------------
+  // Measurement overlay: the customer's own boot measurements
+  // -------------------------------------------------------------------------
+
+  private label(text: string): THREE.Sprite {
+    const c = document.createElement('canvas');
+    c.width = 768;
+    c.height = 112;
+    const ctx = c.getContext('2d')!;
+    ctx.font = '600 44px Inter, system-ui, sans-serif';
+    const tw = Math.min(ctx.measureText(text).width + 48, 768);
+    ctx.fillStyle = '#C4A882';
+    ctx.beginPath();
+    ctx.roundRect((768 - tw) / 2, 16, tw, 80, 40);
+    ctx.fill();
+    ctx.fillStyle = '#1A1A1A';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 384, 58);
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+    sprite.scale.set(0.66, 0.096, 1);
+    sprite.renderOrder = 20;
+    return sprite;
+  }
+
+  private dimension(a: THREE.Vector3, b: THREE.Vector3, tick: THREE.Vector3, text: string, labelAt: THREE.Vector3) {
+    const pts = [a, b, a.clone().add(tick), a.clone().sub(tick), b.clone().add(tick), b.clone().sub(tick)];
+    const geo = new THREE.BufferGeometry().setFromPoints(pts);
+    geo.setIndex([0, 1, 2, 3, 4, 5]);
+    const line = new THREE.LineSegments(geo, this.m.dimLine);
+    line.renderOrder = 19;
+    const sprite = this.label(text);
+    sprite.position.copy(labelAt);
+    this.dimsGroup.add(line, sprite);
+  }
+
+  private buildDims(layout: Layout) {
+    const { width, arches, depth, height } = layout.dims;
+    const key = `${width}|${arches}|${depth}|${height}`;
+    if (key === this.dimsKey) return;
+    this.dimsKey = key;
+    this.dimsGroup.clear();
+    const W = width * MM;
+    const A = arches * MM;
+    const D = depth * MM;
+    const H = height * MM;
+    const mm = (n: number) => `${n.toLocaleString('en-AU')}mm`;
+    const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
+    this.dimension(V(-W / 2, H + 0.05, 0.06), V(W / 2, H + 0.05, 0.06), V(0, 0.03, 0), `Boot width ${mm(width)}`, V(0, H + 0.13, 0.06));
+    this.dimension(V(-A / 2, 0.005, 0.2), V(A / 2, 0.005, 0.2), V(0, 0, 0.03), `Between arches ${mm(arches)}`, V(0, -0.07, 0.2));
+    this.dimension(V(-W / 2 - 0.08, 0.005, 0), V(-W / 2 - 0.08, 0.005, -D), V(0.03, 0, 0), `Depth ${mm(depth)}`, V(-W / 2 - 0.08, 0.09, -D / 2));
+    this.dimension(V(W / 2 + 0.08, 0, 0.06), V(W / 2 + 0.08, H, 0.06), V(0.03, 0, 0), `Height ${mm(height)}`, V(W / 2 + 0.08, H / 2, 0.06));
+  }
+
+  setDimsVisible(visible: boolean) {
+    this.dimsGroup.visible = visible;
   }
 
   update(layout: Layout, finish: Finish | undefined) {
@@ -477,6 +581,7 @@ export class KitScene {
     const finishChanged = nextFinish !== this.finish;
     this.finish = nextFinish;
     this.buildEnvelope(layout);
+    this.buildDims(layout);
 
     const nextIds = new Set(layout.modules.map((m) => m.id));
     for (const [id, t] of this.tracked) {
@@ -496,8 +601,8 @@ export class KitScene {
       this.tracked.set(spec.id, {
         spec,
         object,
-        // Restyles (finish change) swap in place; new or resized parts pop in.
-        appear: existing && finishChanged ? 1 : this.reduceMotion ? 1 : 0,
+        // Restyled or resized parts swap in place (no jumping while typing measurements); new parts pop in.
+        appear: existing || this.reduceMotion ? 1 : 0,
         removing: false,
         slideCurrent: existing?.slideCurrent ?? 0,
         pos: this.basePosition(spec),
@@ -566,6 +671,8 @@ export class KitScene {
       const ease = 1 + 2.2 * Math.pow(a - 1, 3) + 1.2 * Math.pow(a - 1, 2);
       const drop = (1 - Math.min(1, ease)) * 0.35;
       t.object.position.set(t.pos.x, t.pos.y + drop, t.pos.z + t.slideCurrent);
+      const door = t.object.userData.door as THREE.Object3D | undefined;
+      if (door) door.rotation.y += ((this.open ? -1.75 : 0) - door.rotation.y) * speed;
       t.object.scale.setScalar(t.removing ? a : Math.max(0.001, Math.min(ease, 1.06)));
     }
 

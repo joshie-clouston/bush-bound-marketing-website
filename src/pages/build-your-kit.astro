@@ -58,6 +58,7 @@ const comparison = [
               <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-3">
                 <p class="text-stone-dark/70 text-[11px] max-w-[60%] leading-snug hidden sm:block">Indicative preview, not to scale. Your final design is drawn up by our team and cut to your vehicle's floor template.</p>
                 <div class="flex gap-2 ml-auto">
+                  <button id="toggle-dims" type="button" aria-pressed="true" class="bg-stone-light/10 hover:bg-stone-light/20 backdrop-blur text-stone-light text-xs font-semibold px-3 py-2 rounded-md transition-colors">Hide sizes</button>
                   <button id="toggle-open" type="button" aria-pressed="false" class="bg-stone-light/10 hover:bg-stone-light/20 backdrop-blur text-stone-light text-xs font-semibold px-3 py-2 rounded-md transition-colors">Open drawers</button>
                   <button id="reset-view" type="button" class="bg-stone-light/10 hover:bg-stone-light/20 backdrop-blur text-stone-light text-xs font-semibold px-3 py-2 rounded-md transition-colors" aria-label="Reset 3D view">Reset view</button>
                 </div>
@@ -146,12 +147,12 @@ const comparison = [
   </section>
 
   <script>
-    import { QUESTIONS, DEVICES, getVehicle, type Question } from '@/data/kit-builder';
-    import { recommend, sanitiseAnswers, type KitAnswers, type Recommendation } from '@/lib/kit-builder/engine';
+    import { QUESTIONS, DEVICES, DIM_FIELDS, DEFAULT_FEATURES, getVehicle, type Question, type Dims } from '@/data/kit-builder';
+    import { recommend, resolveDims, sanitiseAnswers, type KitAnswers, type Recommendation } from '@/lib/kit-builder/engine';
     import { getUtmParams } from '@/lib/utm';
     import type { KitScene } from '@/lib/kit-builder/scene';
 
-    const STORAGE_KEY = 'bb-kit-builder-v1';
+    const STORAGE_KEY = 'bb-kit-builder-v2';
     const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
     const money = (n: number) => `$${n.toLocaleString('en-AU')}`;
     const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
@@ -206,12 +207,22 @@ const comparison = [
       scene?.setOpen(open);
     });
     $('reset-view').addEventListener('click', () => scene?.resetView());
+    $('toggle-dims').addEventListener('click', (e) => {
+      const btn = e.currentTarget as HTMLButtonElement;
+      const show = btn.getAttribute('aria-pressed') !== 'true';
+      btn.setAttribute('aria-pressed', String(show));
+      btn.textContent = show ? 'Hide sizes' : 'Show sizes';
+      scene?.setDimsVisible(show);
+    });
 
     const MODULE_LABELS: Record<string, string> = {
       drawer: 'Drawers',
       kitchen: 'Kitchen drawer',
-      fridge: 'Fridge tower',
-      door: 'Air compressor',
+      table: 'Pull-out table',
+      'fridge-upright': 'Upright fridge',
+      'drawer-fridge': 'Drawer fridge',
+      'fridge-chest': 'Chest fridge',
+      hatch: 'Air compressor',
       'end-panel': '12V + 240V panels',
       slats: 'Bed slats',
       platform: 'Fixed bed',
@@ -244,11 +255,59 @@ const comparison = [
       return q.multi ? Array.isArray(value) : value !== undefined;
     }
 
+    const mm = (n: number) => n.toLocaleString('en-AU');
+
     function optionLabel(q: Question) {
+      if (q.form === 'dims') {
+        const d = resolveDims(answers);
+        return `${mm(d.width)} × ${mm(d.arches)} × ${mm(d.depth)} × ${mm(d.height)}`;
+      }
       const value = (answers as Record<string, unknown>)[q.id];
-      if (Array.isArray(value)) return value.length ? `${value.length} device${value.length > 1 ? 's' : ''}` : 'Nothing';
+      const noun = q.id === 'features' ? 'feature' : 'device';
+      if (Array.isArray(value)) return value.length ? `${value.length} ${noun}${value.length > 1 ? 's' : ''}` : 'Nothing';
       return q.options.find((o) => o.value === value)?.label ?? '';
     }
+
+    function renderDims(q: Question) {
+      const d = resolveDims(answers);
+      const v = getVehicle(answers.vehicle);
+      $('question-body').innerHTML = `
+        <h2 class="text-2xl font-bold text-charcoal">${escapeHtml(q.title)}</h2>
+        <p class="text-sm text-muted-foreground mt-1.5 mb-5">${escapeHtml(q.help)}</p>
+        <div class="space-y-3">
+          ${DIM_FIELDS.map((f) => `
+            <label class="block">
+              <span class="flex items-baseline justify-between gap-3">
+                <span class="text-sm font-semibold text-charcoal">${escapeHtml(f.label)}</span>
+                <span class="text-xs text-muted-foreground text-right">${escapeHtml(f.help)}</span>
+              </span>
+              <span class="mt-1 flex items-center rounded-md border border-stone-dark/40 focus-within:border-primary bg-white">
+                <input data-dim="${f.key}" type="number" inputmode="numeric" min="${f.min}" max="${f.max}" step="10" value="${d[f.key]}"
+                  class="w-full px-3 py-2.5 rounded-md bg-transparent focus:outline-none text-charcoal font-medium" />
+                <span class="pr-3 text-sm text-muted-foreground">mm</span>
+              </span>
+              <span data-dim-error="${f.key}" class="hidden text-xs text-destructive mt-1">Between ${mm(f.min)} and ${mm(f.max)}mm</span>
+            </label>`).join('')}
+        </div>
+        <p class="text-xs text-muted-foreground mt-3">${answers.dims ? 'Using your measurements.' : `Typical numbers for a ${escapeHtml(v.short)}${v.id === 'other' ? ' wagon' : ''}. Wheel arches default to 1,200mm.`}
+          ${answers.dims ? '<button type="button" id="dims-reset" class="text-primary font-semibold hover:underline ml-1">Use typical sizes</button>' : ''}</p>
+        <button type="button" id="dims-next" class="mt-5 w-full py-3 bg-primary text-primary-foreground font-semibold rounded-md hover:bg-primary-light transition-colors">${answers.dims ? 'Looks right, next' : 'Use these for now, next'}</button>
+      `;
+    }
+
+    $('question-body').addEventListener('input', (e) => {
+      const input = (e.target as HTMLElement).closest<HTMLInputElement>('[data-dim]');
+      if (!input) return;
+      const key = input.dataset.dim as keyof Dims;
+      const field = DIM_FIELDS.find((f) => f.key === key)!;
+      const n = Number(input.value);
+      const ok = Number.isFinite(n) && n >= field.min && n <= field.max;
+      document.querySelector(`[data-dim-error="${key}"]`)?.classList.toggle('hidden', ok);
+      if (!ok) return;
+      answers.dims = { ...resolveDims(answers), ...answers.dims, [key]: Math.round(n) };
+      save();
+      refresh();
+    });
 
     function renderAnswered() {
       $('answered').innerHTML = QUESTIONS.map((q, i) => {
@@ -293,9 +352,22 @@ const comparison = [
       $('step-count').textContent = `Step ${step + 1} of ${QUESTIONS.length}`;
       $('progress-bar').style.width = `${((step + 1) / (QUESTIONS.length + 1)) * 100}%`;
 
+      if (q.form === 'dims') {
+        renderDims(q);
+        showAdvisor('');
+        $('device-tips').innerHTML = '';
+        renderAnswered();
+        return;
+      }
+      // Features start ticked to match our base build.
+      if (q.id === 'features' && !Array.isArray(answers.features)) {
+        answers.features = [...DEFAULT_FEATURES];
+        save();
+      }
+
       const value = (answers as Record<string, unknown>)[q.id];
       const selected = (v: string) => (Array.isArray(value) ? value.includes(v) : value === v);
-      const grid = q.id === 'vehicle' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3' : q.multi ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1';
+      const grid = q.id === 'vehicle' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3' : q.multi || q.id === 'fridge' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1';
 
       let help = q.help;
       if (q.id === 'power' && answers.fridge && answers.fridge !== 'none') help += ' Your fridge is already counted.';
@@ -305,7 +377,8 @@ const comparison = [
         <p class="text-sm text-muted-foreground mt-1.5 mb-5">${escapeHtml(help)}</p>
         <div class="grid ${grid} gap-2.5" role="${q.multi ? 'group' : 'radiogroup'}" aria-label="${escapeHtml(q.title)}">
           ${q.options
-            .map((o) => `
+            .map((o, i) => `
+              ${o.group && o.group !== q.options[i - 1]?.group ? `<p class="col-span-full text-xs font-bold uppercase tracking-wider text-sand-dark ${i ? 'mt-3' : ''}">${escapeHtml(o.group)}</p>` : ''}
               <button type="button" data-value="${o.value}" role="${q.multi ? 'checkbox' : 'radio'}" aria-checked="${selected(o.value)}"
                 class="option text-left rounded-lg border-2 px-4 py-3 transition-all ${selected(o.value) ? 'border-primary bg-primary/5' : 'border-stone-dark/30 hover:border-primary/60 bg-white'}">
                 <span class="flex items-center justify-between gap-2">
@@ -316,7 +389,7 @@ const comparison = [
               </button>`)
             .join('')}
         </div>
-        ${q.multi ? `<button type="button" id="multi-next" class="mt-5 w-full py-3 bg-primary text-primary-foreground font-semibold rounded-md hover:bg-primary-light transition-colors">${(answers.power?.length ?? 0) === 0 ? 'Nothing for me, next' : 'Next'}</button>` : ''}
+        ${q.multi ? `<button type="button" id="multi-next" class="mt-5 w-full py-3 bg-primary text-primary-foreground font-semibold rounded-md hover:bg-primary-light transition-colors">${((value as string[] | undefined)?.length ?? 0) === 0 ? 'Nothing for me, next' : 'Next'}</button>` : ''}
       `;
 
       const current = q.options.find((o) => selected(o.value));
@@ -331,8 +404,22 @@ const comparison = [
       const q = QUESTIONS[step];
 
       if (target.closest('#multi-next')) {
-        if (!Array.isArray(answers.power)) answers.power = [];
+        if (!Array.isArray((answers as Record<string, unknown>)[q.id])) (answers as Record<string, unknown>)[q.id] = [];
+        save();
         goTo(step + 1);
+        return;
+      }
+      if (target.closest('#dims-next')) {
+        if (!answers.dims) answers.dims = resolveDims(answers);
+        save();
+        goTo(step + 1);
+        return;
+      }
+      if (target.closest('#dims-reset')) {
+        delete answers.dims;
+        save();
+        refresh();
+        renderQuestion();
         return;
       }
 
@@ -433,6 +520,7 @@ const comparison = [
           <div class="mt-6 border-t border-stone-dark/20 pt-4 text-sm">
             <p class="text-xs font-bold uppercase tracking-wider text-sand-dark mb-1">Indicative pricing</p>
             ${lines(rec.kitLines)}
+            ${rec.fridgeLines.length ? `<div class="border-t border-dashed border-stone-dark/30 mt-2 pt-2">${lines(rec.fridgeLines)}</div>` : ''}
             ${rec.electricalLines.length ? `<div class="border-t border-dashed border-stone-dark/30 mt-2 pt-2">${lines(rec.electricalLines)}</div>` : ''}
             <div class="flex justify-between gap-4 pt-3 mt-2 border-t border-stone-dark/20 text-base">
               <span class="font-bold text-charcoal">Estimated total</span>

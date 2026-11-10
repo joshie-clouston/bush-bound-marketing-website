@@ -79,7 +79,6 @@ export type DeviceId =
   | 'camera'
   | 'starlink'
   | 'cpap'
-  | 'compressor'
   | 'coffee'
   | 'kettle'
   | 'ebike';
@@ -107,11 +106,86 @@ export const DEVICES: Device[] = [
   { id: 'camera', label: 'Camera or drone batteries', base: true, whPerDay: 80, watts: 60, ac: false },
   { id: 'starlink', label: 'Starlink', whPerDay: 300, watts: 45, ac: false, tip: 'Starlink Mini runs off 12V and pulls around 25 to 40W. Leave it on all day and it\'s your biggest load after the fridge, so we size the battery for it.' },
   { id: 'cpap', label: 'CPAP machine', whPerDay: 300, watts: 60, ac: false, tip: 'Run your CPAP off a 12V DC converter, not the inverter. It roughly halves the draw. Turning the humidifier off saves even more.' },
-  { id: 'compressor', label: 'Tyre compressor', base: true, whPerDay: 30, watts: 450, ac: false, tip: 'Already sorted. The base kit has the compressor built in behind its own door, with the air outlet on the side panel. Hose on, air up, done.' },
   { id: 'coffee', label: 'Coffee machine', whPerDay: 120, watts: 1400, ac: true, tip: 'Real talk: a 240V coffee machine pulls about 1,400W. That means a 2,000W inverter, a 200Ah+ battery and heavier cabling, easily $2k+ extra for a flat white. An AeroPress or stovetop on the gas makes a ripper coffee for under $80 and uses zero amps.', link: { label: 'Check out the AeroPress', href: 'https://aeropress.com/' } },
   { id: 'kettle', label: 'Kettle or induction cooktop', whPerDay: 500, watts: 2200, ac: true, tip: 'Electric kettles and induction cooktops are the hungriest thing you can run off-grid (2,000W+). A butane stove or Jetboil does the same job for a fraction of the cost and weight.' },
   { id: 'ebike', label: 'E-bike or power tool charging', whPerDay: 500, watts: 250, ac: true, tip: 'E-bike batteries are big (500Wh+). Charge them while you drive through the DC-DC and your house battery stays topped up for the fridge.' },
 ];
+
+// ---------------------------------------------------------------------------
+// Fridges (GUESSED sizes and prices for the proof of concept: swap in the exact
+// models Bush Bound uses and recommends)
+// ---------------------------------------------------------------------------
+
+export type FridgeType = 'upright' | 'drawer' | 'chest';
+export type FridgeId = 'upright-50' | 'upright-65' | 'upright-85' | 'drawer-30' | 'drawer-50' | 'chest-40' | 'chest-60' | 'chest-75';
+
+export interface Fridge {
+  id: FridgeId;
+  type: FridgeType;
+  litres: number;
+  label: string;
+  /** Rough outside size for the preview, mm */
+  w: number;
+  d: number;
+  h: number;
+  /** Typical energy per day, Wh */
+  whPerDay: number;
+  price: number;
+}
+
+export const FRIDGES: Fridge[] = [
+  { id: 'upright-50', type: 'upright', litres: 50, label: 'Upright fridge 50L', w: 460, d: 540, h: 580, whPerDay: 320, price: 1290 },
+  { id: 'upright-65', type: 'upright', litres: 65, label: 'Upright fridge 65L', w: 480, d: 560, h: 650, whPerDay: 380, price: 1490 },
+  { id: 'upright-85', type: 'upright', litres: 85, label: 'Upright fridge 85L', w: 520, d: 600, h: 780, whPerDay: 450, price: 1790 },
+  { id: 'drawer-30', type: 'drawer', litres: 30, label: 'Drawer fridge 30L', w: 480, d: 600, h: 320, whPerDay: 260, price: 1190 },
+  { id: 'drawer-50', type: 'drawer', litres: 50, label: 'Drawer fridge 50L', w: 540, d: 700, h: 380, whPerDay: 330, price: 1490 },
+  { id: 'chest-40', type: 'chest', litres: 40, label: 'Chest fridge 40L', w: 400, d: 640, h: 470, whPerDay: 280, price: 990 },
+  { id: 'chest-60', type: 'chest', litres: 60, label: 'Chest fridge 60L', w: 450, d: 720, h: 520, whPerDay: 340, price: 1290 },
+  { id: 'chest-75', type: 'chest', litres: 75, label: 'Chest fridge 75L', w: 480, d: 800, h: 560, whPerDay: 400, price: 1490 },
+];
+
+export const DEFAULT_FRIDGE: FridgeId = 'upright-65';
+
+export function getFridge(id: string | undefined): Fridge | null {
+  if (id === 'none') return null;
+  return FRIDGES.find((f) => f.id === id) ?? FRIDGES.find((f) => f.id === DEFAULT_FRIDGE)!;
+}
+
+// ---------------------------------------------------------------------------
+// Features (tick boxes)
+// ---------------------------------------------------------------------------
+
+export type FeatureId = 'table' | 'kitchen' | 'tank' | 'compressor';
+
+export const FEATURES: { id: FeatureId; label: string; sub: string; price: number; tip?: string }[] = [
+  { id: 'table', label: 'Pull-out table', sub: 'Slides out the back, instant bench', price: 390 },
+  { id: 'compressor', label: 'Air compressor', sub: 'Built in, air outlet on the side panel', price: 690, tip: 'Built-in compressor means no digging it out from under the gear. Hose on, air up, done.' },
+  { id: 'kitchen', label: 'Kitchen slide-out', sub: 'Stove + prep bench drawer', price: 790 },
+  { id: 'tank', label: 'Water tank', sub: 'Slimline tank under the drawers', price: 690 },
+];
+
+/** What's ticked before the customer gets to the features step (matches our base wagon build). */
+export const DEFAULT_FEATURES: FeatureId[] = ['table', 'compressor'];
+
+// ---------------------------------------------------------------------------
+// Measurements
+// ---------------------------------------------------------------------------
+
+export interface Dims {
+  width: number;
+  arches: number;
+  depth: number;
+  height: number;
+}
+
+export const DIM_FIELDS: { key: keyof Dims; label: string; help: string; min: number; max: number }[] = [
+  { key: 'width', label: 'Boot width', help: 'Wall to wall, just above the wheel arches', min: 900, max: 1800 },
+  { key: 'arches', label: 'Between the wheel arches', help: 'Narrowest point at floor level', min: 700, max: 1600 },
+  { key: 'depth', label: 'Depth', help: 'From the start of the boot to the back of the rear seats', min: 600, max: 2500 },
+  { key: 'height', label: 'Boot height', help: 'Floor to roof lining', min: 600, max: 1500 },
+];
+
+export const DEFAULT_ARCHES = 1200;
 
 // ---------------------------------------------------------------------------
 // Questions
@@ -121,15 +195,19 @@ export interface QuestionOption {
   value: string;
   label: string;
   sub?: string;
+  /** Heading to group options under */
+  group?: string;
   /** Short reaction from the Bush Bound team once this is picked */
   says?: string;
 }
 
 export interface Question {
-  id: 'vehicle' | 'use' | 'sleep' | 'fridge' | 'kitchen' | 'water' | 'power' | 'finish' | 'build' | 'electrical';
+  id: 'vehicle' | 'dims' | 'use' | 'sleep' | 'fridge' | 'features' | 'power' | 'finish' | 'build' | 'electrical';
   title: string;
   help: string;
   multi?: boolean;
+  /** Custom step rendered as a form instead of option buttons */
+  form?: 'dims';
   options: QuestionOption[];
 }
 
@@ -137,8 +215,15 @@ export const QUESTIONS: Question[] = [
   {
     id: 'vehicle',
     title: 'What are you driving?',
-    help: 'Every kit is cut for your exact wagon. Pick the closest one and we confirm the rest with our floor template.',
+    help: 'Every kit is cut for your exact wagon. Pick the closest one, then we\'ll grab your measurements.',
     options: VEHICLES.map((v) => ({ value: v.id, label: v.short === 'your wagon' ? 'Something else' : v.short, sub: v.make === 'Other' ? 'We\'ll measure it up' : v.label })),
+  },
+  {
+    id: 'dims',
+    title: 'Measure your boot',
+    help: 'Grab a tape measure. We\'ve filled in typical numbers, swap in yours and watch the model resize. Rough is fine, we confirm everything with our floor template.',
+    form: 'dims',
+    options: [],
   },
   {
     id: 'use',
@@ -154,46 +239,44 @@ export const QUESTIONS: Question[] = [
   {
     id: 'sleep',
     title: 'Sleeping in the back?',
-    help: 'Sleeping inside means a platform over the folded 2nd row. It changes drawer height and headroom.',
+    help: 'Sleeping inside means a bed extension over the folded 2nd row.',
     options: [
       { value: 'no', label: 'Nah, tent or swag', sub: 'Drawers only, max storage', says: 'Too easy. You keep the back seats and all the space.' },
-      { value: 'sometimes', label: 'Sometimes', sub: 'Removable infill panels', says: 'Removable infills it is. Floor space by day, a bed when the weather turns.' },
+      { value: 'sometimes', label: 'Sometimes', sub: 'Slatted pull-out extension', says: 'Slats it is. Floor space by day, a bed when the weather turns.' },
       { value: 'yes', label: 'Most nights', sub: 'Fixed full-length bed', says: 'A proper fixed bed, flush with the drawer deck. No setup at 9pm in the rain.' },
     ],
   },
   {
     id: 'fridge',
-    title: 'Running a fridge?',
-    help: 'Our base wagon layout has the fridge up at waist height in its own ply tower, on a drop slide. Size changes the tower.',
+    title: 'Which fridge?',
+    help: 'Our base wagon layout has an upright fridge in its own cabinet over the pull-out table. Drawer and chest fridges change the layout.',
     options: [
-      { value: 'small', label: '40 to 50L', sub: 'Weekends, a couple', says: 'Good size for most wagons. Leaves plenty of width for the big drawer beside it.' },
-      { value: 'large', label: '60L+ or dual zone', sub: 'Long trips, families', says: 'Big fridge, big trips. The tower grows to suit and gets a heavy-duty slide.' },
-      { value: 'none', label: 'No fridge', sub: 'Swap the tower for another drawer', says: 'Fair enough. The fridge tower becomes a second full-height drawer.' },
+      ...FRIDGES.map((f) => ({
+        value: f.id,
+        label: f.label,
+        group: f.type === 'upright' ? 'Upright (front-opening)' : f.type === 'drawer' ? 'Drawer fridge' : 'Chest fridge on a drop slide',
+        sub: f.type === 'upright' ? 'Opens like a home fridge, at waist height' : f.type === 'drawer' ? 'Built into the drawer system' : 'Lid on top, slides out the back',
+        says:
+          f.type === 'upright'
+            ? 'Our favourite. Opens like the one at home, no lifting a lid or leaning over a slide.'
+            : f.type === 'drawer'
+              ? 'Sleek. Sits flush in the drawers, perfect for drinks and day trips. Less room for a big shop.'
+              : 'Chest fridges are the most efficient, the cold stays in when you open the lid. Needs a drop slide.',
+      })),
+      { value: 'none', label: 'No fridge', group: 'None', sub: 'Drawers right across', says: 'Fair enough. More drawer space for you.' },
     ],
   },
   {
-    id: 'kitchen',
-    title: 'Slide-out kitchen?',
-    help: 'A drawer that slides out the back with a cooktop and prep space. Cook dinner standing up, out of the wind.',
-    options: [
-      { value: 'yes', label: 'Yes please', sub: 'Stove + prep bench drawer', says: 'Best upgrade there is. Dinner\'s on in two minutes.' },
-      { value: 'no', label: 'No thanks', sub: 'I\'ll use a camp table', says: 'Keeps the cost down and gives you another storage drawer.' },
-    ],
-  },
-  {
-    id: 'water',
-    title: 'How do you carry water?',
-    help: 'Water is heavy (1kg a litre). Where it sits affects handling and payload.',
-    options: [
-      { value: 'none', label: 'Bottles are fine', sub: 'Short trips', says: 'Easy. We can always add a tank later.' },
-      { value: 'jerry', label: 'Jerry cans', sub: 'Cheap and flexible', says: 'Jerries are hard to beat for flexibility. We\'ll leave room for them.' },
-      { value: 'tank', label: 'Built-in tank', sub: 'Slimline tank under the drawers', says: 'Under-drawer tank keeps the weight low and centred, best place for it.' },
-    ],
+    id: 'features',
+    title: 'Tick your features',
+    help: 'Our base build comes with a pull-out table and built-in compressor. Untick what you don\'t want, add what you do.',
+    multi: true,
+    options: FEATURES.map((f) => ({ value: f.id, label: f.label, sub: f.sub })),
   },
   {
     id: 'power',
     title: 'What do you want to run?',
-    help: 'The base kit already runs phones, laptops, lights and the compressor. Pick everything you\'d use and we\'ll tell you if you need an upgrade, and where you can save.',
+    help: 'The base kit already runs phones, laptops and lights. Pick everything you\'d use and we\'ll tell you if you need an upgrade, and where you can save.',
     multi: true,
     options: DEVICES.map((d) => ({ value: d.id, label: d.label, sub: d.base ? 'Covered by the base kit' : d.ac ? '240V, may need an upgrade' : '12V, may need an upgrade' })),
   },
@@ -220,7 +303,7 @@ export const QUESTIONS: Question[] = [
   {
     id: 'electrical',
     title: 'How about the 12V?',
-    help: 'The base kit comes with 12V and USB sockets, a 240V outlet, a battery monitor and the air compressor. Who\'s wiring it?',
+    help: 'The base kit comes with 12V and USB sockets, a 240V outlet and a battery monitor. Who\'s wiring it?',
     options: [
       { value: 'installed', label: 'Bush Bound installs it', sub: 'Qualified electrician sign-off', says: 'Best option. It\'s wired, tested and signed off before you leave.' },
       { value: 'diy', label: 'Send me the parts', sub: 'Labelled parts, you fit it', says: 'No worries. The cabinetry comes pre-cut for cable runs and mounts.' },
@@ -235,15 +318,14 @@ export const QUESTIONS: Question[] = [
 
 export const BASE_KIT = {
   name: 'Wagon Base Kit',
-  tagline: 'Our go-to wagon layout: big drawer, fridge tower, air compressor, 12V and 240V.',
-  base: 3450,
+  tagline: 'Our go-to wagon layout: evenly split drawers, fridge cabinet, 12V and 240V.',
+  base: 2950,
 };
 
 export const PRICING = {
-  kitchen: 790,
+  fridgeCabinet: 450,
   sleepSlats: 590,
   sleepFixed: 790,
-  waterTank: 690,
   finishMultiplier: { budget: 0.92, balanced: 1, premium: 1.15 },
   build: { diy: 0, assembled: 1450, installed: 2450 },
 };
