@@ -250,7 +250,7 @@ export function buildLayout(answers: KitAnswers): Layout {
 
   // Bush Bound camp table, set up on the ground beside the tailgate when "Open" is on.
   if (store.has('cubby')) {
-    modules.push({ id: 'camp-table', kind: 'camp-table', x: -W / 2 - 420, y: -25, z: 250, w: 620, h: 640, d: 420, onlyOpen: true });
+    modules.push({ id: 'camp-table', kind: 'camp-table', x: W / 2 + 380, y: -25, z: 200, w: 440, h: 640, d: 720, onlyOpen: true });
   }
 
   // End panels over the wheel arches: 12V sockets / 240V outlet on the left, monitor and switch on the right.

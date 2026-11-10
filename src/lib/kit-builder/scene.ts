@@ -245,6 +245,10 @@ export class KitScene {
       ground: new THREE.ShadowMaterial({ opacity: 0.25 }),
       fridgeLid: new THREE.MeshStandardMaterial({ color: 0x3a3a3a, roughness: 0.5 }),
       fridgeInside: new THREE.MeshStandardMaterial({ color: 0x9aa3a8, roughness: 0.6 }),
+      fridgeLiner: new THREE.MeshStandardMaterial({ color: 0xdfe3e6, roughness: 0.5, emissive: 0x2a2d30 }),
+      freezer: new THREE.MeshStandardMaterial({ color: 0xc9d0d5, roughness: 0.5, emissive: 0x1a1d20 }),
+      freezerDoor: new THREE.MeshStandardMaterial({ color: 0xeef1f3, roughness: 0.35, emissive: 0x202326 }),
+      shelf: new THREE.MeshPhysicalMaterial({ color: 0xd6e8ee, roughness: 0.1, transparent: true, opacity: 0.55 }),
     };
   }
 
@@ -473,12 +477,21 @@ export class KitScene {
       }
 
       case 'camp-table': {
-        // Bush Bound camp table: four slats on top, four legs.
-        const slatW = (w - 3 * 12) / 4;
+        // Bush Bound camp table: four slats running the length of the top, four legs.
+        const alongZ = d >= w;
+        const across = alongZ ? w : d;
+        const slat = (across - 3 * 12) / 4;
         for (let k = 0; k < 4; k++) {
-          g.add(this.at(this.box(slatW, 18, d, this.m.timber, true), -w / 2 + slatW / 2 + k * (slatW + 12), h / 2 - 9, 0));
+          const off = -across / 2 + slat / 2 + k * (slat + 12);
+          g.add(alongZ
+            ? this.at(this.box(slat, 18, d, this.m.timber, true), off, h / 2 - 9, 0)
+            : this.at(this.box(w, 18, slat, this.m.timber, true), 0, h / 2 - 9, off));
         }
-        for (const sz of [-1, 1]) g.add(this.at(this.box(w - 40, 20, 24, this.m.alu), 0, h / 2 - 28, sz * (d / 2 - 40)));
+        for (const s of [-1, 1]) {
+          g.add(alongZ
+            ? this.at(this.box(w - 40, 20, 24, this.m.alu), 0, h / 2 - 28, s * (d / 2 - 40))
+            : this.at(this.box(24, 20, d - 40, this.m.alu), s * (w / 2 - 40), h / 2 - 28, 0));
+        }
         for (const sx of [-1, 1]) {
           for (const sz of [-1, 1]) {
             const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, (h - 30) * MM, 12), this.m.alu);
@@ -521,11 +534,32 @@ export class KitScene {
 
       case 'fridge-upright': {
         // Front-opening fridge. The door (with organiser pockets) is hinged on the left.
-        const body = new THREE.Mesh(new RoundedBoxGeometry(w * MM, h * MM, (d - 30) * MM, 3, 0.012), this.m.fridge);
-        body.castShadow = true;
-        body.position.z = -15 * MM;
-        g.add(body);
-        g.add(this.at(this.box(w - 40, h - 40, 4, this.m.fridgeInside), 0, 0, d / 2 - 31));
+        // Hollow body so the inside shows when the door opens: three shelves and a freezer top left.
+        const t = 30;
+        const bd = d - 30;
+        const bz = -15;
+        for (const sx of [-1, 1]) g.add(this.at(this.box(t, h, bd, this.m.fridge), sx * (w / 2 - t / 2), 0, bz));
+        g.add(this.at(this.box(w, t, bd, this.m.fridge), 0, h / 2 - t / 2, bz));
+        g.add(this.at(this.box(w, t, bd, this.m.fridge), 0, -h / 2 + t / 2, bz));
+        g.add(this.at(this.box(w, h, t, this.m.fridge), 0, 0, bz - bd / 2 + t / 2));
+        const iw = w - 2 * t;
+        const ih = h - 2 * t;
+        const id = bd - t;
+        const front = bz + bd / 2;
+        g.add(this.at(this.box(iw, ih, 4, this.m.fridgeLiner), 0, 0, bz - bd / 2 + t + 2));
+        for (const sx of [-1, 1]) g.add(this.at(this.box(4, ih, id, this.m.fridgeLiner), sx * (iw / 2 - 2), 0, bz + t / 2));
+        // Freezer compartment, top left, with its own flap and handle.
+        const fw = iw * 0.58;
+        const fh = ih * 0.24;
+        const fx = -iw / 2 + fw / 2;
+        const fy = ih / 2 - fh / 2;
+        g.add(this.at(this.box(fw, fh, id - 20, this.m.freezer), fx, fy, bz + t / 2 - 10));
+        g.add(this.at(this.box(fw, fh, 8, this.m.freezerDoor), fx, fy, front - 14));
+        g.add(this.at(this.box(fw * 0.4, 10, 12, this.m.black), fx, fy - fh / 2 + 18, front - 6));
+        // Three glass shelves spaced down the fridge, the top one under the freezer.
+        for (const k of [1, 2, 3]) {
+          g.add(this.at(this.box(iw - 8, 8, id - 30, this.m.shelf), 0, -ih / 2 + (ih * k) / 4, bz + t / 2 - 5));
+        }
         const door = new THREE.Group();
         door.add(this.box(w, h, 30, this.m.fridge));
         const fz = 17;
