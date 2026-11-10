@@ -140,8 +140,11 @@ export class KitScene {
   private seqT = 0;
   /** Dev only: freeze the step-by-step sequence at a given point for checking each stage. */
   private seqOverride: number | null = null;
-  /** Camera distance we're easing towards (zooms out when opened), unless the customer takes over. */
-  private distGoal: number | null = null;
+  /** Automatic framing: fit-out only when closed, fit-out plus table (and drawers/bed) when open. */
+  private autoFrame = true;
+  private baseDist = 0;
+  private fitCentre = new THREE.Vector3(0, 0.3, -0.65);
+  private tableAt: THREE.Vector3 | null = null;
   private look: Look = { fronts: 'hex', carpet: false };
   private m!: Record<string, THREE.Material>;
   private reduceMotion: boolean;
@@ -198,7 +201,7 @@ export class KitScene {
     this.controls.addEventListener('start', () => {
       this.controls.autoRotate = false;
       this.lastInteraction = performance.now();
-      this.distGoal = null;
+      this.autoFrame = false;
     });
 
     this.buildMaterials();
@@ -329,7 +332,26 @@ export class KitScene {
     ground.position.y = -0.002;
     ground.receiveShadow = true;
     this.envelope.add(ground);
-    this.controls.target.set(0, 0.3, (-v.cargoLength / 2 - 100) * MM);
+    this.fitCentre.set(0, 0.3, (-v.cargoLength / 2 - 100) * MM);
+    if (!this.baseDist) {
+      this.controls.target.copy(this.fitCentre);
+      this.baseDist = this.camera.position.distanceTo(this.controls.target);
+    }
+  }
+
+  /** Where the camera should look and how far back it should sit right now. */
+  private frameGoal(): { target: THREE.Vector3; dist: number } {
+    // Stay wide while the table is still out, folding or going away; only zoom back in once it's stowed.
+    const wide = this.open || this.seqT > 0.001;
+    if (!wide) return { target: this.fitCentre.clone(), dist: this.baseDist };
+    if (this.tableAt) {
+      // Centre between the fit-out (with drawers out) and the table beside it.
+      const fit = this.fitCentre.clone().add(new THREE.Vector3(0, 0, 0.25));
+      const target = fit.lerp(this.tableAt, 0.45);
+      target.y = 0.3;
+      return { target, dist: this.baseDist * 1.45 };
+    }
+    return { target: this.fitCentre.clone().add(new THREE.Vector3(0, 0, 0.2)), dist: this.baseDist * 1.3 };
   }
 
   // -------------------------------------------------------------------------
@@ -603,6 +625,7 @@ export class KitScene {
         const id = bd - t;
         const front = bz + bd / 2;
         g.add(this.at(this.box(iw, ih, 4, this.m.fridgeLiner), 0, 0, bz - bd / 2 + t + 2));
+        g.add(this.at(this.box(iw, 6, id, this.m.fridgeLiner), 0, -ih / 2 + 3, bz + t / 2));
         for (const sx of [-1, 1]) g.add(this.at(this.box(4, ih, id, this.m.fridgeLiner), sx * (iw / 2 - 2), 0, bz + t / 2));
         // Freezer compartment, top left, with its own flap and handle.
         const fw = iw * 0.58;
@@ -690,6 +713,8 @@ export class KitScene {
   }
 
   update(layout: Layout, look: Look) {
+    const table = layout.modules.find((m) => m.kind === 'camp-table');
+    this.tableAt = table ? new THREE.Vector3(table.x * MM, 0.3, table.z * MM) : null;
     const finishChanged = look.fronts !== this.look.fronts || look.carpet !== this.look.carpet;
     this.look = { ...look };
     this.buildEnvelope(layout);
@@ -724,9 +749,8 @@ export class KitScene {
   setOpen(open: boolean) {
     if (open === this.open) return;
     this.open = open;
-    // Pull back so the drawers, bed and table outside the car all fit, then come back in on close.
-    const dist = this.camera.position.distanceTo(this.controls.target);
-    this.distGoal = Math.min(this.controls.maxDistance, open ? dist * 1.45 : dist / 1.45);
+    // Re-frame automatically (wide for open, back to the fit-out once everything is put away).
+    this.autoFrame = true;
   }
 
   /** Dev only (wired up in development builds): freeze the table sequence at s (0..1), or null to resume. */
@@ -736,7 +760,10 @@ export class KitScene {
   }
 
   resetView() {
-    this.camera.position.set(0.85, 1.4, 1.8);
+    const goal = this.frameGoal();
+    this.controls.target.copy(goal.target);
+    this.camera.position.copy(goal.target).add(new THREE.Vector3(0.85, 1.1, 2.45).setLength(goal.dist));
+    this.autoFrame = true;
     this.controls.autoRotate = !this.reduceMotion;
   }
 
@@ -769,12 +796,15 @@ export class KitScene {
     } else if (!this.reduceMotion && this.lastInteraction && performance.now() - this.lastInteraction > 8000) {
       this.controls.autoRotate = true;
     }
-    if (this.distGoal !== null) {
+    if (this.autoFrame && this.baseDist) {
+      // Ease the look-at point and distance towards the goal, keeping the current viewing angle.
+      const goal = this.frameGoal();
+      const k = this.reduceMotion ? 1 : 1 - Math.pow(0.03, dt);
       const offset = this.camera.position.clone().sub(this.controls.target);
       const dist = offset.length();
-      const next = dist + (this.distGoal - dist) * (this.reduceMotion ? 1 : 1 - Math.pow(0.02, dt));
+      this.controls.target.lerp(goal.target, k);
+      const next = Math.min(this.controls.maxDistance, dist + (goal.dist - dist) * k);
       this.camera.position.copy(this.controls.target).add(offset.setLength(next));
-      if (Math.abs(next - this.distGoal) < 0.005) this.distGoal = null;
     }
     this.controls.update();
 
