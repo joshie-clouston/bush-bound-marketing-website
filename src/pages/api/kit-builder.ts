@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 import { staffNotificationHtml, kitCustomerHtml, emailRecipient } from '@/lib/email-templates';
 import { createNotionLead } from '@/lib/notion';
 import { notifyOpsError } from '@/lib/alerts';
-import { recommend, sanitiseAnswers, summaryText, fusionParamsCsv } from '@/lib/kit-builder/engine';
+import { recommend, sanitiseAnswers, summaryText } from '@/lib/kit-builder/engine';
 
 export const prerender = false;
 
@@ -41,7 +41,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
     if (!answers.vehicle) return json({ error: 'Pick a vehicle first' }, 400);
     const rec = recommend(answers);
     const summary = summaryText(answers, rec);
-    const csv = fusionParamsCsv(rec);
 
     // Store in D1 (non-blocking)
     let leadId: number | null = null;
@@ -97,32 +96,30 @@ export const POST: APIRoute = async ({ request, locals }) => {
           from,
           to: emailRecipient((runtime.env.NOTIFICATION_EMAIL as string) || 'luke@bushbound.au', email),
           replyTo: email,
-          subject: `New kit request: ${rec.kitName} for ${rec.vehicle.short} (${name})`,
+          subject: `New kit request: ${rec.kitName} for ${rec.vehicle.short}${rec.addOns.length ? ` + ${rec.addOns.length} add-on${rec.addOns.length > 1 ? 's' : ''}` : ''} (${name})`,
           html: staffNotificationHtml(
             [
               ['Name', escapeHtml(name)],
               ['Phone', escapeHtml(phone || 'Not provided')],
               ['Email', escapeHtml(email)],
               ['Postcode', escapeHtml(postcode || 'Not provided')],
-              ['Kit', `${rec.kitName} for ${rec.vehicle.label}`],
+              ['Kit', escapeHtml(`${rec.kitName} for ${rec.vehicle.label}${rec.addOns.length ? ` + ${rec.addOns.join(', ')}` : ''}`)],
               ['Answers', pre(summary)],
               ['Kit lines', rec.kitLines.map((l) => `${escapeHtml(l.label)}: ${money(l.amount)}`).join('<br />')],
               ['Electrical', rec.electricalLines.length ? rec.electricalLines.map((l) => `${escapeHtml(l.label)}: ${money(l.amount)}`).join('<br />') : 'None'],
-              ['Parts list', rec.power.products.length ? rec.power.products.map(escapeHtml).join('<br />') : 'None'],
+              ['Power', escapeHtml(rec.power.tierName) + (rec.power.upgradeItems.length ? '<br />' + rec.power.upgradeItems.map(escapeHtml).join('<br />') : '')],
               ['Indicative total', money(rec.total)],
               ['Notes', escapeHtml(notes || 'None')],
-              ['Fusion params (CSV)', pre(csv)],
               ['UTM', escapeHtml([utm_source, utm_medium, utm_campaign].filter(Boolean).join(' / ') || 'Direct')],
             ],
             'New Flat Pack Kit Request',
           ),
-          attachments: [{ filename: `bushbound-kit-${leadId ?? 'request'}-params.csv`, content: btoa(csv) }],
         });
 
         const items = [
           `${rec.kitName} for your ${rec.vehicle.label}`,
-          ...rec.why.slice(1),
-          rec.power.batteryAh ? `${rec.power.tierName}: ${rec.power.batteryAh}Ah battery${rec.power.solarW ? `, ${rec.power.solarW}W solar` : ''}` : '',
+          ...rec.addOns.map((a) => `Add-on: ${a}`),
+          rec.power.batteryAh ? `Power: ${rec.power.tierName}` : 'Cabinets only (power-ready)',
         ].filter(Boolean).map(escapeHtml);
 
         await resend.emails.send({

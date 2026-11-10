@@ -1,8 +1,9 @@
 // Flat pack kit builder data: vehicles, questions, devices, products and pricing.
 //
 // Everything a non-developer might want to tweak lives in this file.
-// Vehicle measurements are approximate cargo dimensions used for the 3D preview only.
-// The final design is always cut to the customer's floor template.
+// Vehicle measurements are rough, rounded cargo sizes used ONLY to proportion the
+// stylised 3D preview. This file ships to the browser: never put real CAD/Fusion
+// dimensions, cut lists or joinery details in here. The real design stays in Fusion.
 //
 // PRICES ARE PLACEHOLDERS. Every dollar figure in PRICING and ELECTRICAL_PRICING
 // needs to be confirmed by Luke before this goes live.
@@ -86,6 +87,8 @@ export type DeviceId =
 export interface Device {
   id: DeviceId;
   label: string;
+  /** Already handled by the base kit's 12V / 240V / compressor setup */
+  base?: boolean;
   /** Typical energy per day, Wh */
   whPerDay: number;
   /** Peak draw, W */
@@ -98,13 +101,13 @@ export interface Device {
 }
 
 export const DEVICES: Device[] = [
-  { id: 'phones', label: 'Phones & head torches', whPerDay: 25, watts: 20, ac: false },
-  { id: 'lights', label: 'Camp lights', whPerDay: 40, watts: 30, ac: false },
-  { id: 'laptop', label: 'Laptop', whPerDay: 150, watts: 100, ac: false, tip: 'Skip the inverter for laptops. A 100W USB-C outlet charges most of them straight off 12V with no conversion losses.' },
-  { id: 'camera', label: 'Camera or drone batteries', whPerDay: 80, watts: 60, ac: false },
+  { id: 'phones', label: 'Phones & head torches', base: true, whPerDay: 25, watts: 20, ac: false },
+  { id: 'lights', label: 'Camp lights', base: true, whPerDay: 40, watts: 30, ac: false },
+  { id: 'laptop', label: 'Laptop', base: true, whPerDay: 150, watts: 100, ac: false, tip: 'Skip the inverter for laptops. A 100W USB-C outlet charges most of them straight off 12V with no conversion losses.' },
+  { id: 'camera', label: 'Camera or drone batteries', base: true, whPerDay: 80, watts: 60, ac: false },
   { id: 'starlink', label: 'Starlink', whPerDay: 300, watts: 45, ac: false, tip: 'Starlink Mini runs off 12V and pulls around 25 to 40W. Leave it on all day and it\'s your biggest load after the fridge, so we size the battery for it.' },
   { id: 'cpap', label: 'CPAP machine', whPerDay: 300, watts: 60, ac: false, tip: 'Run your CPAP off a 12V DC converter, not the inverter. It roughly halves the draw. Turning the humidifier off saves even more.' },
-  { id: 'compressor', label: 'Tyre compressor', whPerDay: 30, watts: 450, ac: false, tip: 'Compressors pull 30A+ for a few minutes. We run a heavy-gauge Anderson plug at the back so it doesn\'t cook your accessory socket.' },
+  { id: 'compressor', label: 'Tyre compressor', base: true, whPerDay: 30, watts: 450, ac: false, tip: 'Already sorted. The base kit has the compressor built in behind its own door, with the air outlet on the side panel. Hose on, air up, done.' },
   { id: 'coffee', label: 'Coffee machine', whPerDay: 120, watts: 1400, ac: true, tip: 'Real talk: a 240V coffee machine pulls about 1,400W. That means a 2,000W inverter, a 200Ah+ battery and heavier cabling, easily $2k+ extra for a flat white. An AeroPress or stovetop on the gas makes a ripper coffee for under $80 and uses zero amps.', link: { label: 'Check out the AeroPress', href: 'https://aeropress.com/' } },
   { id: 'kettle', label: 'Kettle or induction cooktop', whPerDay: 500, watts: 2200, ac: true, tip: 'Electric kettles and induction cooktops are the hungriest thing you can run off-grid (2,000W+). A butane stove or Jetboil does the same job for a fraction of the cost and weight.' },
   { id: 'ebike', label: 'E-bike or power tool charging', whPerDay: 500, watts: 250, ac: true, tip: 'E-bike batteries are big (500Wh+). Charge them while you drive through the DC-DC and your house battery stays topped up for the fridge.' },
@@ -161,11 +164,11 @@ export const QUESTIONS: Question[] = [
   {
     id: 'fridge',
     title: 'Running a fridge?',
-    help: 'A fridge on a drop-down slide is the most-used part of any fit-out. Size matters for layout.',
+    help: 'Our base wagon layout has the fridge up at waist height in its own ply tower, on a drop slide. Size changes the tower.',
     options: [
-      { value: 'none', label: 'No fridge', sub: 'Esky or nothing', says: 'Fair enough. More drawer space for you.' },
-      { value: 'small', label: '40 to 50L', sub: 'Weekends, a couple', says: 'Good size for most wagons. Leaves room for a decent drawer beside it.' },
-      { value: 'large', label: '60L+ or dual zone', sub: 'Long trips, families', says: 'Big fridge, big trips. We\'ll give it a heavy-duty slide.' },
+      { value: 'small', label: '40 to 50L', sub: 'Weekends, a couple', says: 'Good size for most wagons. Leaves plenty of width for the big drawer beside it.' },
+      { value: 'large', label: '60L+ or dual zone', sub: 'Long trips, families', says: 'Big fridge, big trips. The tower grows to suit and gets a heavy-duty slide.' },
+      { value: 'none', label: 'No fridge', sub: 'Swap the tower for another drawer', says: 'Fair enough. The fridge tower becomes a second full-height drawer.' },
     ],
   },
   {
@@ -190,18 +193,18 @@ export const QUESTIONS: Question[] = [
   {
     id: 'power',
     title: 'What do you want to run?',
-    help: 'Pick everything you\'d like to power. We\'ll size the battery and solar, and tell you where you can save.',
+    help: 'The base kit already runs phones, laptops, lights and the compressor. Pick everything you\'d use and we\'ll tell you if you need an upgrade, and where you can save.',
     multi: true,
-    options: DEVICES.map((d) => ({ value: d.id, label: d.label, sub: d.ac ? '240V' : '12V / USB' })),
+    options: DEVICES.map((d) => ({ value: d.id, label: d.label, sub: d.base ? 'Covered by the base kit' : d.ac ? '240V, may need an upgrade' : '12V, may need an upgrade' })),
   },
   {
     id: 'finish',
     title: 'Budget or bling?',
     help: 'All our kits use the same structural materials. Finish level is what changes.',
     options: [
-      { value: 'budget', label: 'Keep it lean', sub: 'Clear-sealed birch ply', says: 'Smart. Spend on the slides and the structure, the rest is cosmetic.' },
-      { value: 'balanced', label: 'Best value', sub: 'Hand-lacquered birch ply', says: 'Our most popular finish. Looks great and wipes clean.' },
-      { value: 'premium', label: 'Go all out', sub: 'Black hex-top + side cabinets', says: 'Full send. Hard-wearing hex-top surfaces and extra side storage.' },
+      { value: 'budget', label: 'Keep it lean', sub: 'Natural birch fronts, carpet top', says: 'Smart. Spend on the slides and the structure, the rest is cosmetic.' },
+      { value: 'balanced', label: 'The Bush Bound look', sub: 'Forest green fronts, carpet top', says: 'Our signature finish. Green fronts, exposed birch edges, grey marine carpet.' },
+      { value: 'premium', label: 'Go all out', sub: 'Green fronts + black hex-top deck', says: 'Full send. Hex-top is near bulletproof for gear sliding around.' },
     ],
   },
   {
@@ -217,11 +220,11 @@ export const QUESTIONS: Question[] = [
   {
     id: 'electrical',
     title: 'How about the 12V?',
-    help: 'Based on what you picked, we\'ll recommend a system. Our electrician can install it, or we send the parts list.',
+    help: 'The base kit comes with 12V and USB sockets, a 240V outlet, a battery monitor and the air compressor. Who\'s wiring it?',
     options: [
       { value: 'installed', label: 'Bush Bound installs it', sub: 'Qualified electrician sign-off', says: 'Best option. It\'s wired, tested and signed off before you leave.' },
-      { value: 'diy', label: 'Send me the parts', sub: 'Our recommended kit, you fit it', says: 'No worries. The cabinetry comes pre-cut for cable runs and mounts.' },
-      { value: 'none', label: 'Skip it for now', sub: 'Add power later', says: 'All good. We still cut the cable runs so you can add it later.' },
+      { value: 'diy', label: 'Send me the parts', sub: 'Labelled parts, you fit it', says: 'No worries. The cabinetry comes pre-cut for cable runs and mounts.' },
+      { value: 'none', label: 'Cabinets only', sub: 'Power-ready, add it later', says: 'All good. We still cut the cable runs so you can add it later.' },
     ],
   },
 ];
@@ -230,35 +233,36 @@ export const QUESTIONS: Question[] = [
 // Kits and pricing (PLACEHOLDERS: confirm before launch)
 // ---------------------------------------------------------------------------
 
-export type KitTier = 'essentials' | 'touring' | 'expedition';
-
-export const KITS: Record<KitTier, { name: string; tagline: string; base: number }> = {
-  essentials: { name: 'Essentials Kit', tagline: 'Drawers and a flat deck. Get your gear sorted.', base: 2450 },
-  touring: { name: 'Touring Kit', tagline: 'Fridge slide or kitchen drawer for proper trips.', base: 3450 },
-  expedition: { name: 'Expedition Kit', tagline: 'Fridge, kitchen, water and power. Built to live out of.', base: 4950 },
+export const BASE_KIT = {
+  name: 'Wagon Base Kit',
+  tagline: 'Our go-to wagon layout: big drawer, fridge tower, air compressor, 12V and 240V.',
+  base: 3450,
 };
 
 export const PRICING = {
-  sleepInfill: 590,
+  kitchen: 790,
+  sleepSlats: 590,
   sleepFixed: 790,
-  sideCabinets: 890,
   waterTank: 690,
-  finishMultiplier: { budget: 0.9, balanced: 1, premium: 1.2 },
+  finishMultiplier: { budget: 0.92, balanced: 1, premium: 1.15 },
   build: { diy: 0, assembled: 1450, installed: 2450 },
 };
 
+/** What the base kit's power system covers (PLACEHOLDER specs: confirm with Luke). */
+export const BASE_POWER = { batteryAh: 100, inverterW: 1600 };
+
 export const ELECTRICAL_PRICING = {
-  batteryKit: { 100: 2200, 200: 3600, 300: 5200, 400: 6600 } as Record<number, number>,
+  basePower: 2600,
+  batteryPer100Ah: 1300,
   solarPer100W: 300,
-  inverter: { 1600: 900, 2000: 1200, 3000: 1800 } as Record<number, number>,
+  inverterUpgrade: { 2000: 350, 3000: 950 } as Record<number, number>,
   install: 1800,
-  installInverter: 400,
 };
 
 export const FINISH_LABELS: Record<string, string> = {
-  budget: 'Clear-sealed birch ply',
-  balanced: 'Hand-lacquered birch ply',
-  premium: 'Black hex-top with lacquered birch',
+  budget: 'Natural birch fronts',
+  balanced: 'Forest green fronts',
+  premium: 'Green fronts + black hex-top deck',
 };
 
 export const BUILD_LABELS: Record<string, string> = {

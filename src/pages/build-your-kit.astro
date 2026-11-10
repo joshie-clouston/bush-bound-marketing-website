@@ -56,7 +56,7 @@ const comparison = [
 
               <!-- Overlay: controls -->
               <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-3">
-                <p class="text-stone-dark/70 text-[11px] max-w-[60%] leading-snug hidden sm:block">Indicative preview. Your final design is modelled in Fusion and cut to your vehicle's floor template.</p>
+                <p class="text-stone-dark/70 text-[11px] max-w-[60%] leading-snug hidden sm:block">Indicative preview, not to scale. Your final design is drawn up by our team and cut to your vehicle's floor template.</p>
                 <div class="flex gap-2 ml-auto">
                   <button id="toggle-open" type="button" aria-pressed="false" class="bg-stone-light/10 hover:bg-stone-light/20 backdrop-blur text-stone-light text-xs font-semibold px-3 py-2 rounded-md transition-colors">Open drawers</button>
                   <button id="reset-view" type="button" class="bg-stone-light/10 hover:bg-stone-light/20 backdrop-blur text-stone-light text-xs font-semibold px-3 py-2 rounded-md transition-colors" aria-label="Reset 3D view">Reset view</button>
@@ -210,11 +210,11 @@ const comparison = [
     const MODULE_LABELS: Record<string, string> = {
       drawer: 'Drawers',
       kitchen: 'Kitchen drawer',
-      fridge: 'Fridge slide',
+      fridge: 'Fridge tower',
+      door: 'Air compressor',
+      'end-panel': '12V + 240V panels',
+      slats: 'Bed slats',
       platform: 'Fixed bed',
-      infill: 'Bed infills',
-      wing: 'Side cabinets',
-      battery: 'Battery + monitor',
       tank: 'Water tank',
       solar: 'Roof solar',
     };
@@ -223,10 +223,10 @@ const comparison = [
       const rec = recommend(answers);
       const v = rec.vehicle;
       $('viewer-vehicle').textContent = answers.vehicle && answers.vehicle !== 'other' ? v.label : answers.vehicle === 'other' ? 'Your wagon (typical size)' : `${v.label} (pick yours)`;
-      $('viewer-dims').textContent = `~${v.cargoLength}mm long · ${v.archWidth}mm between arches${rec.layout.tankLitres ? ` · ${rec.layout.tankLitres}L tank` : ''}`;
-      $('viewer-kit').textContent = rec.kitName;
+      $('viewer-dims').textContent = rec.addOns.length ? `Base layout + ${rec.addOns.join(', ').toLowerCase()}` : 'Wagon base layout';
+      $('viewer-kit').textContent = rec.addOns.length ? `Base Kit + ${rec.addOns.length}` : 'Base Kit';
 
-      const kinds = [...new Set(rec.layout.modules.map((m) => m.kind))].filter((k) => MODULE_LABELS[k]);
+      const kinds = [...new Set(rec.layout.modules.map((m) => (m.kind === 'end-panel' && !m.fixtures?.includes('sockets') ? '' : m.kind)))].filter((k) => MODULE_LABELS[k]);
       $('module-chips').innerHTML = kinds
         .map((k) => `<li class="text-xs font-medium bg-white border border-stone-dark/20 text-charcoal px-2.5 py-1 rounded-full">${MODULE_LABELS[k]}</li>`)
         .join('');
@@ -396,6 +396,7 @@ const comparison = [
           <p class="text-sand text-xs font-bold uppercase tracking-widest mb-2">Our recommendation</p>
           <h2 class="text-3xl font-extrabold">${escapeHtml(rec.kitName)}</h2>
           <p class="text-stone-dark mt-1">${escapeHtml(rec.tagline)} Cut for your ${escapeHtml(v.short)}.</p>
+          ${rec.addOns.length ? `<ul class="flex flex-wrap gap-2 mt-4">${rec.addOns.map((a) => `<li class="text-xs font-semibold bg-sand text-charcoal px-2.5 py-1 rounded-full">+ ${escapeHtml(a)}</li>`).join('')}</ul>` : ''}
           ${firstUnanswered >= 0 ? `<button type="button" data-jump-q="${firstUnanswered}" class="mt-3 text-sm text-sand underline">You skipped a question. Answer it for a sharper recommendation</button>` : ''}
           <h3 class="text-sm font-bold uppercase tracking-wider text-sand mt-6 mb-2">Why this layout</h3>
           <ul class="space-y-2 text-sm">
@@ -406,10 +407,13 @@ const comparison = [
         <div class="bg-white rounded-xl border border-stone-dark/20 p-6">
           <h3 class="font-bold text-charcoal text-lg">Power: ${escapeHtml(rec.power.tierName)}</h3>
           ${rec.power.batteryAh
-            ? `<p class="text-sm text-muted-foreground mt-1">You'll use about <strong class="text-charcoal">${rec.power.dailyWh.toLocaleString('en-AU')}Wh a day</strong>. Here's what we'd fit:</p>
-               <ul class="mt-3 space-y-1.5 text-sm">${rec.power.products.map((p) => `<li class="flex gap-2"><span class="text-primary">&#9679;</span>${escapeHtml(p)}</li>`).join('')}</ul>
+            ? `<p class="text-sm text-muted-foreground mt-1">You'll use about <strong class="text-charcoal">${rec.power.dailyWh.toLocaleString('en-AU')}Wh a day</strong>.</p>
+               <p class="text-xs font-bold uppercase tracking-wider text-sand-dark mt-4 mb-1.5">In the base kit</p>
+               <ul class="space-y-1.5 text-sm">${rec.power.baseItems.map((p) => `<li class="flex gap-2"><span class="text-primary">&#10003;</span>${escapeHtml(p)}</li>`).join('')}</ul>
+               ${rec.power.upgradeItems.length ? `<p class="text-xs font-bold uppercase tracking-wider text-sand-dark mt-4 mb-1.5">Recommended upgrades for you</p>
+               <ul class="space-y-1.5 text-sm">${rec.power.upgradeItems.map((p) => `<li class="flex gap-2"><span class="text-sand-dark">+</span>${escapeHtml(p)}</li>`).join('')}</ul>` : ''}
                <a href="/electrical-systems" class="inline-block mt-3 text-sm text-primary font-semibold hover:underline">See our electrical work &rarr;</a>`
-            : `<p class="text-sm text-muted-foreground mt-1">Nothing that needs a second battery. We'll still cut cable runs into the cabinetry so adding 12V later is easy.</p>`}
+            : `<p class="text-sm text-muted-foreground mt-1">Cabinets only. We'll still cut the cable runs into the cabinetry so adding 12V and 240V later is easy.</p>`}
         </div>
 
         ${rec.tips.length ? `
