@@ -136,7 +136,7 @@ export class KitScene {
   private modulesGroup = new THREE.Group();
   private tracked = new Map<string, Tracked>();
   private open = false;
-  /** Linear 0..1 progress for step-by-step animations (the camp table), so each step is easy to follow. */
+  /** Linear 0..1 progress for step-by-step animations (the camp table), timed to match the drawers. */
   private seqT = 0;
   /** Dev only: freeze the step-by-step sequence at a given point for checking each stage. */
   private seqOverride: number | null = null;
@@ -757,7 +757,7 @@ export class KitScene {
 
     const speed = this.reduceMotion ? 1 : 1 - Math.pow(0.0015, dt);
     const seqTarget = this.open ? 1 : 0;
-    this.seqT = this.reduceMotion ? seqTarget : this.seqT + Math.sign(seqTarget - this.seqT) * Math.min(Math.abs(seqTarget - this.seqT), realDt / 4.5);
+    this.seqT = this.reduceMotion ? seqTarget : this.seqT + Math.sign(seqTarget - this.seqT) * Math.min(Math.abs(seqTarget - this.seqT), realDt / 0.9);
     if (this.seqOverride !== null) this.seqT = this.seqOverride;
     for (const [id, t] of this.tracked) {
       t.pos.lerp(this.basePosition(t.spec), speed);
