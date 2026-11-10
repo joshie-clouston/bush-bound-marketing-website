@@ -468,9 +468,10 @@ export class KitScene {
           rig.add(m);
           return m;
         });
-        // Fold maths. Folded: the outer slats (0 and 3) are folded in over slats 1 and 2, then the
-        // left half is folded over the right at the middle hinge, giving a stack of four over slot 2.
-        // Unfolding opens the middle hinge first, then the outer slats swing out to each side.
+        // Fold maths. The table folds underside to underside (legs tucked inside, slat tops facing out):
+        // the outer slats (0 and 3) fold under slats 1 and 2, then the left half folds under the right at
+        // the middle hinge, giving a stack of four under slot 2. Unfolding swings them up from underneath:
+        // middle hinge first, then the outer slats.
         const rot = (p: { x: number; y: number; a: number }, hx: number, hy: number, a: number) => {
           const dx = p.x - hx;
           const dy = p.y - hy;
@@ -498,7 +499,7 @@ export class KitScene {
         }
         const from = spec.from ?? [0, 0, 0];
         // Where the rig sits with the folded stack (centred on slot 0) inside the cubby.
-        const inCubby = new THREE.Vector3(from[0] - cx[2], from[1] - (topY + 27), from[2]);
+        const inCubby = new THREE.Vector3(from[0] - cx[2], from[1] - (topY - 27), from[2]);
         const outside = new THREE.Vector3(inCubby.x, inCubby.y, from[2] + 1300);
         g.userData.seq = (sq: number) => {
           // 0.08-0.22 slide out of the cubby, 0.22-0.36 carry to the set-up spot,
@@ -512,9 +513,9 @@ export class KitScene {
           const outer = ease(phase(sq, 0.52, 0.68));
           slats.forEach((m, k) => {
             let p = { x: cx[k], y: topY, a: 0 };
-            if (k === 0) p = rot(p, -pitch, topY + 9, -Math.PI * (1 - outer));
-            if (k === 3) p = rot(p, pitch, topY + 9, Math.PI * (1 - outer));
-            if (k === 0 || k === 1) p = rot(p, 0, topY + 27, -Math.PI * (1 - middle));
+            if (k === 0) p = rot(p, -pitch, topY - 9, Math.PI * (1 - outer));
+            if (k === 3) p = rot(p, pitch, topY - 9, -Math.PI * (1 - outer));
+            if (k === 0 || k === 1) p = rot(p, 0, topY - 27, Math.PI * (1 - middle));
             m.position.set(p.x * MM, p.y * MM, 0);
             m.rotation.z = p.a;
           });
