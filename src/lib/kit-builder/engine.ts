@@ -19,6 +19,7 @@ import {
   FINISHES,
   QUESTIONS,
   STORAGE,
+  VEHICLES,
   getFridge,
   getVehicle,
   type FinishId,
@@ -36,7 +37,6 @@ export interface KitAnswers {
   chestMount?: 'slide' | 'fixed';
   /** Customer already owns the fridge */
   ownFridge?: boolean;
-  bed?: 'none' | 'pullout';
   storage?: StorageId[];
   power12?: 'yes' | 'no';
   power240?: 'yes' | 'no';
@@ -64,6 +64,7 @@ export function sanitiseAnswers(input: unknown): KitAnswers {
       out[q.id] = value;
     }
   }
+  if (typeof raw.vehicle === 'string' && VEHICLES.some((v) => v.id === raw.vehicle)) out.vehicle = raw.vehicle;
   if (raw.chestMount === 'slide' || raw.chestMount === 'fixed') out.chestMount = raw.chestMount;
   if (raw.ownFridge === true) out.ownFridge = true;
   if (raw.carpet === true && out.build === 'installed') out.carpet = true;
@@ -149,7 +150,7 @@ export function buildLayout(answers: KitAnswers): Layout {
   const upright = fridge?.type === 'upright';
   const chest = fridge?.type === 'chest';
   const drawerFridge = fridge?.type === 'drawer';
-  const bed = answers.bed === 'pullout';
+  const bed = store.has('bed');
 
   const W = v.floorWidth;
   const A = v.archWidth;
@@ -314,7 +315,7 @@ export function recommend(answers: KitAnswers): Recommendation {
   const fridge = layout.fridge;
   const store = storage(answers);
   const finish = FINISHES.find((f) => f.id === (answers.finish ?? 'hex'))!;
-  const build = answers.build ?? 'diy';
+  const build = answers.build;
   const carpet = carpetOn(answers);
   const p12 = wants12(answers);
   const p240 = wants240(answers);
@@ -322,8 +323,7 @@ export function recommend(answers: KitAnswers): Recommendation {
 
   const fridgeName = fridge ? (fridge.type === 'chest' ? `${fridge.label}${chestOnSlide(answers) ? ' on slide' : ', fixed'}` : fridge.label) : 'No fridge';
   const addOns: string[] = [fridgeName];
-  if (layout.bed) addOns.push('Pull-out bed');
-  for (const s of STORAGE) if (store.has(s.id)) addOns.push(s.id === 'cubby' ? 'Table + cubby' : s.label);
+  for (const s of STORAGE) if (store.has(s.id)) addOns.push(s.label);
   if (p12) addOns.push('12V');
   if (p240) addOns.push('240V');
   if (finish.id !== 'hex') addOns.push(finish.label.replace(' fronts', ''));
@@ -338,9 +338,9 @@ export function recommend(answers: KitAnswers): Recommendation {
       : `${fridge.label} fixed on a tie-down base. Reach in from the side window, no slide needed.`);
   }
   if (!fridge) why.push('No fridge, so it\'s drawers right across.');
-  if (layout.bed) why.push(`Pull-out bed: the slats slide forward over the folded rear seats and the mattress folds out on top${layout.bedIsSingle ? ', a single beside the fridge' : ''}. Packs away in seconds.`);
-  if (store.has('cubby')) why.push('Your Bush Bound table lives in its own hinged cubby. Open the door, grab it, set it up beside the car.');
-  if (store.has('pullout')) why.push('Pull-out table slides out from inside the left drawer, and comes out with it when you open the drawer. Instant bench at the tailgate.');
+  if (layout.bed) why.push(`Sliding bed: the slats slide forward over the folded rear seats and the mattress folds out on top${layout.bedIsSingle ? ', a single beside the fridge' : ''}. Packs away in seconds.`);
+  if (store.has('pullout')) why.push('Pull-out table slides out from the bottom of the left drawer. Instant bench at the tailgate.');
+  if (store.has('cubby')) why.push('Your folding Bush Bound table lives in its own hinged cubby. Open the door, grab it, set it up beside the car.');
   if (p12) why.push('12V and USB sockets on the side panel, with a battery monitor and switch.');
   if (p240) why.push('240V outlet for laptops, chargers and small appliances, running off the 12V battery.');
 
@@ -353,18 +353,17 @@ export function recommend(answers: KitAnswers): Recommendation {
   if (wantsPower(answers)) tips.push('We\'ll chat about what you want to run (fridge, Starlink, laptops, coffee) and size the battery and solar to suit before anything ships.');
   if (wantsPower(answers) && eBuild === 'installed' && build !== 'installed') tips.push('Electrical install happens at our Gold Coast workshop, so you\'ll need to bring the car in for that part.');
   if (build === 'diy') tips.push('Most people build our kits in a weekend with a drill, a few clamps and a mate. Every panel is numbered and the floor template marks exactly where to drill, clear of fuel tanks and wiring.');
-  if (build !== 'installed') tips.push('Carpet-lined tops are only available if we build and install it for you, because carpet doesn\'t flat pack.');
+  if (build && build !== 'installed') tips.push('Carpet-lined tops are only available if we build and install it for you, because carpet doesn\'t flat pack.');
 
   // What goes on the quote (labels only, priced on the server).
   const items: QuoteItem[] = [{ group: 'Cabinetry', label: `${BASE_KIT.name} for ${answers.vehicle === 'other' ? answers.vehicleName || 'your vehicle' : v.short}` }];
   if (fridge?.type === 'upright') items.push({ group: 'Cabinetry', label: 'Upright fridge cabinet' });
   if (fridge?.type === 'drawer') items.push({ group: 'Cabinetry', label: 'Drawer fridge column' });
   if (fridge?.type === 'chest') items.push({ group: 'Cabinetry', label: chestOnSlide(answers) ? 'Chest fridge slide-out rack' : 'Fixed chest fridge tie-down base' });
-  if (layout.bed) items.push({ group: 'Cabinetry', label: 'Pull-out bed with folding mattress' });
   for (const s of STORAGE) if (store.has(s.id)) items.push({ group: 'Cabinetry', label: s.label });
-  items.push({ group: 'Cabinetry', label: finish.id === 'hex' ? 'Black honeycomb finish' : `Black honeycomb with ${finish.label.toLowerCase()}` });
+  items.push({ group: 'Cabinetry', label: finish.id === 'hex' ? 'Black honeycomb birch ply' : `Black honeycomb with ${finish.label.toLowerCase()}` });
   if (carpet) items.push({ group: 'Cabinetry', label: 'Carpet-lined tops' });
-  items.push({ group: 'Cabinetry', label: BUILD_LABELS[build] });
+  if (build) items.push({ group: 'Cabinetry', label: BUILD_LABELS[build] });
   if (fridge) items.push({ group: 'Fridge', label: answers.ownFridge ? `${fridge.label} (you have one)` : `${fridge.label} (we can supply)` });
   if (p12 || p240) items.push({ group: 'Power', label: 'House battery with DC-DC charging' });
   if (p12) items.push({ group: 'Power', label: '12V and USB sockets, battery monitor and switch' });
@@ -377,7 +376,7 @@ export function recommend(answers: KitAnswers): Recommendation {
     'Pre-drilled joins and all hardware',
     'Floor install template, clear of fuel tanks, lines and wiring',
     'Heavy-duty ball-bearing slides and flush paddle latches',
-    build === 'installed' ? 'Workshop install on the Gold Coast' : build === 'assembled' ? 'Assembled and checked before it ships' : 'Flat packed and shipped Australia-wide',
+    build === 'installed' ? 'Workshop install on the Gold Coast' : build === 'assembled' ? 'Assembled and checked before it ships' : 'Flat packed and shipped Australia-wide, or built and installed for you',
   ];
 
   return { kitName: BASE_KIT.name, tagline: BASE_KIT.tagline, addOns, vehicle: v, layout, why, tips, includes, items };
@@ -396,8 +395,6 @@ export function summaryText(answers: KitAnswers, rec: Recommendation): string {
   return [
     `${rec.kitName} for ${answers.vehicle === 'other' ? answers.vehicleName || 'Other vehicle (not specified)' : rec.vehicle.label}`,
     `Fridge: ${fridge ? `${fridge.label}${fridge.type === 'chest' ? (answers.chestMount === 'fixed' ? ', fixed (side window access)' : ', on slide-out rack') : ''}${answers.ownFridge ? ' (customer has their own)' : ''}` : 'None'}`,
-    `Bed: ${q('bed')} | Tables: ${q('storage')}`,
-    `12V: ${q('power12')} | 240V: ${q('power240')}${wantsPower(answers) ? ` | Electrical: ${q('electricalBuild')}` : ''}`,
-    `Finish: ${q('finish')}${carpetOn(answers) ? ' + carpet-lined tops' : ''} | Cabinetry: ${q('build')}`,
+    `Options: ${q('storage')}`,
   ].join('\n');
 }

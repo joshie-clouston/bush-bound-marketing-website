@@ -8,27 +8,21 @@
 // ALL FIGURES ARE PLACEHOLDERS: confirm with Luke before launch.
 
 import { getFridge, type FridgeId, type StorageId, type FinishId } from '@/data/kit-builder';
-import { buildLayout, carpetOn, chestOnSlide, storage, wants12, wants240, wantsPower, type KitAnswers } from '@/lib/kit-builder/engine';
+import { carpetOn, chestOnSlide, storage, wants12, wants240, wantsPower, type KitAnswers } from '@/lib/kit-builder/engine';
 
 const PRICES = {
   baseKit: 3950, // drawers + upright fridge cabinet, black honeycomb
   fridgeCabinet: 450, // credit when there's no upright cabinet
   chestSlide: 450,
   chestFixedBase: 150,
-  pulloutBed: 690,
-  storage: { cubby: 390, pullout: 450 } as Record<StorageId, number>,
+  storage: { bed: 690, pullout: 450, cubby: 390 } as Record<StorageId, number>,
   finish: { hex: 0, green: 350, timber: 450 } as Record<FinishId, number>,
   carpet: 390,
   build: { diy: 0, assembled: 1450, installed: 2450 },
   fridges: {
-    'upright-50': 1290,
-    'upright-60': 1390,
     'upright-65': 1490,
+    'upright-85': 1790,
     'drawer-30': 1190,
-    'drawer-50': 1490,
-    'chest-40': 990,
-    'chest-60': 1290,
-    'chest-75': 1490,
   } as Record<FridgeId, number>,
   power12: 2200, // battery, DC-DC, 12V/USB sockets, monitor
   power240: 900, // inverter + outlet (needs the battery side of power12)
@@ -51,8 +45,7 @@ export interface PricedLine {
 
 /** Exact internal quote. Staff email only. */
 export function priceKit(answers: KitAnswers): { lines: PricedLine[]; total: number } {
-  const layout = buildLayout(answers);
-  const fridge = getFridge(answers.fridge);
+    const fridge = getFridge(answers.fridge);
   const store = storage(answers);
   const lines: PricedLine[] = [{ label: 'Wagon Base Kit', amount: PRICES.baseKit }];
 
@@ -63,8 +56,8 @@ export function priceKit(answers: KitAnswers): { lines: PricedLine[]; total: num
   }
   if (fridge?.type === 'drawer') lines.push({ label: 'Drawer fridge column (no cabinet)', amount: -PRICES.fridgeCabinet });
   if (!fridge) lines.push({ label: 'No fridge cabinet', amount: -PRICES.fridgeCabinet });
-  if (layout.bed) lines.push({ label: 'Pull-out bed', amount: PRICES.pulloutBed });
-  for (const id of store) lines.push({ label: id === 'cubby' ? 'Table + storage cubby' : 'Pull-out table', amount: PRICES.storage[id] });
+  const names: Record<StorageId, string> = { bed: 'Sliding bed', pullout: 'Pull-out table', cubby: 'Foldable table storage' };
+  for (const id of store) lines.push({ label: names[id], amount: PRICES.storage[id] });
   const finish = answers.finish ?? 'hex';
   if (PRICES.finish[finish]) lines.push({ label: `Finish: ${finish}`, amount: PRICES.finish[finish] });
   if (carpetOn(answers)) lines.push({ label: 'Carpet-lined tops', amount: PRICES.carpet });

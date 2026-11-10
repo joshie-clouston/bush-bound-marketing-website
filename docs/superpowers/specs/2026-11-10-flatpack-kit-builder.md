@@ -27,14 +27,12 @@ Why people pay for a kit instead of doing it from scratch:
 
 An options-first builder: customers pick what they want, watch it build in 3D and get a price **range** before asking for an official quote.
 
-1. **Steps**:
-   - **Fridge:** none, upright 50/60/65L, drawer 30/50L, or chest 40/60/75L, with a choice of slide-out rack or fixed (reached from the side window). There's an "I already have this fridge" tickbox.
-   - **Bed:** none or pull-out.
-   - **Tables:** Bush Bound table + storage cubby, and the pull-out table under the left drawer.
-   - **12V:** yes/no. **240V:** yes/no. **Who does the electrical** (only asked if either is yes).
-   - **Finish:** black honeycomb (standard), or green or timber grain laminate fronts.
-   - **Who builds the cabinetry:** with carpet-lined tops available only when we build and install.
-   - **Vehicle:** asked last.
+1. **Steps** (kept deliberately simple):
+   - **Intro:** the wagon base kit in 3D with Open/Close, and a Start button. Returning visitors can resume or start fresh.
+   - **Pick your fridge:** upright 65L, upright 85L, or drawer fridge 30L. There's an "I already have this fridge" tickbox.
+   - **Add options:** sliding bed, pull-out table (from the bottom of the left drawer), foldable table storage (the Bush Bound table in its hinged cubby).
+   - **Summary and quote form:** the vehicle is picked in the form. "Start over" is available throughout.
+   - **Not asked yet:** 12V, 240V, finish and who builds it. The code is still there (`HIDDEN_QUESTIONS` in `src/data/kit-builder.ts`), and the quote form's notes prompt covers them for now.
 2. **3D preview** in the Bush Bound look: black honeycomb birch ply with birch edges, laminate on the drawer fronts and fridge cabinet sides, and carpet tops for installed builds. **Open** slides the drawers out as open trays, swings the upright fridge door and the table cubby door, sets up the Bush Bound table beside the car, slides the pull-out bed out and unfolds the mattress. **Close** reverses it all.
 3. **No public pricing.** Prices live only in `src/lib/kit-builder/pricing.server.ts`, which runs on the server. The page asks `/api/kit-estimate` for a bracket: under $5k, $5k to $10k, $10k to $15k, $15k to $30k, $30k to $50k, or $50k+. The builder shows nothing more precise than that. The full itemised internal price goes only to the staff email. A production build check confirms no prices are in the client JavaScript.
 4. **"Get an official quote"** form: D1 (`quotes`), Notion lead, staff email (picks, internal pricing, and the bracket the customer saw), and a customer confirmation with the bracket.

@@ -23,7 +23,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
 
 <BaseLayout
   title="Build Your Flat Pack Fit-Out Kit | DIY 4WD Wagon Kits | Bush Bound"
-  description="Design your own flat pack 4WD fit-out kit for your LandCruiser, Patrol, Prado and more. Pick your fridge, bed, tables and power, watch it build in 3D, and get an official quote."
+  description="Design your own flat pack 4WD fit-out kit for your LandCruiser, Patrol, Prado and more. Pick your fridge and options, watch it build in 3D, and get an official quote."
 >
   <style is:global>
     #viewer-canvas canvas { width: 100% !important; height: 100% !important; display: block; }
@@ -38,7 +38,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       <p class="text-sand font-medium text-sm uppercase tracking-widest mb-3">Flat Pack Fit-Out Kits</p>
       <h1 class="text-3xl sm:text-5xl font-extrabold max-w-3xl">Build your wagon fit-out. Watch it come together.</h1>
       <p class="text-stone-dark mt-4 max-w-2xl text-base sm:text-lg">
-        Pick your fridge, bed, tables and power. Your fit-out builds live in 3D, and you'll see a price range before you ask for an official quote.
+        Pick your fridge and options, watch it build in 3D, and see a price range before you ask for an official quote.
       </p>
     </div>
   </section>
@@ -144,12 +144,12 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
   </section>
 
   <script>
-    import { QUESTIONS, getVehicle, type Question } from '@/data/kit-builder';
+    import { QUESTIONS, VEHICLES, getVehicle, type Question, type VehicleId } from '@/data/kit-builder';
     import { carpetOn, isAsked, recommend, sanitiseAnswers, type KitAnswers, type Recommendation } from '@/lib/kit-builder/engine';
     import { getUtmParams } from '@/lib/utm';
     import type { KitScene } from '@/lib/kit-builder/scene';
 
-    const STORAGE_KEY = 'bb-kit-builder-v4';
+    const STORAGE_KEY = 'bb-kit-builder-v5';
     const INTRO = -1;
     const SUMMARY = QUESTIONS.length;
     const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -351,7 +351,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
           ? 'Here\'s the fit-out you were putting together.'
           : 'Black honeycomb birch ply, evenly split drawers and an upright fridge, cut to suit your vehicle.'} Tap <button type="button" data-open-preview class="font-semibold text-primary underline">Open</button> on the model to see the drawers, bed and table in action.</p>
         <ul class="mt-4 space-y-1.5 text-sm text-charcoal">
-          <li class="flex gap-2"><span class="text-primary">&#10003;</span>Pick your fridge, bed, tables, power and finish</li>
+          <li class="flex gap-2"><span class="text-primary">&#10003;</span>Pick your fridge, then add a sliding bed or tables</li>
           <li class="flex gap-2"><span class="text-primary">&#10003;</span>Watch the model update as you go</li>
           <li class="flex gap-2"><span class="text-primary">&#10003;</span>See a price range, then get an official quote</li>
         </ul>
@@ -379,10 +379,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       const v = value(q.id);
       if (Array.isArray(v)) return v.length ? v.map((x) => q.options.find((o) => o.value === x)?.label ?? x).join(', ') : 'None';
       let label = q.options.find((o) => o.value === v)?.label ?? '';
-      if (q.id === 'fridge' && String(v).startsWith('chest')) label += answers.chestMount === 'fixed' ? ', fixed' : ', on slide';
-      if (q.id === 'fridge' && answers.ownFridge && v !== 'none') label += ' (have one)';
-      if (q.id === 'build' && carpetOn(answers)) label += ', carpet';
-      if (q.id === 'vehicle' && v === 'other' && answers.vehicleName) label = answers.vehicleName;
+      if (q.id === 'fridge' && answers.ownFridge) label += ' (have one)';
       return label;
     }
 
@@ -409,10 +406,6 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
     const nextButton = (label = nextLabel(), disabled = false) =>
       `<button type="button" id="next-btn" ${disabled ? 'disabled' : ''} class="mt-5 w-full min-h-[48px] py-3 bg-primary text-primary-foreground font-semibold rounded-md hover:bg-primary-light transition-colors disabled:opacity-40">${label}</button>`;
 
-    const toggleRow = (name: string, current: string, options: [string, string][]) => `
-      <div class="grid grid-cols-2 gap-2.5">
-        ${options.map(([val, label]) => `<button type="button" data-${name}="${val}" aria-pressed="${current === val}" class="min-h-[48px] rounded-lg border-2 px-3 font-semibold text-sm ${current === val ? 'border-primary bg-primary/5 text-charcoal' : 'border-stone-dark/30 bg-white text-charcoal hover:border-primary/60'}">${label}</button>`).join('')}
-      </div>`;
 
     function renderQuestion() {
       const q = QUESTIONS[step];
@@ -427,7 +420,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       $('see-kit').classList.toggle('hidden', !allAnswered());
       $('answered').innerHTML = chipsHtml(step);
 
-      // Multi-select steps start with our base build's picks.
+      // Options start with our base build's pick (the foldable table storage).
       if (q.id === 'storage' && !Array.isArray(answers.storage)) {
         answers.storage = ['cubby'];
         save();
@@ -436,7 +429,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
 
       const v = value(q.id);
       const selected = (x: string) => (Array.isArray(v) ? v.includes(x) : v === x);
-      const grid = q.id === 'vehicle' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3' : q.id === 'fridge' ? 'grid-cols-2' : 'grid-cols-1';
+      const grid = 'grid-cols-1';
 
       const optionHtml = q.options.map((o, i) => {
         const isSel = selected(o.value);
@@ -453,32 +446,15 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       }).join('');
 
       let extras = '';
-      if (q.id === 'fridge' && typeof v === 'string' && v.startsWith('chest')) {
-        extras += `<div class="mt-5"><p class="text-sm font-semibold text-charcoal mb-2">How do you want to get to it?</p>
-          ${toggleRow('chest', answers.chestMount ?? 'slide', [['slide', 'Slide-out rack'], ['fixed', 'Fixed, reach in from the side window']])}</div>`;
-      }
-      if (q.id === 'fridge' && v !== undefined && v !== 'none') {
+      if (q.id === 'fridge' && v !== undefined) {
         extras += `
           <label class="mt-4 flex items-center gap-3 min-h-[48px] cursor-pointer rounded-lg bg-stone-light px-4 py-2 text-sm text-charcoal">
             <input id="own-fridge" type="checkbox" class="w-5 h-5 accent-[#2D4A3E]" ${answers.ownFridge ? 'checked' : ''} />
             <span><strong>I already have this fridge.</strong> Just build around it.</span>
           </label>`;
       }
-      if ((q.id === 'bed' && v === 'pullout') || (q.id === 'storage' && answers.storage?.length)) {
-        extras += `<p class="mt-4 text-sm text-muted-foreground">Tap <button type="button" data-open-preview class="font-semibold text-primary underline">Open</button> on the preview to see it in action.</p>`;
-      }
-      if (q.id === 'build') {
-        extras += v === 'installed'
-          ? `<label class="mt-4 flex items-center gap-3 min-h-[48px] cursor-pointer rounded-lg bg-stone-light px-4 py-2 text-sm text-charcoal">
-              <input id="carpet" type="checkbox" class="w-5 h-5 accent-[#2D4A3E]" ${answers.carpet ? 'checked' : ''} />
-              <span><strong>Add carpet-lined tops.</strong> Only available when we build and install it for you.</span>
-            </label>`
-          : `<p class="mt-4 text-xs text-muted-foreground">Want carpet-lined tops? Pick "Build and install it for me". Carpet doesn't flat pack.</p>`;
-      }
-      if (q.id === 'vehicle' && v === 'other') {
-        extras += `<label class="block mt-4"><span class="text-sm font-semibold text-charcoal">What is it?</span>
-          <input id="vehicle-name" type="text" maxlength="80" placeholder="e.g. 2016 Toyota Fortuner" value="${escapeHtml(answers.vehicleName ?? '')}"
-            class="mt-1 w-full min-h-[48px] rounded-md border border-stone-dark/40 px-3 py-2.5 text-base focus:border-primary focus:outline-none" /></label>`;
+      if (q.id === 'storage' && answers.storage?.length) {
+        extras += `<p class="mt-4 text-sm text-muted-foreground">Tap <button type="button" data-open-preview class="font-semibold text-primary underline">Open</button> on the model to see them in action.</p>`;
       }
 
       let footer = '';
@@ -533,11 +509,6 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
         if (isMobile()) $('viewer').scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
-      const chest = target.closest<HTMLButtonElement>('[data-chest]');
-      if (chest) {
-        answers.chestMount = chest.dataset.chest as 'slide' | 'fixed';
-        return rerender();
-      }
 
       const btn = target.closest<HTMLButtonElement>('.option');
       if (!btn) return;
@@ -545,21 +516,16 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
 
       if (q.multi) {
         const list = new Set((value(q.id) as string[] | undefined) ?? []);
-        list.has(picked) ? list.delete(picked) : list.add(picked);
+        const adding = !list.has(picked);
+        adding ? list.add(picked) : list.delete(picked);
         (answers as Record<string, unknown>)[q.id] = [...list];
+        if (adding) setOpen(true);
         return rerender();
       }
 
       const already = value(q.id) === picked;
       (answers as Record<string, unknown>)[q.id] = picked;
-      if (q.id === 'fridge') {
-        if (picked === 'none') delete answers.ownFridge;
-        if (!picked.startsWith('chest')) delete answers.chestMount;
-      }
-      if (q.id === 'build' && picked !== 'installed') delete answers.carpet;
-      if ((q.id === 'power12' || q.id === 'power240') && answers.power12 !== 'yes' && answers.power240 !== 'yes') delete answers.electricalBuild;
-      if (q.id === 'bed' && picked === 'pullout') setOpen(true);
-      if (already && picked !== 'other') {
+      if (already) {
         save();
         refresh();
         goNext();
@@ -574,16 +540,6 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
         if (t.checked) answers.ownFridge = true;
         else delete answers.ownFridge;
         rerender();
-      }
-      if (t.id === 'carpet') {
-        if (t.checked) answers.carpet = true;
-        else delete answers.carpet;
-        rerender();
-      }
-      if (t.id === 'vehicle-name') {
-        answers.vehicleName = t.value.trim().slice(0, 80) || undefined;
-        save();
-        refresh();
       }
     });
 
@@ -605,7 +561,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
         <div class="bg-charcoal text-stone-light rounded-xl p-6 sm:p-7">
           <p class="text-sand text-xs font-bold uppercase tracking-widest mb-2">Your kit</p>
           <h2 class="text-3xl font-extrabold">${escapeHtml(rec.kitName)}</h2>
-          <p class="text-stone-dark mt-1">For your ${escapeHtml(answers.vehicle ? vehicleName() : 'wagon')}.</p>
+          <p class="text-stone-dark mt-1">${answers.vehicle ? `For your ${escapeHtml(vehicleName())}.` : 'Tell us your vehicle below and we\'ll cut it to suit.'}</p>
           <div class="mt-5 bg-stone-light/5 rounded-lg p-4">
             <p class="text-xs text-stone-dark uppercase tracking-wider font-semibold">Estimated range</p>
             <p class="text-3xl font-extrabold text-sand" data-bracket>${escapeHtml(bracket || '…')}</p>
@@ -648,6 +604,14 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
             <p class="text-sm text-muted-foreground mt-1">Free and no obligation. Luke will check your picks and send you an exact price within 48 hours.</p>
           </div>
           <div class="grid sm:grid-cols-2 gap-3">
+            <label class="block text-sm sm:col-span-2"><span class="font-medium text-charcoal">What are you driving?</span>
+              <select id="vehicle-select" name="vehicle" class="mt-1 w-full min-h-[48px] rounded-md border border-stone-dark/40 px-3 py-2.5 text-base bg-white focus:border-primary focus:outline-none">
+                <option value="">Pick your vehicle</option>
+                ${VEHICLES.map((veh) => `<option value="${veh.id}" ${answers.vehicle === veh.id ? 'selected' : ''}>${escapeHtml(veh.id === 'other' ? 'Something else' : veh.label)}</option>`).join('')}
+              </select></label>
+            <label id="vehicle-name-wrap" class="block text-sm sm:col-span-2 ${answers.vehicle === 'other' ? '' : 'hidden'}"><span class="font-medium text-charcoal">Make and model</span>
+              <input id="vehicle-name" type="text" maxlength="80" placeholder="e.g. 2016 Toyota Fortuner" value="${escapeHtml(answers.vehicleName ?? '')}"
+                class="mt-1 w-full min-h-[48px] rounded-md border border-stone-dark/40 px-3 py-2.5 text-base focus:border-primary focus:outline-none" /></label>
             ${[
               ['name', 'Name', 'text', 'name'],
               ['phone', 'Mobile', 'tel', 'tel'],
@@ -658,7 +622,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
                 <input name="${name}" type="${type}" autocomplete="${ac}" ${name === 'postcode' ? 'inputmode="numeric" maxlength="4"' : ''} value="${escapeHtml(formDraft[name] ?? '')}"
                   class="mt-1 w-full min-h-[48px] rounded-md border border-stone-dark/40 px-3 py-2.5 text-base focus:border-primary focus:outline-none" /></label>`).join('')}
           </div>
-          <label class="block text-sm"><span class="font-medium text-charcoal">Anything else? <span class="text-muted-foreground font-normal">(model year, your fridge make, what you want to run off the 12V)</span></span>
+          <label class="block text-sm"><span class="font-medium text-charcoal">Anything else? <span class="text-muted-foreground font-normal">(model year, 12V or 240V power, finish, whether you'd like us to build or install it)</span></span>
             <textarea name="notes" rows="3" maxlength="2000" class="mt-1 w-full rounded-md border border-stone-dark/40 px-3 py-2.5 text-base focus:border-primary focus:outline-none">${escapeHtml(formDraft.notes ?? '')}</textarea></label>
           <p id="order-error" class="hidden text-sm text-destructive"></p>
           <button type="submit" class="w-full min-h-[52px] py-3.5 bg-primary text-primary-foreground font-bold rounded-md hover:bg-primary-light transition-colors disabled:opacity-60">Get my official quote</button>
@@ -672,7 +636,23 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
 
     $('summary').addEventListener('input', (e) => {
       const t = e.target as HTMLInputElement;
-      if (t.name) formDraft[t.name] = t.value;
+      if (t.id === 'vehicle-name') {
+        answers.vehicleName = t.value.trim().slice(0, 80) || undefined;
+        save();
+        return;
+      }
+      if (t.name && t.name !== 'vehicle') formDraft[t.name] = t.value;
+    });
+
+    $('summary').addEventListener('change', (e) => {
+      const t = e.target as HTMLSelectElement;
+      if (t.id !== 'vehicle-select') return;
+      answers.vehicle = (t.value || undefined) as VehicleId | undefined;
+      if (answers.vehicle !== 'other') delete answers.vehicleName;
+      $('vehicle-name-wrap').classList.toggle('hidden', answers.vehicle !== 'other');
+      save();
+      refresh();
+      document.querySelector('#summary p.text-stone-dark')!.textContent = answers.vehicle ? `For your ${vehicleName()}.` : 'Tell us your vehicle below and we\'ll cut it to suit.';
     });
 
     $('summary').addEventListener('submit', async (e) => {
@@ -684,8 +664,9 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       error.classList.add('hidden');
 
       if (!answers.vehicle) {
-        error.innerHTML = 'Tell us what you\'re driving first. <button type="button" class="underline" data-jump="' + QUESTIONS.findIndex((q) => q.id === 'vehicle') + '">Pick your vehicle</button>';
+        error.textContent = 'Pick what you\'re driving so we can cut it to suit.';
         error.classList.remove('hidden');
+        $('vehicle-select').focus();
         return;
       }
       if (!data.name?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email || '')) {

@@ -151,7 +151,6 @@ export class KitScene {
   private lastInteraction = 0;
   private envelopeKey = '';
   private running = false;
-  private rafActive = false;
   private lastFrame = performance.now();
   private resizeObserver: ResizeObserver;
 
@@ -212,14 +211,13 @@ export class KitScene {
     this.resizeObserver.observe(container);
     this.resize();
 
-    // Pause rendering when the viewer is scrolled off-screen.
+    // Skip drawing while the viewer is scrolled off-screen. The frame loop itself keeps ticking (the
+    // browser throttles it when hidden), so it always picks up again, even after odd resizes.
     new IntersectionObserver(([entry]) => {
       this.running = entry.isIntersecting;
-      if (this.running && !this.rafActive) {
-        this.lastFrame = performance.now();
-        this.loop();
-      }
     }).observe(container);
+    this.running = true;
+    this.loop();
   }
 
   private buildMaterials() {
@@ -420,7 +418,7 @@ export class KitScene {
   // -------------------------------------------------------------------------
 
   /** A door hinged on one side that swings open with "Open". */
-  private hingedDoor(w: number, h: number, hinge: 'left' | 'right', content: THREE.Object3D): THREE.Group {
+  private hingedDoor(w: number, _h: number, hinge: 'left' | 'right', content: THREE.Object3D): THREE.Group {
     const pivot = new THREE.Group();
     pivot.position.x = ((hinge === 'left' ? -w : w) / 2) * MM;
     content.position.x = ((hinge === 'left' ? w : -w) / 2) * MM;
@@ -619,7 +617,8 @@ export class KitScene {
       case 'fridge-cabinet': {
         // Gables: only the outer seen face takes the laminate; the board stays black honeycomb with birch edges.
         for (const sx of [-1, 1]) g.add(this.at(this.box(18, h, d, this.board([sx < 0 ? 1 : 0]), 'birch'), sx * (w / 2 - 9), 0, 0));
-        g.add(this.at(this.box(w, 18, d, this.m.hex, 'birch'), 0, h / 2 - 9, 0));
+        // Top sits between the two gables.
+        g.add(this.at(this.box(w - 36, 18, d, this.m.hex, 'birch'), 0, h / 2 - 9, 0));
         break;
       }
 
@@ -790,13 +789,12 @@ export class KitScene {
   }
 
   private loop = () => {
-    if (!this.running) {
-      this.rafActive = false;
-      return;
-    }
-    this.rafActive = true;
     requestAnimationFrame(this.loop);
     const now = performance.now();
+    if (!this.running) {
+      this.lastFrame = now;
+      return;
+    }
     const realDt = Math.min((now - this.lastFrame) / 1000, 0.25);
     const dt = Math.min(realDt, 0.05);
     this.lastFrame = now;

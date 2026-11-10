@@ -118,7 +118,7 @@ export const DEVICES: Device[] = [
 // ---------------------------------------------------------------------------
 
 export type FridgeType = 'upright' | 'drawer' | 'chest';
-export type FridgeId = 'upright-50' | 'upright-60' | 'upright-65' | 'drawer-30' | 'drawer-50' | 'chest-40' | 'chest-60' | 'chest-75';
+export type FridgeId = 'upright-65' | 'upright-85' | 'drawer-30';
 
 export interface Fridge {
   id: FridgeId;
@@ -132,14 +132,9 @@ export interface Fridge {
 }
 
 export const FRIDGES: Fridge[] = [
-  { id: 'upright-50', type: 'upright', litres: 50, label: 'Upright fridge 50L', w: 460, d: 540, h: 580 },
-  { id: 'upright-60', type: 'upright', litres: 60, label: 'Upright fridge 60L', w: 470, d: 550, h: 620 },
   { id: 'upright-65', type: 'upright', litres: 65, label: 'Upright fridge 65L', w: 480, d: 560, h: 650 },
+  { id: 'upright-85', type: 'upright', litres: 85, label: 'Upright fridge 85L', w: 520, d: 600, h: 760 },
   { id: 'drawer-30', type: 'drawer', litres: 30, label: 'Drawer fridge 30L', w: 480, d: 600, h: 320 },
-  { id: 'drawer-50', type: 'drawer', litres: 50, label: 'Drawer fridge 50L', w: 540, d: 700, h: 380 },
-  { id: 'chest-40', type: 'chest', litres: 40, label: 'Chest fridge 40L', w: 400, d: 640, h: 470 },
-  { id: 'chest-60', type: 'chest', litres: 60, label: 'Chest fridge 60L', w: 450, d: 720, h: 520 },
-  { id: 'chest-75', type: 'chest', litres: 75, label: 'Chest fridge 75L', w: 480, d: 800, h: 560 },
 ];
 
 export const DEFAULT_FRIDGE: FridgeId = 'upright-65';
@@ -153,11 +148,12 @@ export function getFridge(id: string | undefined): Fridge | null {
 // Storage options
 // ---------------------------------------------------------------------------
 
-export type StorageId = 'cubby' | 'pullout';
+export type StorageId = 'bed' | 'pullout' | 'cubby';
 
 export const STORAGE: { id: StorageId; label: string; sub: string }[] = [
-  { id: 'cubby', label: 'Bush Bound table + storage cubby', sub: 'Our slatted folding camp table, stored in its own hinged cubby. Tap Open to see it' },
-  { id: 'pullout', label: 'Pull-out table', sub: 'A table that slides out from inside the left drawer' },
+  { id: 'bed', label: 'Sliding bed', sub: 'Slides out over the folded rear seats, with a folding mattress' },
+  { id: 'pullout', label: 'Pull-out table', sub: 'Slides out from the bottom of the left drawer' },
+  { id: 'cubby', label: 'Foldable table storage', sub: 'Our folding Bush Bound table, in its own hinged cubby' },
 ];
 
 /** Ticked before the customer reaches the storage step (matches our base wagon build). */
@@ -189,7 +185,7 @@ export interface QuestionOption {
 }
 
 export interface Question {
-  id: 'fridge' | 'bed' | 'storage' | 'power12' | 'power240' | 'electricalBuild' | 'finish' | 'build' | 'vehicle';
+  id: 'fridge' | 'storage';
   title: string;
   help: string;
   multi?: boolean;
@@ -201,86 +197,28 @@ export interface Question {
 export const QUESTIONS: Question[] = [
   {
     id: 'fridge',
-    title: 'Fridge',
-    help: 'Pick the fridge you want built in. The cabinetry sizes itself around it.',
-    options: [
-      { value: 'none', label: 'No fridge', group: 'No fridge', sub: 'Drawers right across' },
-      ...FRIDGES.map((f) => ({
-        value: f.id,
-        label: f.label,
-        group: f.type === 'upright' ? 'Upright fridge' : f.type === 'drawer' ? 'Drawer fridge' : 'Chest fridge',
-        sub: f.type === 'upright' ? 'Front-opening, in its own cabinet' : f.type === 'drawer' ? 'Built into the drawer system' : 'Lid on top',
-      })),
-    ],
-  },
-  {
-    id: 'bed',
-    title: 'Bed',
-    help: 'The pull-out bed slides forward over the folded rear seats. Tap Open on the preview to see it.',
-    options: [
-      { value: 'none', label: 'No bed', sub: 'Drawers and storage only' },
-      { value: 'pullout', label: 'Pull-out bed', sub: 'Slides out with a folding mattress' },
-    ],
+    title: 'Pick your fridge',
+    help: 'The cabinetry is built around it.',
+    options: FRIDGES.map((f) => ({
+      value: f.id,
+      label: f.label,
+      sub: f.type === 'upright' ? 'Front-opening, in its own cabinet' : 'Built into the drawers',
+    })),
   },
   {
     id: 'storage',
-    title: 'Tables',
-    help: 'Tick what you want, or neither.',
+    title: 'Add options',
+    help: 'Tick any you want. Tap Open on the model to see them in action.',
     multi: true,
-    options: STORAGE.map((s) => ({ value: s.id, label: s.label, sub: s.sub })),
-  },
-  {
-    id: 'power12',
-    title: '12V power',
-    help: 'House battery charged from the car, 12V and USB sockets, and a battery monitor. Runs the fridge, lights and charges your devices.',
-    options: [
-      { value: 'yes', label: 'Yes, add 12V', sub: 'Battery, charging, 12V and USB sockets, monitor' },
-      { value: 'no', label: 'No 12V', sub: 'Cable runs cut so you can add it later' },
-    ],
-  },
-  {
-    id: 'power240',
-    title: '240V power',
-    help: 'An inverter and 240V outlet for laptops, chargers and small appliances. It runs off the 12V battery.',
-    options: [
-      { value: 'yes', label: 'Yes, add 240V', sub: 'Inverter and 240V outlet' },
-      { value: 'no', label: 'No 240V', sub: '' },
-    ],
-  },
-  {
-    id: 'electricalBuild',
-    title: 'How do you want the electrical?',
-    help: 'We\'ll size the system to what you want to run before anything ships.',
-    needsPower: true,
-    options: [
-      { value: 'diy', label: 'I\'ll install it myself', sub: 'Send me the parts, labelled, for me or my auto electrician' },
-      { value: 'assembled', label: 'Build it for me, I\'ll install it', sub: 'Arrives pre-wired on a panel, I connect it up' },
-      { value: 'installed', label: 'Build and install it for me', sub: 'At your Gold Coast workshop, with electrician sign-off' },
-    ],
-  },
-  {
-    id: 'finish',
-    title: 'Finish',
-    help: 'Black honeycomb is our standard. Laminate goes on the drawer fronts and fridge cabinet sides.',
-    options: FINISHES.map((f) => ({ value: f.id, label: f.label, sub: f.sub })),
-  },
-  {
-    id: 'build',
-    title: 'How do you want the fit-out built?',
-    help: 'Every kit is CNC cut, numbered and pre-drilled, with a floor template for installing.',
-    options: [
-      { value: 'diy', label: 'I\'ll build and install it myself', sub: 'DIY flat pack, shipped to me' },
-      { value: 'assembled', label: 'Build it for me, I\'ll install it', sub: 'Arrives assembled, I bolt it in' },
-      { value: 'installed', label: 'Build and install it for me', sub: 'At your Gold Coast workshop' },
-    ],
-  },
-  {
-    id: 'vehicle',
-    title: 'What are you driving?',
-    help: 'We\'ve got the measurements for these. Every kit is cut for your exact vehicle.',
-    options: VEHICLES.map((v) => ({ value: v.id, label: v.short === 'your wagon' ? 'Something else' : v.short, sub: v.make === 'Other' ? 'Tell us what it is' : v.label })),
+    options: STORAGE.map((o) => ({ value: o.id, label: o.label, sub: o.sub })),
   },
 ];
+
+/**
+ * Not asked in the builder for now (kept so they're easy to bring back): power, finish and who builds it.
+ * The quote request covers these with the customer.
+ */
+export const HIDDEN_QUESTIONS = ['power12', 'power240', 'electricalBuild', 'finish', 'build'] as const;
 
 // ---------------------------------------------------------------------------
 // Names (prices are server-side only, see pricing.server.ts)
