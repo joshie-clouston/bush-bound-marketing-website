@@ -25,33 +25,30 @@ Why people pay for a kit instead of doing it from scratch:
 
 ## What this PR ships (MVP)
 
-1. **Questionnaire**, 10 steps: vehicle, **boot measurements**, trip type, sleeping, **fridge**, **features**, what you want to power, finish, who builds it, 12V install.
-2. **Measurements.** Boot width, width between the wheel arches (defaults to 1,200mm), depth from the start of the boot to the rear seats, and boot height. They're prefilled with typical numbers for the chosen vehicle. The model resizes as they type, and the four measurements are drawn on it as labelled dimension lines (with a "Hide sizes" toggle). Only the customer's own measurements appear, never our cabinet dimensions.
-3. **Even split.** The space between the arches is divided into equal columns: two, or three on wide boots (1,500mm+ between the arches).
-4. **Fridge choice**, grouped by type:
-   - **Upright** 50/65/85L: front-opening, in its own cabinet over the pull-out table, like our 80 Series base build. The door swings open in the preview.
-   - **Drawer fridge** 30/50L: built into the right-hand column.
-   - **Chest fridge** 40/60/75L: on a drop slide in the right-hand column.
-   - **No fridge.**
+An options-first builder: customers pick what they want, watch it build in 3D and get a price **range** before asking for an official quote.
 
-   Sizes, power draw and prices are **guesses**: swap in the exact models in `FRIDGES`.
-5. **Features (tick boxes):** pull-out table and air compressor (ticked by default, matching the base build), kitchen slide-out, water tank. With an upright fridge, the table lives in the cabinet under it, next to the compressor hatch. Otherwise it's a slim slide under the first column's top.
-6. **Live 3D preview** in the Bush Bound look: green fronts with birch edges, finger-pull notches, paddle latches, carpet tops, side panels with 12V/USB/240V sockets, monitor, switch and air coupler (when the side panels are wide enough), plus bed slats or a fixed bed, tank and solar.
-7. **Expert advice**: device tips, fridge fit warnings (too wide for an even split, too tall for the boot), single-bed-beside-the-fridge, headroom, tank size, remote water planning.
-8. **Power, base kit first**: only recommends upgrades when the picked fridge and devices need them.
-9. **Recommendation + indicative price**, including the fridge as an optional "we can supply" line.
-10. **"Lock in your kit" form**: D1 (`quotes`), Notion lead, staff summary email (includes the customer's measurements) and customer confirmation.
+1. **Steps**:
+   - **Fridge:** none, upright 50/60/65L, drawer 30/50L, or chest 40/60/75L, with a choice of slide-out rack or fixed (reached from the side window). There's an "I already have this fridge" tickbox.
+   - **Bed:** none or pull-out.
+   - **Tables:** Bush Bound table + storage cubby, and the pull-out table under the left drawer.
+   - **12V:** yes/no. **240V:** yes/no. **Who does the electrical** (only asked if either is yes).
+   - **Finish:** black honeycomb (standard), or green or timber grain laminate fronts.
+   - **Who builds the cabinetry:** with carpet-lined tops available only when we build and install.
+   - **Vehicle:** asked last.
+2. **3D preview** in the Bush Bound look: black honeycomb birch ply with birch edges, laminate on the drawer fronts and fridge cabinet sides, and carpet tops for installed builds. **Open** slides the drawers out as open trays, swings the upright fridge door and the table cubby door, sets up the Bush Bound table beside the car, slides the pull-out bed out and unfolds the mattress. **Close** reverses it all.
+3. **No public pricing.** Prices live only in `src/lib/kit-builder/pricing.server.ts`, which runs on the server. The page asks `/api/kit-estimate` for a bracket: under $5k, $5k to $10k, $10k to $15k, $15k to $30k, $30k to $50k, or $50k+. The builder shows nothing more precise than that. The full itemised internal price goes only to the staff email. A production build check confirms no prices are in the client JavaScript.
+4. **"Get an official quote"** form: D1 (`quotes`), Notion lead, staff email (picks, internal pricing, and the bracket the customer saw), and a customer confirmation with the bracket.
 
-Everything you'd want to edit is in `src/data/kit-builder.ts`. The server rebuilds the recommendation from the answers, so it never trusts prices sent from the browser.
+Browser-side option names and copy live in `src/data/kit-builder.ts` (no prices in there).
 
 ## Before launch: must do
 
-- [ ] **Set real prices.** `BASE_KIT`, `PRICING` and `ELECTRICAL_PRICING` are placeholders.
-- [ ] **Confirm the base power spec** (`BASE_POWER`: battery Ah and inverter W). It decides when an upgrade gets recommended.
-- [ ] **Send the exact fridge models** to replace the guessed `FRIDGES` list (sizes, Wh/day, prices).
-- [ ] **Sanity-check the typical vehicle sizes** in `VEHICLES` used to prefill the measurements step.
+- [ ] **Set real prices** in `src/lib/kit-builder/pricing.server.ts`. They're placeholders. Never move them into a file a page imports.
+- [ ] **Exact fridge models** to replace the guessed sizes in `FRIDGES`.
+- [ ] **Vehicle measurements** in `VEHICLES`. These now drive the layout directly, since customers no longer enter them.
+- [ ] **Where the air compressor goes.** It's been taken out of the builder until we know its real spot.
+- [ ] **12V/240V sizing questions** (what they want to run) for the next phase.
 - [ ] **Add a "Flatpack Kit" option** to the Notion Type select if the integration can't create it.
-- [ ] **Decide on lead times** for the success screen and emails (currently "within 48 hours").
 
 ## Next phases
 

@@ -23,7 +23,7 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
 
 <BaseLayout
   title="Build Your Flat Pack Fit-Out Kit | DIY 4WD Wagon Kits | Bush Bound"
-  description="Design your own flat pack 4WD fit-out kit for your LandCruiser, Patrol, Prado and more. Answer a few questions, watch your layout build in 3D, and get expert advice on fridge, water and 12V power."
+  description="Design your own flat pack 4WD fit-out kit for your LandCruiser, Patrol, Prado and more. Pick your fridge, bed, tables and power, watch it build in 3D, and get an official quote."
 >
   <style is:global>
     #viewer-canvas canvas { width: 100% !important; height: 100% !important; display: block; }
@@ -38,7 +38,7 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
       <p class="text-sand font-medium text-sm uppercase tracking-widest mb-3">Flat Pack Fit-Out Kits</p>
       <h1 class="text-3xl sm:text-5xl font-extrabold max-w-3xl">Build your wagon fit-out. Watch it come together.</h1>
       <p class="text-stone-dark mt-4 max-w-2xl text-base sm:text-lg">
-        Answer a few quick questions. Your layout builds live in 3D with a running price, and we'll tell you straight what you need and what you don't.
+        Pick your fridge, bed, tables and power. Your fit-out builds live in 3D, and you'll see a price range before you ask for an official quote.
       </p>
     </div>
   </section>
@@ -59,25 +59,24 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
                 <p id="viewer-changes" class="text-stone-dark/80 text-xs mt-0.5 line-clamp-1 sm:line-clamp-2"></p>
               </div>
               <div class="text-right shrink-0">
-                <p id="viewer-price" class="bg-sand text-charcoal text-sm font-extrabold px-2.5 py-1 rounded-full whitespace-nowrap">$0</p>
-                <p class="text-[10px] text-stone-dark/70 mt-0.5">Estimate, inc. GST</p>
+                <p data-bracket class="bg-sand text-charcoal text-sm font-extrabold px-2.5 py-1 rounded-full whitespace-nowrap">…</p>
+                <p class="text-[10px] text-stone-dark/70 mt-0.5">Estimated range</p>
               </div>
             </div>
 
             <div class="sm:absolute sm:bottom-2.5 sm:left-3 sm:right-3 flex items-center sm:items-end justify-between gap-2 px-3 py-1 sm:p-0 bg-charcoal sm:bg-transparent">
               <p class="text-stone-dark/70 text-[11px] leading-snug hidden sm:block max-w-[45%]">
                 <span class="hidden lg:inline">Drag to rotate · Ctrl + scroll to zoom.</span>
-                Indicative preview, not to scale.
+                Tap Open to see the drawers, bed and table in action.
               </p>
               <div class="flex gap-1.5 ml-auto">
-                <button id="toggle-dims" type="button" aria-pressed="true" class={viewerBtn}>Hide sizes</button>
-                <button id="toggle-open" type="button" aria-pressed="false" class={viewerBtn}>Open drawers</button>
+                <button id="toggle-open" type="button" aria-pressed="false" class={`${viewerBtn} min-w-[72px]`}>Open</button>
                 <button id="reset-view" type="button" class={viewerBtn} aria-label="Reset 3D view">Reset</button>
               </div>
             </div>
 
             <div id="viewer-fallback" class="hidden absolute inset-0 items-center justify-center p-6 text-center text-stone-dark text-sm">
-              Your browser can't show the 3D preview, but the questions, price and recommendation still work fine.
+              Your browser can't show the 3D preview, but the options and quote request still work fine.
             </div>
           </div>
           <ul id="module-chips" class="hidden lg:flex flex-wrap gap-2 mt-3" aria-label="What's in your layout"></ul>
@@ -92,7 +91,7 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
                 Back
               </button>
               <div class="flex items-center gap-3">
-                <p id="step-count" class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Step 1 of 10</p>
+                <p id="step-count" class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">1 of 8</p>
                 <button id="see-kit" type="button" class="hidden min-h-[44px] px-3 text-xs font-bold bg-sand text-charcoal rounded-md">See my kit</button>
               </div>
             </div>
@@ -144,19 +143,15 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
   </section>
 
   <script>
-    import { QUESTIONS, DEVICES, DIM_FIELDS, DEFAULT_FEATURES, getVehicle, type Question, type Dims } from '@/data/kit-builder';
-    import { recommend, resolveDims, sanitiseAnswers, type KitAnswers, type Recommendation } from '@/lib/kit-builder/engine';
+    import { QUESTIONS, getVehicle, type Question } from '@/data/kit-builder';
+    import { carpetOn, isAsked, recommend, sanitiseAnswers, type KitAnswers, type Recommendation } from '@/lib/kit-builder/engine';
     import { getUtmParams } from '@/lib/utm';
     import type { KitScene } from '@/lib/kit-builder/scene';
 
-    const STORAGE_KEY = 'bb-kit-builder-v3';
+    const STORAGE_KEY = 'bb-kit-builder-v4';
     const SUMMARY = QUESTIONS.length;
     const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
     const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
-    const num = (n: number) => Math.abs(n).toLocaleString('en-AU');
-    const money = (n: number) => `${n < 0 ? '−' : ''}$${num(n)}`;
-    const delta = (n: number) => `${n < 0 ? '−' : '+'}$${num(n)}`;
-    const mm = (n: number) => n.toLocaleString('en-AU');
     const isMobile = () => window.innerWidth < 1024;
 
     let answers: KitAnswers = {};
@@ -166,6 +161,8 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
     let returnToSummary = false;
     /** Order form values survive re-rendering the summary. */
     const formDraft: Record<string, string> = {};
+    /** Latest price bracket from the server (we never ship prices to the browser). */
+    let bracket = '';
 
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
@@ -177,6 +174,26 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
 
     function save() {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, step })); } catch { /* ignore */ }
+    }
+
+    // -----------------------------------------------------------------------
+    // Price bracket (from the server)
+    // -----------------------------------------------------------------------
+
+    let estimateTimer = 0;
+    let estimateSeq = 0;
+    function requestEstimate() {
+      window.clearTimeout(estimateTimer);
+      estimateTimer = window.setTimeout(async () => {
+        const seq = ++estimateSeq;
+        try {
+          const res = await fetch('/api/kit-estimate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ answers }) });
+          const data = (await res.json()) as { bracket?: string };
+          if (seq !== estimateSeq || !data.bracket) return;
+          bracket = data.bracket;
+          document.querySelectorAll('[data-bracket]').forEach((el) => { el.textContent = bracket; });
+        } catch { /* keep the last bracket */ }
+      }, 250);
     }
 
     // -----------------------------------------------------------------------
@@ -204,78 +221,68 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
       refresh();
     }
 
-    $('toggle-open').addEventListener('click', (e) => {
-      const btn = e.currentTarget as HTMLButtonElement;
-      const open = btn.getAttribute('aria-pressed') !== 'true';
+    function setOpen(open: boolean) {
+      const btn = $('toggle-open');
       btn.setAttribute('aria-pressed', String(open));
-      btn.textContent = open ? 'Close drawers' : 'Open drawers';
+      btn.textContent = open ? 'Close' : 'Open';
       scene?.setOpen(open);
-    });
-    $('reset-view').addEventListener('click', () => scene?.resetView());
-    /** null = automatic: always on desktop, only on the measurements step on phones. */
-    let dimsPref: boolean | null = null;
-    function syncDims() {
-      const show = dimsPref ?? (!isMobile() || QUESTIONS[step]?.form === 'dims');
-      const btn = $('toggle-dims');
-      btn.setAttribute('aria-pressed', String(show));
-      btn.textContent = show ? 'Hide sizes' : 'Show sizes';
-      scene?.setDimsVisible(show);
     }
-    $('toggle-dims').addEventListener('click', (e) => {
-      dimsPref = (e.currentTarget as HTMLButtonElement).getAttribute('aria-pressed') !== 'true';
-      syncDims();
-    });
+    $('toggle-open').addEventListener('click', (e) => setOpen((e.currentTarget as HTMLElement).getAttribute('aria-pressed') !== 'true'));
+    $('reset-view').addEventListener('click', () => scene?.resetView());
 
     const MODULE_LABELS: Record<string, string> = {
       drawer: 'Drawers',
-      kitchen: 'Kitchen drawer',
-      table: 'Pull-out table',
       'fridge-upright': 'Upright fridge',
       'drawer-fridge': 'Drawer fridge',
       'fridge-chest': 'Chest fridge',
-      hatch: 'Air compressor',
-      'end-panel': '12V + 240V panels',
-      slats: 'Bed slats',
-      platform: 'Fixed bed',
-      tank: 'Water tank',
+      cubby: 'Table cubby',
+      pullout: 'Pull-out table',
+      slats: 'Pull-out bed',
+      'end-panel': 'Power panels',
     };
 
     function vehicleName() {
-      if (answers.vehicle === 'other') return answers.vehicleName || 'Your wagon';
+      if (answers.vehicle === 'other') return answers.vehicleName || 'Your vehicle';
       return getVehicle(answers.vehicle).label;
     }
 
     function refresh(): Recommendation {
       const rec = recommend(answers);
-      $('viewer-vehicle').textContent = answers.vehicle ? vehicleName() : `${getVehicle(undefined).label} (pick yours)`;
-      $('viewer-changes').textContent = rec.addOns.length ? `Wagon Base Kit · ${rec.addOns.join(' · ')}` : 'Wagon Base Kit';
-      $('viewer-price').textContent = money(rec.total);
-      const kinds = [...new Set(rec.layout.modules.map((m) => (m.kind === 'end-panel' && !m.fixtures?.includes('sockets') ? '' : m.kind)))].filter((k) => MODULE_LABELS[k]);
+      $('viewer-vehicle').textContent = answers.vehicle ? vehicleName() : `Preview: ${getVehicle(undefined).short}`;
+      $('viewer-changes').textContent = rec.addOns.join(' · ');
+      const kinds = [...new Set(rec.layout.modules.map((m) => (m.kind === 'end-panel' && !m.fixtures?.length ? '' : m.kind)))].filter((k) => MODULE_LABELS[k]);
       $('module-chips').innerHTML = kinds.map((k) => `<li class="text-xs font-medium bg-white border border-stone-dark/20 text-charcoal px-2.5 py-1 rounded-full">${MODULE_LABELS[k]}</li>`).join('');
-      scene?.update(rec.layout, answers.finish);
-      syncDims();
+      scene?.update(rec.layout, { fronts: answers.finish ?? 'hex', carpet: carpetOn(answers) });
+      requestEstimate();
       return rec;
     }
 
     // -----------------------------------------------------------------------
-    // Navigation (with browser Back support)
+    // Navigation (skips questions that don't apply, supports browser Back)
     // -----------------------------------------------------------------------
 
     const value = (id: string) => (answers as Record<string, unknown>)[id];
-    /** True once the customer has typed at least one of their own measurements. */
-    const measured = () => !!answers.dims && Object.keys(answers.dims).length > 0;
+    const asked = () => QUESTIONS.map((q, i) => ({ q, i })).filter(({ q }) => isAsked(q, answers));
 
     function isAnswered(q: Question) {
       const v = value(q.id);
-      if (q.id === 'sleep') return v === 'no' || ((v === 'yes' || v === 'sometimes') && !!answers.sleepers);
       return q.multi ? Array.isArray(v) : v !== undefined;
     }
-    const allAnswered = () => QUESTIONS.every(isAnswered);
+    const allAnswered = () => asked().every(({ q }) => isAnswered(q));
+
+    function nextIndex(from: number) {
+      for (let i = from + 1; i < QUESTIONS.length; i++) if (isAsked(QUESTIONS[i], answers)) return i;
+      return SUMMARY;
+    }
+    function prevIndex(from: number) {
+      for (let i = Math.min(from, QUESTIONS.length) - 1; i >= 0; i--) if (isAsked(QUESTIONS[i], answers)) return i;
+      return 0;
+    }
 
     function render() {
+      if (step < SUMMARY && !isAsked(QUESTIONS[step], answers)) step = nextIndex(step);
       if (step >= SUMMARY) renderSummary();
       else renderQuestion();
-      syncDims();
     }
 
     function goTo(next: number, opts: { push?: boolean; replace?: boolean; scroll?: boolean } = {}) {
@@ -292,7 +299,7 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
         returnToSummary = false;
         goTo(SUMMARY);
       } else {
-        goTo(step + 1);
+        goTo(nextIndex(step));
       }
     }
 
@@ -301,7 +308,7 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
       if (typeof s === 'number') goTo(s, { push: false });
     });
 
-    $('back-btn').addEventListener('click', () => goTo(step - 1, { replace: true }));
+    $('back-btn').addEventListener('click', () => goTo(prevIndex(step), { replace: true }));
     $('see-kit').addEventListener('click', () => {
       returnToSummary = false;
       goTo(SUMMARY);
@@ -317,26 +324,20 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
     // -----------------------------------------------------------------------
 
     function answerLabel(q: Question) {
-      if (q.form === 'dims') {
-        if (!measured()) return 'Typical sizes';
-        const d = resolveDims(answers);
-        return `${mm(d.width)} × ${mm(d.arches)} × ${mm(d.depth)} × ${mm(d.height)}`;
-      }
       const v = value(q.id);
-      if (Array.isArray(v)) {
-        if (!v.length) return 'None';
-        return v.map((x) => q.options.find((o) => o.value === x)?.label ?? x).join(', ');
-      }
+      if (Array.isArray(v)) return v.length ? v.map((x) => q.options.find((o) => o.value === x)?.label ?? x).join(', ') : 'None';
       let label = q.options.find((o) => o.value === v)?.label ?? '';
-      if (q.id === 'sleep' && v !== 'no' && answers.sleepers) label += answers.sleepers === 2 ? ', two of us' : ', just me';
+      if (q.id === 'fridge' && String(v).startsWith('chest')) label += answers.chestMount === 'fixed' ? ', fixed' : ', on slide';
       if (q.id === 'fridge' && answers.ownFridge && v !== 'none') label += ' (have one)';
+      if (q.id === 'build' && carpetOn(answers)) label += ', carpet';
+      if (q.id === 'vehicle' && v === 'other' && answers.vehicleName) label = answers.vehicleName;
       return label;
     }
 
     function chipsHtml(skip = -1) {
-      return QUESTIONS.map((q, i) => {
+      return asked().map(({ q, i }) => {
         if (!isAnswered(q) || i === skip) return '';
-        return `<li><button type="button" data-jump="${i}" class="min-h-[44px] inline-flex items-center text-left text-sm bg-white border border-stone-dark/20 hover:border-primary text-charcoal px-3 py-2 rounded-lg transition-colors"><span><span class="text-muted-foreground">${escapeHtml(q.title.replace('?', ''))}:</span> ${escapeHtml(answerLabel(q))}</span></button></li>`;
+        return `<li><button type="button" data-jump="${i}" class="min-h-[44px] inline-flex items-center text-left text-sm bg-white border border-stone-dark/20 hover:border-primary text-charcoal px-3 py-2 rounded-lg transition-colors"><span><span class="text-muted-foreground">${escapeHtml(q.title)}:</span> ${escapeHtml(answerLabel(q))}</span></button></li>`;
       }).join('');
     }
 
@@ -349,127 +350,102 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
     // Question rendering
     // -----------------------------------------------------------------------
 
-    const advisorHtml = (text: string) => `
-      <div class="mt-4 flex gap-3 items-start">
-        <img src="/favicon.svg" alt="" class="w-8 h-8 rounded-full bg-charcoal p-1 shrink-0" />
-        <div class="bg-stone rounded-xl rounded-tl-sm px-4 py-3 text-sm text-charcoal">
-          <p class="text-[11px] font-bold text-sand-dark uppercase tracking-wider mb-0.5">Bush Bound says</p>
-          <p>${escapeHtml(text)}</p>
-        </div>
+    const nextLabel = () => {
+      if (returnToSummary && allAnswered()) return 'Back to my kit';
+      return nextIndex(step) >= SUMMARY ? 'See my kit' : 'Next';
+    };
+    const nextButton = (label = nextLabel(), disabled = false) =>
+      `<button type="button" id="next-btn" ${disabled ? 'disabled' : ''} class="mt-5 w-full min-h-[48px] py-3 bg-primary text-primary-foreground font-semibold rounded-md hover:bg-primary-light transition-colors disabled:opacity-40">${label}</button>`;
+
+    const toggleRow = (name: string, current: string, options: [string, string][]) => `
+      <div class="grid grid-cols-2 gap-2.5">
+        ${options.map(([val, label]) => `<button type="button" data-${name}="${val}" aria-pressed="${current === val}" class="min-h-[48px] rounded-lg border-2 px-3 font-semibold text-sm ${current === val ? 'border-primary bg-primary/5 text-charcoal' : 'border-stone-dark/30 bg-white text-charcoal hover:border-primary/60'}">${label}</button>`).join('')}
       </div>`;
-
-    const nextLabel = () => (returnToSummary && allAnswered() ? 'Back to my kit' : 'Next');
-    const nextButton = (label = nextLabel(), id = 'next-btn', disabled = false) =>
-      `<button type="button" id="${id}" ${disabled ? 'disabled' : ''} class="mt-5 w-full min-h-[48px] py-3 bg-primary text-primary-foreground font-semibold rounded-md hover:bg-primary-light transition-colors disabled:opacity-40">${label}</button>`;
-
-    /** How much picking this option would change the estimate. */
-    function priceDelta(q: Question, optionValue: string, baseTotal: number) {
-      const next: KitAnswers = { ...answers };
-      if (q.multi) {
-        const list = new Set((value(q.id) as string[] | undefined) ?? (q.id === 'features' ? DEFAULT_FEATURES : []));
-        list.has(optionValue) ? list.delete(optionValue) : list.add(optionValue);
-        (next as Record<string, unknown>)[q.id] = [...list];
-      } else {
-        (next as Record<string, unknown>)[q.id] = optionValue;
-      }
-      return recommend(next).total - baseTotal;
-    }
 
     function renderQuestion() {
       const q = QUESTIONS[step];
+      const list = asked();
+      const pos = list.findIndex((x) => x.i === step);
       $('question-panel').classList.remove('hidden');
       $('summary').classList.add('hidden');
       $('answered').classList.remove('hidden');
-      $<HTMLButtonElement>('back-btn').disabled = step === 0;
-      $('step-count').textContent = `Step ${step + 1} of ${QUESTIONS.length}`;
-      $('progress-bar').style.width = `${((step + 1) / (QUESTIONS.length + 1)) * 100}%`;
+      $<HTMLButtonElement>('back-btn').disabled = pos <= 0;
+      $('step-count').textContent = `${pos + 1} of ${list.length}`;
+      $('progress-bar').style.width = `${((pos + 1) / (list.length + 1)) * 100}%`;
       $('see-kit').classList.toggle('hidden', !allAnswered());
       $('answered').innerHTML = chipsHtml(step);
 
-      if (q.form === 'dims') return renderDims(q);
-
-      // Features start ticked to match the Wagon Base Kit.
-      if (q.id === 'features' && !Array.isArray(answers.features)) {
-        answers.features = [...DEFAULT_FEATURES];
+      // Multi-select steps start with our base build's picks.
+      if (q.id === 'storage' && !Array.isArray(answers.storage)) {
+        answers.storage = ['cubby'];
         save();
+        refresh();
       }
 
       const v = value(q.id);
       const selected = (x: string) => (Array.isArray(v) ? v.includes(x) : v === x);
-      const baseTotal = recommend(answers).total;
-      const showPrices = q.id !== 'vehicle';
-      const best = q.id === 'fridge' ? new Set(recommend(answers).bestFridges) : new Set<string>();
-      const grid = q.id === 'vehicle' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3' : q.multi || q.id === 'fridge' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1';
-
-      let help = q.help;
-      if (q.id === 'power' && answers.fridge !== 'none') help += ' Your fridge is already counted.';
+      const grid = q.id === 'vehicle' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3' : q.id === 'fridge' ? 'grid-cols-2' : 'grid-cols-1';
 
       const optionHtml = q.options.map((o, i) => {
         const isSel = selected(o.value);
-        const d = showPrices ? priceDelta(q, o.value, baseTotal) : 0;
-        const priceTag = !isSel && d !== 0 ? `<span class="text-xs font-bold whitespace-nowrap ${d > 0 ? 'text-charcoal' : 'text-primary'}">${delta(d)}</span>` : '';
         const heading = o.group && o.group !== q.options[i - 1]?.group ? `<p class="col-span-full text-xs font-bold uppercase tracking-wider text-sand-dark ${i ? 'mt-3' : ''}">${escapeHtml(o.group)}</p>` : '';
         return `${heading}
           <button type="button" data-value="${o.value}" role="${q.multi ? 'checkbox' : 'radio'}" aria-checked="${isSel}"
             class="option min-h-[56px] text-left rounded-lg border-2 px-4 py-3 transition-all ${isSel ? 'border-primary bg-primary/5' : 'border-stone-dark/30 hover:border-primary/60 bg-white'}">
             <span class="flex items-start justify-between gap-2">
-              <span class="block font-semibold text-charcoal text-sm sm:text-base">${escapeHtml(o.label)}${best.has(o.value) ? ' <span class="ml-1 align-middle text-[10px] font-bold uppercase tracking-wide bg-sand/40 text-charcoal px-1.5 py-0.5 rounded">Best fit</span>' : ''}</span>
-              <span class="flex items-center gap-2 shrink-0">${priceTag}
-                ${q.multi ? `<span class="w-5 h-5 rounded border-2 flex items-center justify-center ${isSel ? 'bg-primary border-primary text-white' : 'border-stone-dark'}">${isSel ? '&#10003;' : ''}</span>` : ''}</span>
+              <span class="block font-semibold text-charcoal text-sm sm:text-base">${escapeHtml(o.label)}</span>
+              ${q.multi ? `<span class="w-5 h-5 shrink-0 rounded border-2 flex items-center justify-center ${isSel ? 'bg-primary border-primary text-white' : 'border-stone-dark'}">${isSel ? '&#10003;' : ''}</span>` : ''}
             </span>
             ${o.sub ? `<span class="block text-xs text-muted-foreground mt-0.5">${escapeHtml(o.sub)}</span>` : ''}
           </button>`;
       }).join('');
 
-      // Extras that sit under the options.
       let extras = '';
-      if (q.id === 'sleep' && (v === 'yes' || v === 'sometimes')) {
-        extras += `
-          <div class="mt-5">
-            <p class="text-sm font-semibold text-charcoal mb-2">How many sleeping in the back?</p>
-            <div class="grid grid-cols-2 gap-2.5">
-              ${[1, 2].map((n) => `<button type="button" data-sleepers="${n}" aria-pressed="${answers.sleepers === n}" class="min-h-[48px] rounded-lg border-2 px-4 font-semibold text-sm ${answers.sleepers === n ? 'border-primary bg-primary/5 text-charcoal' : 'border-stone-dark/30 bg-white text-charcoal hover:border-primary/60'}">${n === 1 ? 'Just me' : 'Two of us'}</button>`).join('')}
-            </div>
-          </div>`;
+      if (q.id === 'fridge' && typeof v === 'string' && v.startsWith('chest')) {
+        extras += `<div class="mt-5"><p class="text-sm font-semibold text-charcoal mb-2">How do you want to get to it?</p>
+          ${toggleRow('chest', answers.chestMount ?? 'slide', [['slide', 'Slide-out rack'], ['fixed', 'Fixed, reach in from the side window']])}</div>`;
       }
-      if (q.id === 'fridge' && v !== 'none') {
+      if (q.id === 'fridge' && v !== undefined && v !== 'none') {
         extras += `
           <label class="mt-4 flex items-center gap-3 min-h-[48px] cursor-pointer rounded-lg bg-stone-light px-4 py-2 text-sm text-charcoal">
             <input id="own-fridge" type="checkbox" class="w-5 h-5 accent-[#2D4A3E]" ${answers.ownFridge ? 'checked' : ''} />
-            <span><strong>I already have a fridge like this.</strong> Leave it off my quote, just build around it.</span>
+            <span><strong>I already have this fridge.</strong> Just build around it.</span>
           </label>`;
       }
-      if (q.id === 'power') {
-        extras += DEVICES.filter((d) => answers.power?.includes(d.id) && d.tip)
-          .map((d) => `
-            <div class="mt-3 border-l-4 ${d.ac ? 'border-sand' : 'border-primary'} bg-stone-light rounded-r-lg px-4 py-3 text-sm">
-              <p class="font-semibold text-charcoal mb-0.5">${escapeHtml(d.label)}</p>
-              <p class="text-muted-foreground">${escapeHtml(d.tip!)}</p>
-              ${d.link ? `<a href="${d.link.href}" target="_blank" rel="noopener noreferrer" class="inline-block mt-1.5 text-primary font-semibold hover:underline">${escapeHtml(d.link.label)} &rarr;</a>` : ''}
-            </div>`)
-          .join('');
+      if ((q.id === 'bed' && v === 'pullout') || (q.id === 'storage' && answers.storage?.length)) {
+        extras += `<p class="mt-4 text-sm text-muted-foreground">Tap <button type="button" data-open-preview class="font-semibold text-primary underline">Open</button> on the preview to see it in action.</p>`;
+      }
+      if (q.id === 'build') {
+        extras += v === 'installed'
+          ? `<label class="mt-4 flex items-center gap-3 min-h-[48px] cursor-pointer rounded-lg bg-stone-light px-4 py-2 text-sm text-charcoal">
+              <input id="carpet" type="checkbox" class="w-5 h-5 accent-[#2D4A3E]" ${answers.carpet ? 'checked' : ''} />
+              <span><strong>Carpet-lined tops.</strong> Only with our build and install service.</span>
+            </label>`
+          : `<p class="mt-4 text-xs text-muted-foreground">Carpet-lined tops are available when we build and install it. Carpet doesn't flat pack.</p>`;
+      }
+      if (q.id === 'vehicle' && v === 'other') {
+        extras += `<label class="block mt-4"><span class="text-sm font-semibold text-charcoal">What is it?</span>
+          <input id="vehicle-name" type="text" maxlength="80" placeholder="e.g. 2016 Toyota Fortuner" value="${escapeHtml(answers.vehicleName ?? '')}"
+            class="mt-1 w-full min-h-[48px] rounded-md border border-stone-dark/40 px-3 py-2.5 text-base focus:border-primary focus:outline-none" /></label>`;
       }
 
-      const reply = !q.multi ? q.options.find((o) => selected(o.value))?.says : '';
-      const needsSleepers = q.id === 'sleep' && (v === 'yes' || v === 'sometimes') && !answers.sleepers;
       let footer = '';
-      if (q.multi) {
-        const count = (v as string[] | undefined)?.length ?? 0;
-        footer = nextButton(count === 0 ? (q.id === 'power' ? 'Nothing for me, next' : 'None of these, next') : nextLabel());
-      } else if (q.id !== 'vehicle' && v !== undefined) {
-        footer = nextButton(needsSleepers ? 'Pick how many are sleeping' : nextLabel(), 'next-btn', needsSleepers);
-      } else if (q.id === 'vehicle' && v !== undefined) {
-        footer = nextButton();
-      }
+      if (q.multi) footer = nextButton((v as string[] | undefined)?.length ? nextLabel() : `None, ${nextLabel().toLowerCase()}`);
+      else if (v !== undefined) footer = nextButton();
 
       $('question-body').innerHTML = `
         <h2 class="text-2xl font-bold text-charcoal">${escapeHtml(q.title)}</h2>
-        <p class="text-sm text-muted-foreground mt-1.5 mb-5">${escapeHtml(help)}</p>
+        <p class="text-sm text-muted-foreground mt-1.5 mb-5">${escapeHtml(q.help)}</p>
         <div class="grid ${grid} gap-2.5" role="${q.multi ? 'group' : 'radiogroup'}" aria-label="${escapeHtml(q.title)}">${optionHtml}</div>
         ${extras}
-        ${reply ? advisorHtml(reply) : ''}
         ${footer}
       `;
+    }
+
+    function rerender() {
+      save();
+      refresh();
+      renderQuestion();
     }
 
     $('question-body').addEventListener('click', (e) => {
@@ -479,35 +455,19 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
 
       if (target.closest('#next-btn')) {
         if (q.multi && !Array.isArray(value(q.id))) (answers as Record<string, unknown>)[q.id] = [];
-        if (q.form === 'dims' && !commitDims()) return;
         save();
         goNext();
         return;
       }
-      if (target.closest('#dims-reset')) {
-        delete answers.dims;
-        save();
-        refresh();
-        renderQuestion();
+      if (target.closest('[data-open-preview]')) {
+        setOpen(true);
+        if (isMobile()) $('viewer').scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
-      const cmFix = target.closest<HTMLButtonElement>('[data-cm-fix]');
-      if (cmFix) {
-        const input = document.querySelector<HTMLInputElement>(`[data-dim="${cmFix.dataset.cmFix}"]`);
-        if (input) {
-          input.value = cmFix.dataset.value!;
-          input.dispatchEvent(new Event('input', { bubbles: true }));
-          input.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        return;
-      }
-      const sleepers = target.closest<HTMLButtonElement>('[data-sleepers]');
-      if (sleepers) {
-        answers.sleepers = Number(sleepers.dataset.sleepers) as 1 | 2;
-        save();
-        refresh();
-        renderQuestion();
-        return;
+      const chest = target.closest<HTMLButtonElement>('[data-chest]');
+      if (chest) {
+        answers.chestMount = chest.dataset.chest as 'slide' | 'fixed';
+        return rerender();
       }
 
       const btn = target.closest<HTMLButtonElement>('.option');
@@ -518,22 +478,25 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
         const list = new Set((value(q.id) as string[] | undefined) ?? []);
         list.has(picked) ? list.delete(picked) : list.add(picked);
         (answers as Record<string, unknown>)[q.id] = [...list];
-      } else {
-        const already = value(q.id) === picked;
-        (answers as Record<string, unknown>)[q.id] = picked;
-        if (q.id === 'sleep' && picked === 'no') delete answers.sleepers;
-        if (q.id === 'fridge' && picked === 'none') delete answers.ownFridge;
-        // Vehicle has no reply to read, so move straight on. Tapping a picked option again also moves on.
-        if (q.id === 'vehicle' || (already && isAnswered(q))) {
-          save();
-          refresh();
-          goNext();
-          return;
-        }
+        return rerender();
       }
-      save();
-      refresh();
-      renderQuestion();
+
+      const already = value(q.id) === picked;
+      (answers as Record<string, unknown>)[q.id] = picked;
+      if (q.id === 'fridge') {
+        if (picked === 'none') delete answers.ownFridge;
+        if (!picked.startsWith('chest')) delete answers.chestMount;
+      }
+      if (q.id === 'build' && picked !== 'installed') delete answers.carpet;
+      if ((q.id === 'power12' || q.id === 'power240') && answers.power12 !== 'yes' && answers.power240 !== 'yes') delete answers.electricalBuild;
+      if (q.id === 'bed' && picked === 'pullout') setOpen(true);
+      if (already && picked !== 'other') {
+        save();
+        refresh();
+        goNext();
+        return;
+      }
+      rerender();
     });
 
     $('question-body').addEventListener('change', (e) => {
@@ -541,11 +504,13 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
       if (t.id === 'own-fridge') {
         if (t.checked) answers.ownFridge = true;
         else delete answers.ownFridge;
-        save();
-        refresh();
-        renderQuestion();
+        rerender();
       }
-      if (t.dataset.dim) validateDimField(t, true);
+      if (t.id === 'carpet') {
+        if (t.checked) answers.carpet = true;
+        else delete answers.carpet;
+        rerender();
+      }
       if (t.id === 'vehicle-name') {
         answers.vehicleName = t.value.trim().slice(0, 80) || undefined;
         save();
@@ -554,221 +519,63 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
     });
 
     // -----------------------------------------------------------------------
-    // Measurements step
+    // Summary + quote request
     // -----------------------------------------------------------------------
-
-    const DIAGRAM = `
-      <svg viewBox="0 0 320 130" class="w-full h-auto" role="img" aria-label="Where to measure: A boot width, B between the wheel arches, C floor length, D boot height">
-        <g fill="none" stroke="#6B6560" stroke-width="2">
-          <path d="M20 115 V35 Q20 18 37 18 H133 Q150 18 150 35 V115 Z" />
-          <rect x="20" y="88" width="22" height="27" rx="4" fill="#E8E0D6" />
-          <rect x="128" y="88" width="22" height="27" rx="4" fill="#E8E0D6" />
-          <path d="M180 115 H300 M300 115 V40 Q300 28 288 28 H230 L180 50 V115" />
-          <rect x="185" y="70" width="18" height="45" rx="3" fill="#E8E0D6" />
-        </g>
-        <g stroke="#2D4A3E" stroke-width="2" fill="#2D4A3E" font-family="Inter, sans-serif" font-size="12" font-weight="700">
-          <line x1="22" y1="70" x2="148" y2="70" /><text x="80" y="64" stroke="none">A</text>
-          <line x1="44" y1="104" x2="126" y2="104" /><text x="80" y="98" stroke="none">B</text>
-          <line x1="205" y1="122" x2="298" y2="122" /><text x="248" y="118" stroke="none" dy="-2">C</text>
-          <line x1="292" y1="113" x2="292" y2="32" /><text x="278" y="76" stroke="none">D</text>
-        </g>
-        <text x="85" y="128" text-anchor="middle" font-size="10" fill="#6B6560" font-family="Inter, sans-serif">From the back</text>
-        <text x="240" y="12" text-anchor="middle" font-size="10" fill="#6B6560" font-family="Inter, sans-serif">From the side</text>
-      </svg>`;
-
-    function dimError(key: keyof Dims, n: number, draft: Partial<Dims>): { error: string; cm?: number } | null {
-      const f = DIM_FIELDS.find((x) => x.key === key)!;
-      if (!Number.isFinite(n) || n <= 0) return { error: 'Pop a number in here, in millimetres.' };
-      if (n >= 30 && n < f.min && n * 10 >= f.min && n * 10 <= f.max) return { error: `That looks like centimetres.`, cm: n * 10 };
-      if (n < f.min || n > f.max) return { error: `Should be between ${mm(f.min)} and ${mm(f.max)}mm.` };
-      const width = key === 'width' ? n : draft.width;
-      const arches = key === 'arches' ? n : draft.arches;
-      if (width && arches && arches > width - 40) return { error: 'The gap between the arches (B) should be smaller than the boot width (A).' };
-      return null;
-    }
-
-    function readDimInputs(): Partial<Dims> {
-      const out: Partial<Dims> = {};
-      document.querySelectorAll<HTMLInputElement>('[data-dim]').forEach((el) => {
-        out[el.dataset.dim as keyof Dims] = Number(el.value);
-      });
-      return out;
-    }
-
-    function validateDimField(input: HTMLInputElement, showErrors: boolean): boolean {
-      const key = input.dataset.dim as keyof Dims;
-      const err = dimError(key, Number(input.value), readDimInputs());
-      const box = document.querySelector<HTMLElement>(`[data-dim-error="${key}"]`)!;
-      input.closest('[data-dim-wrap]')?.classList.toggle('border-destructive', !!err && showErrors);
-      if (err && showErrors) {
-        box.innerHTML = `${escapeHtml(err.error)}${err.cm ? ` <button type="button" data-cm-fix="${key}" data-value="${err.cm}" class="ml-1 font-semibold underline">Use ${mm(err.cm)}mm</button>` : ''}`;
-        box.classList.remove('hidden');
-      } else if (!err) {
-        box.classList.add('hidden');
-      }
-      return !err;
-    }
-
-    /** Check every field before moving on. Returns false (and shows why) if anything is off. */
-    function commitDims(): boolean {
-      const inputs = [...document.querySelectorAll<HTMLInputElement>('[data-dim]')];
-      const bad = inputs.filter((el) => !validateDimField(el, true));
-      if (bad.length) {
-        bad[0].focus();
-        $('dims-msg').classList.remove('hidden');
-        return false;
-      }
-      answers.dims = measured() ? { ...resolveDims(answers), ...(readDimInputs() as Dims) } : {};
-      return true;
-    }
-
-    function renderDims(q: Question) {
-      const d = resolveDims(answers);
-      const v = getVehicle(answers.vehicle);
-      const typical = v.id === 'other' ? 'a typical wagon' : `a typical ${v.short}`;
-      $('question-body').innerHTML = `
-        <h2 class="text-2xl font-bold text-charcoal">${escapeHtml(q.title)}</h2>
-        <p class="text-sm text-muted-foreground mt-1.5 mb-4">${escapeHtml(q.help)}</p>
-        ${v.id === 'other' ? `
-          <label class="block mb-4">
-            <span class="text-sm font-semibold text-charcoal">What are you driving?</span>
-            <input id="vehicle-name" type="text" maxlength="80" placeholder="e.g. 2016 Toyota Fortuner" value="${escapeHtml(answers.vehicleName ?? '')}"
-              class="mt-1 w-full rounded-md border border-stone-dark/40 px-3 py-2.5 text-base focus:border-primary focus:outline-none" />
-          </label>` : ''}
-        <div class="bg-stone-light rounded-lg p-3 mb-4">${DIAGRAM}</div>
-        <div class="space-y-3">
-          ${DIM_FIELDS.map((f) => `
-            <label class="block">
-              <span class="text-sm font-semibold text-charcoal"><span class="inline-flex items-center justify-center w-5 h-5 mr-1 rounded-full bg-primary text-primary-foreground text-[11px]">${f.letter}</span>${escapeHtml(f.label)}</span>
-              <span class="block text-xs text-muted-foreground mt-0.5">${escapeHtml(f.help)}</span>
-              <span data-dim-wrap class="mt-1 flex items-center rounded-md border-2 border-stone-dark/30 focus-within:border-primary bg-white">
-                <input data-dim="${f.key}" type="number" inputmode="numeric" min="${f.min}" max="${f.max}" step="10" value="${d[f.key]}"
-                  class="w-full px-3 py-2.5 rounded-md bg-transparent focus:outline-none text-charcoal font-medium text-base" />
-                <span class="pr-3 text-sm text-muted-foreground">mm</span>
-              </span>
-              <span data-dim-error="${f.key}" class="hidden block text-sm text-destructive mt-1"></span>
-            </label>`).join('')}
-        </div>
-        <p id="dims-note" class="text-xs text-muted-foreground mt-3">${measured() ? 'Using your measurements.' : `These are sizes for ${escapeHtml(typical)}. Swap in yours for a sharper preview.`}
-          ${measured() ? '<button type="button" id="dims-reset" class="min-h-[32px] text-primary font-semibold hover:underline ml-1">Go back to typical sizes</button>' : ''}</p>
-        <p id="dims-msg" class="hidden text-sm text-destructive mt-3">One of the measurements needs a look before we move on.</p>
-        ${nextButton(measured() ? nextLabel() : 'Not sure yet, use typical sizes')}
-      `;
-    }
-
-    $('question-body').addEventListener('input', (e) => {
-      const input = (e.target as HTMLElement).closest<HTMLInputElement>('[data-dim]');
-      if (!input) return;
-      const key = input.dataset.dim as keyof Dims;
-      const n = Number(input.value);
-      // Only resize the model for values that make sense; full checks happen when they leave the box.
-      if (dimError(key, n, readDimInputs())) return;
-      input.closest('[data-dim-wrap]')?.classList.remove('border-destructive');
-      document.querySelector(`[data-dim-error="${key}"]`)?.classList.add('hidden');
-      const firstEdit = !measured();
-      answers.dims = { ...resolveDims(answers), ...answers.dims, [key]: Math.round(n) };
-      save();
-      refresh();
-      if (firstEdit) {
-        $('next-btn').textContent = nextLabel();
-        $('dims-note').textContent = 'Using your measurements.';
-      }
-    });
-
-    // -----------------------------------------------------------------------
-    // Summary + order
-    // -----------------------------------------------------------------------
-
-    function lines(items: { label: string; amount: number }[]) {
-      return items.map((l) => `<div class="flex justify-between gap-4 py-1"><span class="text-muted-foreground">${escapeHtml(l.label)}</span><span class="font-medium whitespace-nowrap ${l.amount < 0 ? 'text-primary' : 'text-charcoal'}">${money(l.amount)}</span></div>`).join('');
-    }
-
-    function priceGroup(title: string, subtotal: number, body: string) {
-      return `
-        <div class="pt-3 mt-3 border-t border-stone-dark/20 first:mt-0 first:pt-0 first:border-0">
-          <div class="flex justify-between gap-4 font-bold text-charcoal mb-1"><span>${title}</span><span>${money(subtotal)}</span></div>
-          <div class="text-sm">${body}</div>
-        </div>`;
-    }
 
     function renderSummary() {
       const rec: Recommendation = refresh();
       $('question-panel').classList.add('hidden');
       $('answered').classList.add('hidden');
-      const firstUnanswered = QUESTIONS.findIndex((q) => !isAnswered(q));
-      const freightNote = answers.build === 'installed' ? 'Installed at our Gold Coast workshop.' : 'Plus freight, quoted with your design.';
+      const firstUnanswered = asked().find(({ q }) => !isAnswered(q));
+      const groups = (['Cabinetry', 'Fridge', 'Power'] as const)
+        .map((g) => ({ g, items: rec.items.filter((i) => i.group === g) }))
+        .filter((x) => x.items.length);
 
       $('summary').classList.remove('hidden');
       $('summary').innerHTML = `
         <div class="bg-charcoal text-stone-light rounded-xl p-6 sm:p-7">
           <p class="text-sand text-xs font-bold uppercase tracking-widest mb-2">Your kit</p>
           <h2 class="text-3xl font-extrabold">${escapeHtml(rec.kitName)}</h2>
-          <p class="text-stone-dark mt-1">${escapeHtml(rec.tagline)} Cut for your ${escapeHtml(answers.vehicle === 'other' ? answers.vehicleName || 'wagon' : rec.vehicle.short)}.</p>
-          <div class="mt-5 flex items-end justify-between gap-4 bg-stone-light/5 rounded-lg p-4">
-            <div>
-              <p class="text-xs text-stone-dark uppercase tracking-wider font-semibold">Estimated total</p>
-              <p class="text-3xl font-extrabold text-sand">${money(rec.total)}</p>
-              <p class="text-xs text-stone-dark mt-0.5">Inc. GST. ${escapeHtml(freightNote)}</p>
-            </div>
-            <a href="#price-breakdown" class="text-sm text-sand font-semibold underline whitespace-nowrap">See breakdown</a>
+          <p class="text-stone-dark mt-1">For your ${escapeHtml(answers.vehicle ? vehicleName() : 'wagon')}.</p>
+          <div class="mt-5 bg-stone-light/5 rounded-lg p-4">
+            <p class="text-xs text-stone-dark uppercase tracking-wider font-semibold">Estimated range</p>
+            <p class="text-3xl font-extrabold text-sand" data-bracket>${escapeHtml(bracket || '…')}</p>
+            <p class="text-xs text-stone-dark mt-1">A rough guide only. Your official quote has the exact price for your vehicle.</p>
+            <a href="#order-form" class="mt-4 inline-flex items-center justify-center w-full min-h-[48px] bg-sand text-charcoal font-bold rounded-md hover:bg-sand-light transition-colors">Get an official quote</a>
           </div>
-          ${rec.addOns.length ? `<ul class="flex flex-wrap gap-2 mt-4">${rec.addOns.map((a) => `<li class="text-xs font-semibold bg-sand text-charcoal px-2.5 py-1 rounded-full">${escapeHtml(a)}</li>`).join('')}</ul>` : ''}
-          ${firstUnanswered >= 0 ? `<button type="button" data-jump="${firstUnanswered}" class="mt-4 min-h-[44px] text-sm text-sand underline">You skipped a question. Answer it for a sharper estimate</button>` : ''}
-          <h3 class="text-sm font-bold uppercase tracking-wider text-sand mt-6 mb-2">Why this layout</h3>
+          <ul class="flex flex-wrap gap-2 mt-4">${rec.addOns.map((a) => `<li class="text-xs font-semibold bg-sand/90 text-charcoal px-2.5 py-1 rounded-full">${escapeHtml(a)}</li>`).join('')}</ul>
+          ${firstUnanswered ? `<button type="button" data-jump="${firstUnanswered.i}" class="mt-4 min-h-[44px] text-sm text-sand underline">You skipped a question. Answer it for a sharper estimate</button>` : ''}
+          <h3 class="text-sm font-bold uppercase tracking-wider text-sand mt-6 mb-2">Your layout</h3>
           <ul class="space-y-2 text-sm">
             ${rec.why.map((w) => `<li class="flex gap-2"><span class="text-sand mt-0.5">&#10003;</span><span>${escapeHtml(w)}</span></li>`).join('')}
           </ul>
         </div>
 
         <div class="bg-white rounded-xl border border-stone-dark/20 p-5 sm:p-6">
-          <h3 class="font-bold text-charcoal text-lg mb-1">Your answers</h3>
+          <h3 class="font-bold text-charcoal text-lg mb-1">Your picks</h3>
           <p class="text-sm text-muted-foreground mb-3">Tap one to change it. You'll come straight back here.</p>
           <ol class="flex flex-wrap gap-2">${chipsHtml()}</ol>
         </div>
 
-        <div id="price-breakdown" class="bg-white rounded-xl border border-stone-dark/20 p-5 sm:p-6" style="scroll-margin-top: calc(6.25rem + max(34vh, 240px) + 0.75rem)">
-          <h3 class="font-bold text-charcoal text-lg mb-4">Price breakdown</h3>
-          ${priceGroup('Kit &amp; cabinetry', rec.kitTotal, lines(rec.kitLines))}
-          ${priceGroup('Fridge', rec.fridgeTotal, rec.fridgeLines.length ? lines(rec.fridgeLines) : `<p class="text-muted-foreground py-1">${rec.layout.fridge ? 'Bringing your own. We\'ll build around it.' : 'No fridge.'}</p>`)}
-          ${priceGroup('Power &amp; electrical', rec.electricalTotal, rec.electricalLines.length ? lines(rec.electricalLines) : '<p class="text-muted-foreground py-1">No power for now. Cable runs are cut so you can add it later.</p>')}
-          <div class="flex justify-between gap-4 pt-3 mt-3 border-t-2 border-charcoal text-lg">
-            <span class="font-bold text-charcoal">Estimated total</span>
-            <span class="font-extrabold text-charcoal">${money(rec.total)}</span>
-          </div>
-          <p class="text-xs text-muted-foreground mt-2">${escapeHtml(freightNote)} Your final price is locked in when you approve your design. Inc. GST.</p>
-        </div>
-
         <div class="bg-white rounded-xl border border-stone-dark/20 p-5 sm:p-6">
-          <h3 class="font-bold text-charcoal text-lg">Power: ${escapeHtml(rec.power.tierName)}</h3>
-          ${rec.power.batteryAh
-            ? `<p class="text-sm text-muted-foreground mt-1">You'll use about <strong class="text-charcoal">${mm(rec.power.dailyWh)}Wh a day</strong>.</p>
-               <p class="text-xs font-bold uppercase tracking-wider text-sand-dark mt-4 mb-1.5">In the power pack</p>
-               <ul class="space-y-1.5 text-sm">${rec.power.baseItems.map((p) => `<li class="flex gap-2"><span class="text-primary">&#10003;</span>${escapeHtml(p)}</li>`).join('')}</ul>
-               ${rec.power.upgradeItems.length ? `<p class="text-xs font-bold uppercase tracking-wider text-sand-dark mt-4 mb-1.5">Recommended for what you're running</p>
-               <ul class="space-y-1.5 text-sm">${rec.power.upgradeItems.map((p) => `<li class="flex gap-2"><span class="text-sand-dark">+</span>${escapeHtml(p)}</li>`).join('')}</ul>` : ''}
-               <a href="/electrical-systems" class="inline-block mt-3 text-sm text-primary font-semibold hover:underline">See our electrical work &rarr;</a>`
-            : `<p class="text-sm text-muted-foreground mt-1">Cabinets only for now. We'll still cut the cable runs so adding 12V and 240V later is easy.</p>`}
+          <h3 class="font-bold text-charcoal text-lg mb-3">What we'll quote you on</h3>
+          ${groups.map(({ g, items }) => `
+            <p class="text-xs font-bold uppercase tracking-wider text-sand-dark mt-3 mb-1.5">${g}</p>
+            <ul class="space-y-1.5 text-sm text-charcoal">${items.map((i) => `<li class="flex gap-2"><span class="text-primary">&#10003;</span>${escapeHtml(i.label)}</li>`).join('')}</ul>`).join('')}
+          <p class="text-xs font-bold uppercase tracking-wider text-sand-dark mt-5 mb-1.5">Every kit includes</p>
+          <ul class="space-y-1.5 text-sm text-muted-foreground">${rec.includes.map((i) => `<li class="flex gap-2"><span class="text-primary">&#10003;</span>${escapeHtml(i)}</li>`).join('')}</ul>
         </div>
 
         ${rec.tips.length ? `
         <div class="bg-stone rounded-xl p-5 sm:p-6">
           <h3 class="font-bold text-charcoal text-lg mb-3">Straight-up advice</h3>
-          <ul class="space-y-3 text-sm">
-            ${rec.tips.map((t) => `<li class="text-charcoal">${escapeHtml(t.text)}${t.link ? ` <a href="${t.link.href}" target="_blank" rel="noopener noreferrer" class="text-primary font-semibold hover:underline whitespace-nowrap">${escapeHtml(t.link.label)} &rarr;</a>` : ''}</li>`).join('')}
-          </ul>
+          <ul class="space-y-3 text-sm">${rec.tips.map((t) => `<li class="text-charcoal">${escapeHtml(t)}</li>`).join('')}</ul>
         </div>` : ''}
 
-        <div class="bg-white rounded-xl border border-stone-dark/20 p-5 sm:p-6">
-          <h3 class="font-bold text-charcoal text-lg">What's in the box</h3>
-          <ul class="mt-3 space-y-1.5 text-sm text-muted-foreground">
-            ${rec.includes.map((i) => `<li class="flex gap-2"><span class="text-primary">&#10003;</span>${escapeHtml(i)}</li>`).join('')}
-          </ul>
-        </div>
-
-        <form id="order-form" class="bg-white rounded-xl border-2 border-primary p-5 sm:p-6 space-y-4" novalidate>
+        <form id="order-form" class="bg-white rounded-xl border-2 border-primary p-5 sm:p-6 space-y-4" novalidate style="scroll-margin-top: calc(6.25rem + max(34vh, 240px) + 0.75rem)">
           <div>
-            <h3 class="font-bold text-charcoal text-xl">Lock in your kit</h3>
-            <p class="text-sm text-muted-foreground mt-1">No payment yet. We'll check your answers, draw up your layout and send it through for approval. Nothing gets cut until you're happy.</p>
+            <h3 class="font-bold text-charcoal text-xl">Get your official quote</h3>
+            <p class="text-sm text-muted-foreground mt-1">Free and no obligation. Luke will check your picks and send you an exact price within 48 hours.</p>
           </div>
           <div class="grid sm:grid-cols-2 gap-3">
             ${[
@@ -781,10 +588,10 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
                 <input name="${name}" type="${type}" autocomplete="${ac}" ${name === 'postcode' ? 'inputmode="numeric" maxlength="4"' : ''} value="${escapeHtml(formDraft[name] ?? '')}"
                   class="mt-1 w-full min-h-[48px] rounded-md border border-stone-dark/40 px-3 py-2.5 text-base focus:border-primary focus:outline-none" /></label>`).join('')}
           </div>
-          <label class="block text-sm"><span class="font-medium text-charcoal">Anything else? <span class="text-muted-foreground font-normal">(model year, your fridge make, gear you carry)</span></span>
+          <label class="block text-sm"><span class="font-medium text-charcoal">Anything else? <span class="text-muted-foreground font-normal">(model year, your fridge make, what you want to run off the 12V)</span></span>
             <textarea name="notes" rows="3" maxlength="2000" class="mt-1 w-full rounded-md border border-stone-dark/40 px-3 py-2.5 text-base focus:border-primary focus:outline-none">${escapeHtml(formDraft.notes ?? '')}</textarea></label>
           <p id="order-error" class="hidden text-sm text-destructive"></p>
-          <button type="submit" class="w-full min-h-[52px] py-3.5 bg-primary text-primary-foreground font-bold rounded-md hover:bg-primary-light transition-colors disabled:opacity-60">Send me my design</button>
+          <button type="submit" class="w-full min-h-[52px] py-3.5 bg-primary text-primary-foreground font-bold rounded-md hover:bg-primary-light transition-colors disabled:opacity-60">Get my official quote</button>
         </form>
       `;
     }
@@ -802,8 +609,13 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
       const error = $('order-error');
       error.classList.add('hidden');
 
+      if (!answers.vehicle) {
+        error.innerHTML = 'Tell us what you\'re driving first. <button type="button" class="underline" data-jump="' + QUESTIONS.findIndex((q) => q.id === 'vehicle') + '">Pick your vehicle</button>';
+        error.classList.remove('hidden');
+        return;
+      }
       if (!data.name?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email || '')) {
-        error.textContent = 'Pop in your name and a valid email so we can send your design.';
+        error.textContent = 'Pop in your name and a valid email so we can send your quote.';
         error.classList.remove('hidden');
         return;
       }
@@ -827,14 +639,14 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
         try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
         form.outerHTML = `
           <div class="bg-primary text-primary-foreground rounded-xl p-6 sm:p-7">
-            <h3 class="text-2xl font-extrabold">You're locked in, ${escapeHtml(data.name.split(' ')[0])}.</h3>
-            <p class="mt-2 text-stone-dark">We've got your layout. Luke will check it over, draw it up for your ${escapeHtml(answers.vehicle === 'other' ? answers.vehicleName || 'wagon' : getVehicle(answers.vehicle).short)} and send it through for approval. We'll be in touch within 48 hours.</p>
+            <h3 class="text-2xl font-extrabold">Thanks ${escapeHtml(data.name.split(' ')[0])}, we've got it.</h3>
+            <p class="mt-2 text-stone-dark">Luke will check your picks for your ${escapeHtml(vehicleName())} and send your official quote within 48 hours.</p>
           </div>`;
         const { default: confetti } = await import('canvas-confetti');
         confetti({ particleCount: 120, spread: 70, origin: { y: 0.7 }, colors: ['#2D4A3E', '#C4A882', '#E8E0D6'] });
       } catch {
         submit.disabled = false;
-        submit.textContent = 'Send me my design';
+        submit.textContent = 'Get my official quote';
         error.innerHTML = 'Something went wrong sending that. Give it another go, or call us on <a class="underline" href="tel:+61424770875">0424 770 875</a>.';
         error.classList.remove('hidden');
       }

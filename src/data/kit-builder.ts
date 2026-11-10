@@ -5,8 +5,9 @@
 // stylised 3D preview. This file ships to the browser: never put real CAD/Fusion
 // dimensions, cut lists or joinery details in here. The real design stays in Fusion.
 //
-// PRICES ARE PLACEHOLDERS. Every dollar figure in PRICING and ELECTRICAL_PRICING
-// needs to be confirmed by Luke before this goes live.
+// NO PRICES IN HERE. This file ships to the browser, so all dollar figures live in
+// src/lib/kit-builder/pricing.server.ts, which only runs on the server. Customers only
+// ever see a price bracket.
 
 export type VehicleId =
   | '80-series'
@@ -62,14 +63,14 @@ export const VEHICLES: Vehicle[] = [
   { id: 'other', label: 'Something else', short: 'your wagon', make: 'Other', cargoLength: 1050, floorWidth: 1280, archWidth: 1050, archHeight: 260, archLength: 760, windowHeight: 460, roofHeight: 1000, sleepLength: 1880 },
 ];
 
-export const DEFAULT_VEHICLE: VehicleId = '200-series';
+export const DEFAULT_VEHICLE: VehicleId = '80-series';
 
 export function getVehicle(id: VehicleId | undefined): Vehicle {
   return VEHICLES.find((v) => v.id === id) ?? VEHICLES.find((v) => v.id === DEFAULT_VEHICLE)!;
 }
 
 // ---------------------------------------------------------------------------
-// Power devices
+// Power devices (not asked yet: kept for the upcoming 12V sizing step)
 // ---------------------------------------------------------------------------
 
 export type DeviceId =
@@ -112,12 +113,12 @@ export const DEVICES: Device[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Fridges (GUESSED sizes and prices for the proof of concept: swap in the exact
+// Fridges (GUESSED sizes for the proof of concept: swap in the exact
 // models Bush Bound uses and recommends)
 // ---------------------------------------------------------------------------
 
 export type FridgeType = 'upright' | 'drawer' | 'chest';
-export type FridgeId = 'upright-50' | 'upright-65' | 'upright-85' | 'drawer-30' | 'drawer-50' | 'chest-40' | 'chest-60' | 'chest-75';
+export type FridgeId = 'upright-50' | 'upright-60' | 'upright-65' | 'drawer-30' | 'drawer-50' | 'chest-40' | 'chest-60' | 'chest-75';
 
 export interface Fridge {
   id: FridgeId;
@@ -128,20 +129,17 @@ export interface Fridge {
   w: number;
   d: number;
   h: number;
-  /** Typical energy per day, Wh */
-  whPerDay: number;
-  price: number;
 }
 
 export const FRIDGES: Fridge[] = [
-  { id: 'upright-50', type: 'upright', litres: 50, label: 'Upright fridge 50L', w: 460, d: 540, h: 580, whPerDay: 320, price: 1290 },
-  { id: 'upright-65', type: 'upright', litres: 65, label: 'Upright fridge 65L', w: 480, d: 560, h: 650, whPerDay: 380, price: 1490 },
-  { id: 'upright-85', type: 'upright', litres: 85, label: 'Upright fridge 85L', w: 520, d: 600, h: 780, whPerDay: 450, price: 1790 },
-  { id: 'drawer-30', type: 'drawer', litres: 30, label: 'Drawer fridge 30L', w: 480, d: 600, h: 320, whPerDay: 260, price: 1190 },
-  { id: 'drawer-50', type: 'drawer', litres: 50, label: 'Drawer fridge 50L', w: 540, d: 700, h: 380, whPerDay: 330, price: 1490 },
-  { id: 'chest-40', type: 'chest', litres: 40, label: 'Chest fridge 40L', w: 400, d: 640, h: 470, whPerDay: 280, price: 990 },
-  { id: 'chest-60', type: 'chest', litres: 60, label: 'Chest fridge 60L', w: 450, d: 720, h: 520, whPerDay: 340, price: 1290 },
-  { id: 'chest-75', type: 'chest', litres: 75, label: 'Chest fridge 75L', w: 480, d: 800, h: 560, whPerDay: 400, price: 1490 },
+  { id: 'upright-50', type: 'upright', litres: 50, label: 'Upright fridge 50L', w: 460, d: 540, h: 580 },
+  { id: 'upright-60', type: 'upright', litres: 60, label: 'Upright fridge 60L', w: 470, d: 550, h: 620 },
+  { id: 'upright-65', type: 'upright', litres: 65, label: 'Upright fridge 65L', w: 480, d: 560, h: 650 },
+  { id: 'drawer-30', type: 'drawer', litres: 30, label: 'Drawer fridge 30L', w: 480, d: 600, h: 320 },
+  { id: 'drawer-50', type: 'drawer', litres: 50, label: 'Drawer fridge 50L', w: 540, d: 700, h: 380 },
+  { id: 'chest-40', type: 'chest', litres: 40, label: 'Chest fridge 40L', w: 400, d: 640, h: 470 },
+  { id: 'chest-60', type: 'chest', litres: 60, label: 'Chest fridge 60L', w: 450, d: 720, h: 520 },
+  { id: 'chest-75', type: 'chest', litres: 75, label: 'Chest fridge 75L', w: 480, d: 800, h: 560 },
 ];
 
 export const DEFAULT_FRIDGE: FridgeId = 'upright-65';
@@ -152,41 +150,31 @@ export function getFridge(id: string | undefined): Fridge | null {
 }
 
 // ---------------------------------------------------------------------------
-// Features (tick boxes)
+// Storage options
 // ---------------------------------------------------------------------------
 
-export type FeatureId = 'table' | 'kitchen' | 'tank' | 'compressor';
+export type StorageId = 'cubby' | 'pullout';
 
-/** `inBase` features are part of the Wagon Base Kit price; unticking them gives a credit. */
-export const FEATURES: { id: FeatureId; label: string; sub: string; price: number; inBase: boolean }[] = [
-  { id: 'table', label: 'Pull-out table', sub: 'Slides out the back, instant bench', price: 390, inBase: true },
-  { id: 'compressor', label: 'Air compressor', sub: 'Built in, air outlet on the side panel', price: 690, inBase: true },
-  { id: 'kitchen', label: 'Kitchen slide-out', sub: 'Stove + prep bench drawer', price: 790, inBase: false },
-  { id: 'tank', label: 'Water tank', sub: 'Slimline tank under the drawers', price: 690, inBase: false },
+export const STORAGE: { id: StorageId; label: string; sub: string }[] = [
+  { id: 'cubby', label: 'Bush Bound table + storage cubby', sub: 'Our slatted folding camp table, stored in its own hinged cubby. Tap Open to see it' },
+  { id: 'pullout', label: 'Pull-out table', sub: 'A table top that slides out from under the left drawer' },
 ];
 
-/** What's ticked before the customer gets to the features step (matches our base wagon build). */
-export const DEFAULT_FEATURES: FeatureId[] = ['table', 'compressor'];
+/** Ticked before the customer reaches the storage step (matches our base wagon build). */
+export const DEFAULT_STORAGE: StorageId[] = ['cubby'];
 
 // ---------------------------------------------------------------------------
-// Measurements
+// Finishes
 // ---------------------------------------------------------------------------
 
-export interface Dims {
-  width: number;
-  arches: number;
-  depth: number;
-  height: number;
-}
+export type FinishId = 'hex' | 'green' | 'timber';
 
-export const DIM_FIELDS: { key: keyof Dims; letter: string; label: string; help: string; min: number; max: number }[] = [
-  { key: 'width', letter: 'A', label: 'Boot width', help: 'Widest point, wall to wall, just above the wheel arch humps', min: 900, max: 1800 },
-  { key: 'arches', letter: 'B', label: 'Between the wheel arches', help: 'The gap between the two wheel arch humps, at floor level', min: 700, max: 1600 },
-  { key: 'depth', letter: 'C', label: 'Floor length', help: 'Inside edge of the boot opening to the back of the rear seats (seats up)', min: 600, max: 2500 },
-  { key: 'height', letter: 'D', label: 'Boot height', help: 'Boot floor to the roof lining', min: 600, max: 1500 },
+export const FINISHES: { id: FinishId; label: string; sub: string }[] = [
+  { id: 'hex', label: 'Black honeycomb', sub: 'Our standard. Hard-wearing black hex-top birch ply throughout' },
+  { id: 'green', label: 'Green laminate fronts', sub: 'Forest green on the drawer fronts and fridge cabinet sides' },
+  { id: 'timber', label: 'Timber grain laminate fronts', sub: 'Warm timber look on the drawer fronts and fridge cabinet sides' },
 ];
 
-export const DEFAULT_ARCHES = 1200;
 
 // ---------------------------------------------------------------------------
 // Questions
@@ -198,162 +186,119 @@ export interface QuestionOption {
   sub?: string;
   /** Heading to group options under */
   group?: string;
-  /** Short reaction from the Bush Bound team once this is picked */
-  says?: string;
 }
 
 export interface Question {
-  id: 'vehicle' | 'dims' | 'use' | 'sleep' | 'fridge' | 'features' | 'power' | 'finish' | 'build' | 'electrical';
+  id: 'fridge' | 'bed' | 'storage' | 'power12' | 'power240' | 'electricalBuild' | 'finish' | 'build' | 'vehicle';
   title: string;
   help: string;
   multi?: boolean;
-  /** Custom step rendered as a form instead of option buttons */
-  form?: 'dims';
+  /** Only asked when the customer wants 12V or 240V */
+  needsPower?: boolean;
   options: QuestionOption[];
 }
 
 export const QUESTIONS: Question[] = [
   {
-    id: 'vehicle',
-    title: 'What are you driving?',
-    help: 'Every kit is cut for your exact wagon. Pick the closest one, then we\'ll grab your measurements.',
-    options: VEHICLES.map((v) => ({ value: v.id, label: v.short === 'your wagon' ? 'Something else' : v.short, sub: v.make === 'Other' ? 'We\'ll measure it up' : v.label })),
-  },
-  {
-    id: 'dims',
-    title: 'Measure your boot',
-    help: 'Grab a tape measure. We\'ve filled in typical numbers, swap in yours and watch the model resize. Rough is fine, we confirm everything with our floor template.',
-    form: 'dims',
-    options: [],
-  },
-  {
-    id: 'use',
-    title: 'What\'s the trip?',
-    help: 'This one drives most of the design. Be honest, most people overbuild for the trip they do once.',
-    options: [
-      { value: 'weekender', label: 'Weekends away', sub: '1 to 3 nights, mostly near town', says: 'Love it. Keep it light and simple, you\'ll use it more.' },
-      { value: 'touring', label: 'Touring', sub: 'A week or more, campgrounds and stations', says: 'The sweet spot. Fridge access and a quick camp setup matter most here.' },
-      { value: 'remote', label: 'Remote & off-grid', sub: 'Cape York, the Simpson, weeks between towns', says: 'Proper adventure. We\'ll make sure water and power can go the distance.' },
-      { value: 'work', label: 'Work vehicle', sub: 'Tools, gear and site storage', says: 'Easy. Heavy-duty slides and lockable drawers for your gear.' },
-    ],
-  },
-  {
-    id: 'sleep',
-    title: 'Sleeping in the back?',
-    help: 'Sleeping inside means a bed extension over the folded 2nd row.',
-    options: [
-      { value: 'no', label: 'Nah, tent or swag', sub: 'Drawers only, max storage', says: 'Too easy. You keep the back seats and all the space.' },
-      { value: 'sometimes', label: 'Sometimes', sub: 'Slatted pull-out bed extension', says: 'Slats it is. Floor space by day, a bed when the weather turns.' },
-      { value: 'yes', label: 'Most nights', sub: 'Fixed full-length bed', says: 'A proper fixed bed, flush with the drawer deck. No setup at 9pm in the rain.' },
-    ],
-  },
-  {
     id: 'fridge',
-    title: 'Which fridge?',
-    help: 'The Wagon Base Kit has an upright fridge in its own cabinet over the pull-out table. Drawer and chest fridges change the layout. Already got a fridge? Tick the box below and we\'ll leave it off your quote.',
+    title: 'Fridge',
+    help: 'Pick the fridge you want built in. The cabinetry sizes itself around it.',
     options: [
+      { value: 'none', label: 'No fridge', group: 'No fridge', sub: 'Drawers right across' },
       ...FRIDGES.map((f) => ({
         value: f.id,
         label: f.label,
-        group: f.type === 'upright' ? 'Upright (front-opening)' : f.type === 'drawer' ? 'Drawer fridge' : 'Chest fridge on a drop slide',
-        sub: f.type === 'upright' ? 'Opens like a home fridge, at waist height' : f.type === 'drawer' ? 'Built into the drawer system' : 'Lid on top, slides out the back',
-        says:
-          f.type === 'upright'
-            ? 'Our favourite. Opens like the one at home, no lifting a lid or leaning over a slide.'
-            : f.type === 'drawer'
-              ? 'Sleek. Sits flush in the drawers, perfect for drinks and day trips. Less room for a big shop.'
-              : 'Chest fridges are the most efficient, the cold stays in when you open the lid. Needs a drop slide.',
+        group: f.type === 'upright' ? 'Upright fridge' : f.type === 'drawer' ? 'Drawer fridge' : 'Chest fridge',
+        sub: f.type === 'upright' ? 'Front-opening, in its own cabinet' : f.type === 'drawer' ? 'Built into the drawer system' : 'Lid on top',
       })),
-      { value: 'none', label: 'No fridge', group: 'None', sub: 'Drawers right across', says: 'Fair enough. More drawer space for you.' },
     ],
   },
   {
-    id: 'features',
-    title: 'Tick your features',
-    help: 'The pull-out table and built-in compressor are part of the Wagon Base Kit. Untick them to save, or add a kitchen or water tank.',
-    multi: true,
-    options: FEATURES.map((f) => ({ value: f.id, label: f.label, sub: f.sub })),
+    id: 'bed',
+    title: 'Bed',
+    help: 'The pull-out bed slides forward over the folded rear seats. Tap Open on the preview to see it.',
+    options: [
+      { value: 'none', label: 'No bed', sub: 'Drawers and storage only' },
+      { value: 'pullout', label: 'Pull-out bed', sub: 'Slides out with a folding mattress' },
+    ],
   },
   {
-    id: 'power',
-    title: 'What do you want to run?',
-    help: 'Our standard power pack runs phones, laptops and lights. Pick everything you\'d use and we\'ll tell you if you need more, and where you can save.',
+    id: 'storage',
+    title: 'Tables',
+    help: 'Tick what you want, or neither.',
     multi: true,
-    options: DEVICES.map((d) => ({ value: d.id, label: d.label, sub: d.base ? 'Covered by the standard power pack' : d.ac ? '240V, may need a bigger setup' : '12V, may need a bigger setup' })),
+    options: STORAGE.map((s) => ({ value: s.id, label: s.label, sub: s.sub })),
+  },
+  {
+    id: 'power12',
+    title: '12V power',
+    help: 'House battery charged from the car, 12V and USB sockets, and a battery monitor. Runs the fridge, lights and charges your devices.',
+    options: [
+      { value: 'yes', label: 'Yes, add 12V', sub: 'Battery, charging, 12V and USB sockets, monitor' },
+      { value: 'no', label: 'No 12V', sub: 'Cable runs cut so you can add it later' },
+    ],
+  },
+  {
+    id: 'power240',
+    title: '240V power',
+    help: 'An inverter and 240V outlet for laptops, chargers and small appliances. It runs off the 12V battery.',
+    options: [
+      { value: 'yes', label: 'Yes, add 240V', sub: 'Inverter and 240V outlet' },
+      { value: 'no', label: 'No 240V', sub: '' },
+    ],
+  },
+  {
+    id: 'electricalBuild',
+    title: 'Who does the electrical?',
+    help: 'We\'ll size the system to what you want to run before anything ships.',
+    needsPower: true,
+    options: [
+      { value: 'diy', label: 'You install it', sub: 'We send the parts, labelled, for you or your auto electrician' },
+      { value: 'assembled', label: 'We build it, you install it', sub: 'Arrives pre-wired on a panel, you connect it up' },
+      { value: 'installed', label: 'We build it and install it', sub: 'At our Gold Coast workshop, electrician sign-off' },
+    ],
   },
   {
     id: 'finish',
-    title: 'Budget or bling?',
-    help: 'All our kits use the same structural materials. Finish level is what changes.',
-    options: [
-      { value: 'budget', label: 'Keep it lean', sub: 'Natural birch fronts, carpet top', says: 'Smart. Spend on the slides and the structure, the rest is cosmetic.' },
-      { value: 'balanced', label: 'The Bush Bound look', sub: 'Forest green fronts, carpet top', says: 'Our signature finish. Green fronts, exposed birch edges, grey marine carpet.' },
-      { value: 'premium', label: 'Go all out', sub: 'Green fronts + black hex-top deck', says: 'Full send. Hex-top is near bulletproof for gear sliding around.' },
-    ],
+    title: 'Finish',
+    help: 'Black honeycomb is our standard. Laminate goes on the drawer fronts and fridge cabinet sides.',
+    options: FINISHES.map((f) => ({ value: f.id, label: f.label, sub: f.sub })),
   },
   {
     id: 'build',
-    title: 'Who\'s building it?',
-    help: 'Every kit is CNC cut, labelled and pre-drilled with an install floor template. You choose how hands-on you get.',
+    title: 'Who builds the cabinetry?',
+    help: 'Every kit is CNC cut, numbered and pre-drilled, with a floor template for installing.',
     options: [
-      { value: 'diy', label: 'Flat pack DIY', sub: 'Shipped to you, build it in a weekend', says: 'Legend. Everything\'s numbered and the floor template stops you drilling into anything you shouldn\'t.' },
-      { value: 'assembled', label: 'We assemble it', sub: 'Arrives built, you bolt it in', says: 'Good call if your weekends are already booked.' },
-      { value: 'installed', label: 'We build & install', sub: 'Drop the car at our Gold Coast workshop', says: 'Too easy. Drop it off, pick it up ready to go.' },
+      { value: 'diy', label: 'You build it and install it', sub: 'Flat packed and shipped to you' },
+      { value: 'assembled', label: 'We build it, you install it', sub: 'Arrives assembled, you bolt it in' },
+      { value: 'installed', label: 'We build it and install it', sub: 'At our Gold Coast workshop' },
     ],
   },
   {
-    id: 'electrical',
-    title: 'How about the 12V?',
-    help: 'Our power pack adds 12V and USB sockets, a 240V outlet and a battery monitor, sized to what you picked. Who\'s wiring it?',
-    options: [
-      { value: 'installed', label: 'Power pack, Bush Bound installs it', sub: 'At our Gold Coast workshop, electrician sign-off', says: 'Best option. It\'s wired, tested and signed off before you leave.' },
-      { value: 'diy', label: 'Power pack, send me the parts', sub: 'Labelled parts, your auto electrician fits it', says: 'No worries. The cabinetry comes pre-cut for cable runs and mounts.' },
-      { value: 'none', label: 'No power for now', sub: 'Cabinets only, cable runs cut for later', says: 'All good. We still cut the cable runs so you can add it later.' },
-    ],
+    id: 'vehicle',
+    title: 'What are you driving?',
+    help: 'We\'ve got the measurements for these. Every kit is cut for your exact vehicle.',
+    options: VEHICLES.map((v) => ({ value: v.id, label: v.short === 'your wagon' ? 'Something else' : v.short, sub: v.make === 'Other' ? 'Tell us what it is' : v.label })),
   },
 ];
 
 // ---------------------------------------------------------------------------
-// Kits and pricing (PLACEHOLDERS: confirm before launch)
+// Names (prices are server-side only, see pricing.server.ts)
 // ---------------------------------------------------------------------------
 
 export const BASE_KIT = {
   name: 'Wagon Base Kit',
-  tagline: 'Evenly split drawers, an upright fridge cabinet, pull-out table and built-in air compressor.',
-  /** Includes the upright fridge cabinet and the inBase features */
-  base: 4480,
-};
-
-export const PRICING = {
-  /** Credit when there's no upright fridge cabinet (drawer fridge or no fridge) */
-  fridgeCabinet: 450,
-  /** Chest fridge drop slide instead of the cabinet */
-  chestSlide: 450,
-  sleepSlats: 590,
-  sleepFixed: 790,
-  finishMultiplier: { budget: 0.92, balanced: 1, premium: 1.15 },
-  build: { diy: 0, assembled: 1450, installed: 2450 },
-};
-
-/** What the base kit's power system covers (PLACEHOLDER specs: confirm with Luke). */
-export const BASE_POWER = { batteryAh: 100, inverterW: 1600 };
-
-export const ELECTRICAL_PRICING = {
-  basePower: 2600,
-  batteryPer100Ah: 1300,
-  solarPer100W: 300,
-  inverterUpgrade: { 2000: 350, 3000: 950 } as Record<number, number>,
-  install: 1800,
-};
-
-export const FINISH_LABELS: Record<string, string> = {
-  budget: 'Natural birch fronts',
-  balanced: 'Forest green fronts',
-  premium: 'Green fronts + black hex-top deck',
+  tagline: 'Evenly split drawers and an upright fridge cabinet in black honeycomb birch ply.',
 };
 
 export const BUILD_LABELS: Record<string, string> = {
-  diy: 'Flat pack DIY (shipped)',
-  assembled: 'Assembled by Bush Bound',
-  installed: 'Built & installed on the Gold Coast',
+  diy: 'Flat pack, you build and install',
+  assembled: 'We build it, you install it',
+  installed: 'We build it and install it',
+};
+
+export const ELECTRICAL_BUILD_LABELS: Record<string, string> = {
+  diy: 'Electrical parts, you install',
+  assembled: 'Pre-wired electrical panel, you install',
+  installed: 'Electrical built and installed, electrician sign-off',
 };

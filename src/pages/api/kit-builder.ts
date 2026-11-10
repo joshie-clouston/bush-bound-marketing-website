@@ -4,6 +4,7 @@ import { staffNotificationHtml, kitCustomerHtml, emailRecipient } from '@/lib/em
 import { createNotionLead } from '@/lib/notion';
 import { notifyOpsError } from '@/lib/alerts';
 import { recommend, sanitiseAnswers, summaryText } from '@/lib/kit-builder/engine';
+import { priceBracket, priceKit } from '@/lib/kit-builder/pricing.server';
 
 export const prerender = false;
 
@@ -40,7 +41,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const answers = sanitiseAnswers(body.answers);
     if (!answers.vehicle) return json({ error: 'Pick a vehicle first' }, 400);
     const rec = recommend(answers);
-    const summary = summaryText(answers, rec);
+    const quote = priceKit(answers);
+    const bracket = priceBracket(answers);
+    const summary = `${summaryText(answers, rec)}\nBracket shown to customer: ${bracket}`;
+    const vehicleLabel = answers.vehicle === 'other' ? answers.vehicleName || 'Other vehicle' : rec.vehicle.label;
 
     // Store in D1 (non-blocking)
     let leadId: number | null = null;
@@ -49,7 +53,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
         `INSERT INTO quotes (name, email, phone, vehicle_type, vehicle_model, wishlist, message, postcode, utm_source, utm_medium, utm_campaign, status, created_at)
          VALUES (?, ?, ?, 'flatpack-kit', ?, ?, ?, ?, ?, ?, ?, 'kit-request', ?)`
       ).bind(
-        name, email, phone || null, rec.vehicle.label, summary, notes || null, postcode || null,
+        name, email, phone || null, vehicleLabel, summary, notes || null, postcode || null,
         utm_source || null, utm_medium || null, utm_campaign || null, Date.now(),
       ).run();
       leadId = result.meta.last_row_id as number;
@@ -65,7 +69,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
           name,
           email,
           phone,
-          vehicle: rec.vehicle.label,
+          vehicle: vehicleLabel,
           type: 'Flatpack Kit',
           wishlist: summary,
           postcode,
@@ -96,19 +100,18 @@ export const POST: APIRoute = async ({ request, locals }) => {
           from,
           to: emailRecipient((runtime.env.NOTIFICATION_EMAIL as string) || 'luke@bushbound.au', email),
           replyTo: email,
-          subject: `New kit request: ${rec.kitName} for ${rec.vehicle.short}${rec.addOns.length ? ` + ${rec.addOns.length} add-on${rec.addOns.length > 1 ? 's' : ''}` : ''} (${name})`,
+          subject: `New kit request: ${rec.kitName} for ${vehicleLabel} (${name})`,
           html: staffNotificationHtml(
             [
               ['Name', escapeHtml(name)],
               ['Phone', escapeHtml(phone || 'Not provided')],
               ['Email', escapeHtml(email)],
               ['Postcode', escapeHtml(postcode || 'Not provided')],
-              ['Kit', escapeHtml(`${rec.kitName} for ${rec.vehicle.label}${rec.addOns.length ? ` + ${rec.addOns.join(', ')}` : ''}`)],
+              ['Kit', escapeHtml(`${rec.kitName} for ${vehicleLabel}: ${rec.addOns.join(', ')}`)],
               ['Answers', pre(summary)],
-              ['Kit lines', rec.kitLines.map((l) => `${escapeHtml(l.label)}: ${money(l.amount)}`).join('<br />')],
-              ['Electrical', rec.electricalLines.length ? rec.electricalLines.map((l) => `${escapeHtml(l.label)}: ${money(l.amount)}`).join('<br />') : 'None'],
-              ['Power', escapeHtml(rec.power.tierName) + (rec.power.upgradeItems.length ? '<br />' + rec.power.upgradeItems.map(escapeHtml).join('<br />') : '')],
-              ['Indicative total', money(rec.total)],
+              ['Internal pricing', quote.lines.map((l) => `${escapeHtml(l.label)}: ${money(l.amount)}`).join('<br />')],
+              ['Internal total', money(quote.total)],
+              ['Bracket shown', escapeHtml(bracket)],
               ['Notes', escapeHtml(notes || 'None')],
               ['UTM', escapeHtml([utm_source, utm_medium, utm_campaign].filter(Boolean).join(' / ') || 'Direct')],
             ],
@@ -116,17 +119,13 @@ export const POST: APIRoute = async ({ request, locals }) => {
           ),
         });
 
-        const items = [
-          `${rec.kitName} for your ${rec.vehicle.label}`,
-          ...rec.addOns.map((a) => `Add-on: ${a}`),
-          rec.power.batteryAh ? `Power: ${rec.power.tierName}` : 'Cabinets only (power-ready)',
-        ].filter(Boolean).map(escapeHtml);
+        const items = rec.items.map((i) => escapeHtml(i.label));
 
         await resend.emails.send({
           from,
           to: emailRecipient(email, email),
-          subject: `Your ${rec.kitName} is locked in, ${name.split(' ')[0]}`,
-          html: kitCustomerHtml(escapeHtml(name), rec.kitName, rec.vehicle.short, items, money(rec.total)),
+          subject: `We've got your kit request, ${name.split(' ')[0]}`,
+          html: kitCustomerHtml(escapeHtml(name), rec.kitName, escapeHtml(vehicleLabel), items, bracket),
         });
       }
     } catch (emailError) {
