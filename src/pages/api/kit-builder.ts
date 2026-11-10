@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { Resend } from 'resend';
 import { staffNotificationHtml, kitCustomerHtml, emailRecipient } from '@/lib/email-templates';
-import { createNotionLead } from '@/lib/notion';
+import { createNotionLead, updateNotionLead } from '@/lib/notion';
 import { notifyOpsError } from '@/lib/alerts';
 import { recommend, sanitiseAnswers, summaryText } from '@/lib/kit-builder/engine';
 import { priceBracket, priceKit } from '@/lib/kit-builder/pricing.server';
@@ -46,45 +46,71 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const summary = `${summaryText(answers, rec)}\nBracket shown to customer: ${bracket}`;
     const vehicleLabel = answers.vehicle === 'other' ? answers.vehicleName || 'Other vehicle' : rec.vehicle.label;
 
-    // Store in D1 (non-blocking)
+    // The intro screen already saved this person as a lead (/api/kit-lead). Update that row and its
+    // Notion page if the email still matches; otherwise create a fresh one.
+    const startedId = Number(body.leadId);
     let leadId: number | null = null;
-    try {
-      const result = await runtime.env.DB.prepare(
-        `INSERT INTO quotes (name, email, phone, vehicle_type, vehicle_model, wishlist, message, postcode, utm_source, utm_medium, utm_campaign, status, created_at)
-         VALUES (?, ?, ?, 'flatpack-kit', ?, ?, ?, ?, ?, ?, ?, 'kit-request', ?)`
-      ).bind(
-        name, email, phone || null, vehicleLabel, summary, notes || null, postcode || null,
-        utm_source || null, utm_medium || null, utm_campaign || null, Date.now(),
-      ).run();
-      leadId = result.meta.last_row_id as number;
-    } catch (dbError) {
-      console.error('D1 write failed (kit builder):', dbError);
-      await notifyOpsError(runtime.env as Record<string, unknown>, 'Kit builder D1 insert', dbError, { name, email });
+    let existingPageId: string | null = null;
+    if (Number.isInteger(startedId) && startedId > 0) {
+      try {
+        const result = await runtime.env.DB.prepare(
+          `UPDATE quotes SET name = ?, phone = ?, vehicle_model = ?, wishlist = ?, message = ?, postcode = ?, status = 'kit-request'
+           WHERE id = ? AND email = ?`
+        ).bind(name, phone || null, vehicleLabel, summary, notes || null, postcode || null, startedId, email).run();
+        if (result.meta.changes > 0) {
+          leadId = startedId;
+          const row = await runtime.env.DB.prepare(`SELECT notion_page_id FROM quotes WHERE id = ?`).bind(leadId).first<{ notion_page_id: string | null }>();
+          existingPageId = row?.notion_page_id ?? null;
+        }
+      } catch (dbError) {
+        console.error('D1 update failed (kit builder):', dbError);
+        await notifyOpsError(runtime.env as Record<string, unknown>, 'Kit builder D1 update', dbError, { startedId, email });
+      }
+    }
+
+    // Store in D1 (non-blocking)
+    if (!leadId) {
+      try {
+        const result = await runtime.env.DB.prepare(
+          `INSERT INTO quotes (name, email, phone, vehicle_type, vehicle_model, wishlist, message, postcode, utm_source, utm_medium, utm_campaign, status, created_at)
+           VALUES (?, ?, ?, 'flatpack-kit', ?, ?, ?, ?, ?, ?, ?, 'kit-request', ?)`
+        ).bind(
+          name, email, phone || null, vehicleLabel, summary, notes || null, postcode || null,
+          utm_source || null, utm_medium || null, utm_campaign || null, Date.now(),
+        ).run();
+        leadId = result.meta.last_row_id as number;
+      } catch (dbError) {
+        console.error('D1 write failed (kit builder):', dbError);
+        await notifyOpsError(runtime.env as Record<string, unknown>, 'Kit builder D1 insert', dbError, { name, email });
+      }
     }
 
     // Notion CRM lead (non-blocking)
-    if (runtime.env.NOTION_TOKEN && runtime.env.NOTION_DATABASE_ID) {
+    if (runtime.env.NOTION_TOKEN) {
+      const lead = {
+        name,
+        email,
+        phone,
+        vehicle: vehicleLabel,
+        type: 'Flatpack Kit' as const,
+        wishlist: summary,
+        postcode,
+        message: notes || 'Requested an official quote from the kit builder.',
+        referral: 'Kit builder',
+        utmSource: utm_source,
+        utmMedium: utm_medium,
+        utmCampaign: utm_campaign,
+      };
       try {
-        const pageId = await createNotionLead(runtime.env.NOTION_TOKEN as string, runtime.env.NOTION_DATABASE_ID as string, {
-          name,
-          email,
-          phone,
-          vehicle: vehicleLabel,
-          type: 'Flatpack Kit',
-          wishlist: summary,
-          postcode,
-          message: notes,
-          referral: 'Kit builder',
-          utmSource: utm_source,
-          utmMedium: utm_medium,
-          utmCampaign: utm_campaign,
-        });
-        if (leadId) {
-          await runtime.env.DB.prepare(`UPDATE quotes SET notion_page_id = ? WHERE id = ?`).bind(pageId, leadId).run();
+        if (existingPageId) {
+          await updateNotionLead(runtime.env.NOTION_TOKEN as string, existingPageId, lead);
+        } else if (runtime.env.NOTION_DATABASE_ID) {
+          const pageId = await createNotionLead(runtime.env.NOTION_TOKEN as string, runtime.env.NOTION_DATABASE_ID as string, lead);
+          if (leadId) await runtime.env.DB.prepare(`UPDATE quotes SET notion_page_id = ? WHERE id = ?`).bind(pageId, leadId).run();
         }
       } catch (notionError) {
-        console.error('Notion create failed (kit builder):', notionError);
-        await notifyOpsError(runtime.env as Record<string, unknown>, 'Kit builder Notion create', notionError, { leadId, name, email });
+        console.error('Notion write failed (kit builder):', notionError);
+        await notifyOpsError(runtime.env as Record<string, unknown>, 'Kit builder Notion write', notionError, { leadId, name, email });
       }
     }
 

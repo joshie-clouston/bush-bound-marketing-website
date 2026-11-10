@@ -160,11 +160,19 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
     let step = INTRO;
     /** Where a returning customer got to, offered on the intro screen. */
     let savedStep: number | null = null;
+    /** Contact details captured on the intro screen, and the lead row they created. */
+    let lead: { email: string; phone: string; leadId: number | null } | null = null;
     let scene: KitScene | null = null;
     /** Set when the customer jumps back from the summary to change one answer. */
     let returnToSummary = false;
     /** Order form values survive re-rendering the summary. */
     const formDraft: Record<string, string> = {};
+    function prefillFromLead() {
+      if (!lead) return;
+      formDraft.email ??= lead.email;
+      formDraft.phone ??= lead.phone;
+    }
+
     /** Latest price bracket from the server (we never ship prices to the browser). */
     let bracket = '';
 
@@ -172,13 +180,16 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
       if (saved && typeof saved === 'object') {
         answers = sanitiseAnswers(saved.answers);
+        if (saved.lead && typeof saved.lead.email === 'string' && typeof saved.lead.phone === 'string') {
+          lead = { email: saved.lead.email, phone: saved.lead.phone, leadId: Number.isInteger(saved.lead.leadId) ? saved.lead.leadId : null };
+        }
         const s = Math.min(Math.max(INTRO, saved.step | 0), SUMMARY);
         if (s > INTRO) savedStep = s;
       }
     } catch { /* storage unavailable, start fresh */ }
 
     function save() {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, step })); } catch { /* ignore */ }
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, step, lead })); } catch { /* ignore */ }
     }
 
     // -----------------------------------------------------------------------
@@ -324,7 +335,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       answers = {};
       savedStep = null;
       returnToSummary = false;
-      for (const k of Object.keys(formDraft)) delete formDraft[k];
+      for (const k of Object.keys(formDraft)) if (k !== 'email' && k !== 'phone') delete formDraft[k];
       setOpen(false);
       refresh();
       goTo(0);
@@ -355,10 +366,22 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
           <li class="flex gap-2"><span class="text-primary">&#10003;</span>Watch the model update as you go</li>
           <li class="flex gap-2"><span class="text-primary">&#10003;</span>See a price range, then get an official quote</li>
         </ul>
+        ${lead ? '' : `
+             <div class="mt-6 space-y-3">
+               <label class="block text-sm"><span class="font-medium text-charcoal">Email</span>
+                 <input id="lead-email" type="email" autocomplete="email" inputmode="email" required
+                   class="mt-1 w-full min-h-[48px] rounded-md border border-stone-dark/40 px-3 py-2.5 text-base focus:border-primary focus:outline-none" /></label>
+               <label class="block text-sm"><span class="font-medium text-charcoal">Mobile</span>
+                 <input id="lead-phone" type="tel" autocomplete="tel" inputmode="tel" required
+                   class="mt-1 w-full min-h-[48px] rounded-md border border-stone-dark/40 px-3 py-2.5 text-base focus:border-primary focus:outline-none" /></label>
+               <p id="lead-error" class="hidden text-sm text-destructive"></p>
+               <p class="text-xs text-muted-foreground">So we can send you your design and quote. No spam.</p>
+             </div>`}
         ${resuming
           ? `<button type="button" id="resume-btn" class="mt-6 w-full min-h-[52px] bg-primary text-primary-foreground font-bold rounded-md hover:bg-primary-light transition-colors">Pick up where you left off</button>
              <button type="button" id="fresh-btn" class="mt-2 w-full min-h-[48px] text-primary font-semibold hover:underline">Start fresh</button>`
-          : `<button type="button" id="start-btn" class="mt-6 w-full min-h-[52px] bg-primary text-primary-foreground font-bold rounded-md hover:bg-primary-light transition-colors">Start building yours</button>`}
+          : `
+             <button type="button" id="start-btn" class="mt-4 w-full min-h-[52px] bg-primary text-primary-foreground font-bold rounded-md hover:bg-primary-light transition-colors disabled:opacity-60">Start building yours</button>`}
       `;
     }
     $('see-kit').addEventListener('click', () => {
@@ -470,6 +493,42 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       `;
     }
 
+    /** Save their email + mobile as a lead before they start building, then move on regardless. */
+    async function captureLead(btn: HTMLButtonElement, next: () => void) {
+      const email = $<HTMLInputElement>('lead-email').value.trim().toLowerCase();
+      const phone = $<HTMLInputElement>('lead-phone').value.trim();
+      const error = $('lead-error');
+      error.classList.add('hidden');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        error.textContent = 'Pop in a valid email so we can send your design.';
+        error.classList.remove('hidden');
+        $('lead-email').focus();
+        return;
+      }
+      if (phone.replace(/\D/g, '').length < 8) {
+        error.textContent = 'Pop in your mobile number too.';
+        error.classList.remove('hidden');
+        $('lead-phone').focus();
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Starting...';
+      let leadId: number | null = null;
+      try {
+        const res = await fetch('/api/kit-lead', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, phone, ...getUtmParams() }),
+        });
+        const data = (await res.json()) as { leadId?: number | null };
+        leadId = typeof data.leadId === 'number' ? data.leadId : null;
+      } catch { /* don't hold them up if saving the lead fails */ }
+      lead = { email, phone, leadId };
+      prefillFromLead();
+      save();
+      next();
+    }
+
     function rerender() {
       save();
       refresh();
@@ -478,18 +537,22 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
 
     $('question-body').addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
-      if (target.closest('#start-btn')) {
-        setOpen(false);
-        goTo(0);
+      const startBtn = target.closest<HTMLButtonElement>('#start-btn, #resume-btn, #fresh-btn');
+      if (startBtn) {
+        const go = () => {
+          if (startBtn.id === 'fresh-btn') return startOver();
+          setOpen(false);
+          if (startBtn.id === 'resume-btn') {
+            const to = savedStep ?? 0;
+            savedStep = null;
+            return goTo(to);
+          }
+          goTo(0);
+        };
+        if (!lead) void captureLead(startBtn, go);
+        else go();
         return;
       }
-      if (target.closest('#resume-btn')) {
-        const to = savedStep ?? 0;
-        savedStep = null;
-        goTo(to);
-        return;
-      }
-      if (target.closest('#fresh-btn')) return startOver();
       if (target.closest('[data-open-preview]') && step === INTRO) {
         setOpen(true);
         if (isMobile()) $('viewer').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -548,6 +611,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
     // -----------------------------------------------------------------------
 
     function renderSummary() {
+      prefillFromLead();
       const rec: Recommendation = refresh();
       $('question-panel').classList.add('hidden');
       $('answered').classList.add('hidden');
@@ -688,10 +752,12 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
         const res = await fetch('/api/kit-builder', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ answers, contact: data, ...getUtmParams() }),
+          body: JSON.stringify({ answers, contact: data, leadId: lead?.leadId ?? null, ...getUtmParams() }),
         });
         if (!res.ok) throw new Error(String(res.status));
-        try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+        // That lead is now a quote request; another build from here starts a new lead row.
+        if (lead) lead.leadId = null;
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers: {}, step: INTRO, lead })); } catch { /* ignore */ }
         form.outerHTML = `
           <div class="bg-primary text-primary-foreground rounded-xl p-6 sm:p-7">
             <h3 class="text-2xl font-extrabold">Thanks ${escapeHtml(data.name.split(' ')[0])}, we've got it.</h3>
