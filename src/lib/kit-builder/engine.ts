@@ -90,7 +90,6 @@ export type ModuleKind =
   | 'drawer'
   | 'cubby'
   | 'camp-table'
-  | 'pullout'
   | 'drawer-fridge'
   | 'end-panel'
   | 'deck'
@@ -119,6 +118,8 @@ export interface ModuleSpec {
   swing?: 'left' | 'right';
   /** Only visible while "Open" is toggled */
   onlyOpen?: boolean;
+  /** Drawer with a pull-out table inside it: how much further the table slides out of the drawer, mm */
+  tableSlide?: number;
   fixtures?: Fixture[];
   badge?: boolean;
 }
@@ -191,13 +192,9 @@ export function buildLayout(answers: KitAnswers): Layout {
       modules.push({ id: 'fridge', kind: 'drawer-fridge', x: cx, y: T, z: fz, w: w - 4, h: h - 2 * T, d: depth - 30, move: out(depth * 0.6) });
       return;
     }
-    let bottom = T;
-    if (i === 0 && store.has('pullout')) {
-      // Pull-out table rides under the left drawer.
-      modules.push({ id: 'pullout', kind: 'pullout', x: cx, y: T, z: fz, w: w - 4, h: 60, d: depth - 30, move: out(depth * 0.85) });
-      bottom = T + 66;
-    }
-    modules.push({ id: `drawer-${i}`, kind: 'drawer', x: cx, y: bottom, z: fz, w: w - 4, h: h - T - bottom, d: depth - 30, move: out(depth * 0.6), badge: opts.badge });
+    // The pull-out table lives inside the left drawer and slides out of it (and goes out with the drawer).
+    const tableSlide = i === 0 && store.has('pullout') ? round(depth * 0.55) : undefined;
+    modules.push({ id: `drawer-${i}`, kind: 'drawer', x: cx, y: T, z: fz, w: w - 4, h: h - 2 * T, d: depth - 30, move: out(depth * 0.6), badge: opts.badge, tableSlide });
   };
 
   for (let i = 0; i < columns; i++) {
@@ -336,7 +333,7 @@ export function recommend(answers: KitAnswers): Recommendation {
   if (!fridge) why.push('No fridge, so it\'s drawers right across.');
   if (layout.bed) why.push(`Pull-out bed: the slats slide forward over the folded rear seats and the mattress folds out on top${layout.bedIsSingle ? ', a single beside the fridge' : ''}. Packs away in seconds.`);
   if (store.has('cubby')) why.push('Your Bush Bound table lives in its own hinged cubby. Open the door, grab it, set it up beside the car.');
-  if (store.has('pullout')) why.push('Pull-out table slides out from under the left drawer. Instant bench at the tailgate.');
+  if (store.has('pullout')) why.push('Pull-out table slides out from inside the left drawer, and comes out with it when you open the drawer. Instant bench at the tailgate.');
   if (p12) why.push('12V and USB sockets on the side panel, with a battery monitor and switch.');
   if (p240) why.push('240V outlet for laptops, chargers and small appliances, running off the 12V battery.');
 
@@ -349,7 +346,7 @@ export function recommend(answers: KitAnswers): Recommendation {
   if (wantsPower(answers)) tips.push('We\'ll chat about what you want to run (fridge, Starlink, laptops, coffee) and size the battery and solar to suit before anything ships.');
   if (wantsPower(answers) && eBuild === 'installed' && build !== 'installed') tips.push('Electrical install happens at our Gold Coast workshop, so you\'ll need to bring the car in for that part.');
   if (build === 'diy') tips.push('Most people build our kits in a weekend with a drill, a few clamps and a mate. Every panel is numbered and the floor template marks exactly where to drill, clear of fuel tanks and wiring.');
-  if (build !== 'installed') tips.push('Carpet-lined tops are only available with our build and install service, because carpet doesn\'t flat pack.');
+  if (build !== 'installed') tips.push('Carpet-lined tops are only available if we build and install it for you, because carpet doesn\'t flat pack.');
 
   // What goes on the quote (labels only, priced on the server).
   const items: QuoteItem[] = [{ group: 'Cabinetry', label: `${BASE_KIT.name} for ${answers.vehicle === 'other' ? answers.vehicleName || 'your vehicle' : v.short}` }];

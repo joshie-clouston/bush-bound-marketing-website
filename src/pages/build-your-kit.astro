@@ -236,7 +236,6 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
       'drawer-fridge': 'Drawer fridge',
       'fridge-chest': 'Chest fridge',
       cubby: 'Table cubby',
-      pullout: 'Pull-out table',
       slats: 'Pull-out bed',
       'end-panel': 'Power panels',
     };
@@ -419,9 +418,9 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
         extras += v === 'installed'
           ? `<label class="mt-4 flex items-center gap-3 min-h-[48px] cursor-pointer rounded-lg bg-stone-light px-4 py-2 text-sm text-charcoal">
               <input id="carpet" type="checkbox" class="w-5 h-5 accent-[#2D4A3E]" ${answers.carpet ? 'checked' : ''} />
-              <span><strong>Carpet-lined tops.</strong> Only with our build and install service.</span>
+              <span><strong>Add carpet-lined tops.</strong> Only available when we build and install it for you.</span>
             </label>`
-          : `<p class="mt-4 text-xs text-muted-foreground">Carpet-lined tops are available when we build and install it. Carpet doesn't flat pack.</p>`;
+          : `<p class="mt-4 text-xs text-muted-foreground">Want carpet-lined tops? Pick "Build and install it for me". Carpet doesn't flat pack.</p>`;
       }
       if (q.id === 'vehicle' && v === 'other') {
         extras += `<label class="block mt-4"><span class="text-sm font-semibold text-charcoal">What is it?</span>

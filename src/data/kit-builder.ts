@@ -157,7 +157,7 @@ export type StorageId = 'cubby' | 'pullout';
 
 export const STORAGE: { id: StorageId; label: string; sub: string }[] = [
   { id: 'cubby', label: 'Bush Bound table + storage cubby', sub: 'Our slatted folding camp table, stored in its own hinged cubby. Tap Open to see it' },
-  { id: 'pullout', label: 'Pull-out table', sub: 'A table top that slides out from under the left drawer' },
+  { id: 'pullout', label: 'Pull-out table', sub: 'A table that slides out from inside the left drawer' },
 ];
 
 /** Ticked before the customer reaches the storage step (matches our base wagon build). */
@@ -249,13 +249,13 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: 'electricalBuild',
-    title: 'Who does the electrical?',
+    title: 'How do you want the electrical?',
     help: 'We\'ll size the system to what you want to run before anything ships.',
     needsPower: true,
     options: [
-      { value: 'diy', label: 'You install it', sub: 'We send the parts, labelled, for you or your auto electrician' },
-      { value: 'assembled', label: 'We build it, you install it', sub: 'Arrives pre-wired on a panel, you connect it up' },
-      { value: 'installed', label: 'We build it and install it', sub: 'At our Gold Coast workshop, electrician sign-off' },
+      { value: 'diy', label: 'I\'ll install it myself', sub: 'Send me the parts, labelled, for me or my auto electrician' },
+      { value: 'assembled', label: 'Build it for me, I\'ll install it', sub: 'Arrives pre-wired on a panel, I connect it up' },
+      { value: 'installed', label: 'Build and install it for me', sub: 'At your Gold Coast workshop, with electrician sign-off' },
     ],
   },
   {
@@ -266,12 +266,12 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: 'build',
-    title: 'Who builds the cabinetry?',
+    title: 'How do you want the fit-out built?',
     help: 'Every kit is CNC cut, numbered and pre-drilled, with a floor template for installing.',
     options: [
-      { value: 'diy', label: 'You build it and install it', sub: 'Flat packed and shipped to you' },
-      { value: 'assembled', label: 'We build it, you install it', sub: 'Arrives assembled, you bolt it in' },
-      { value: 'installed', label: 'We build it and install it', sub: 'At our Gold Coast workshop' },
+      { value: 'diy', label: 'I\'ll build and install it myself', sub: 'DIY flat pack, shipped to me' },
+      { value: 'assembled', label: 'Build it for me, I\'ll install it', sub: 'Arrives assembled, I bolt it in' },
+      { value: 'installed', label: 'Build and install it for me', sub: 'At your Gold Coast workshop' },
     ],
   },
   {
@@ -292,13 +292,13 @@ export const BASE_KIT = {
 };
 
 export const BUILD_LABELS: Record<string, string> = {
-  diy: 'Flat pack, you build and install',
-  assembled: 'We build it, you install it',
-  installed: 'We build it and install it',
+  diy: 'DIY flat pack: I\'ll build and install it',
+  assembled: 'Built for me, I\'ll install it',
+  installed: 'Built and installed for me',
 };
 
 export const ELECTRICAL_BUILD_LABELS: Record<string, string> = {
-  diy: 'Electrical parts, you install',
-  assembled: 'Pre-wired electrical panel, you install',
-  installed: 'Electrical built and installed, electrician sign-off',
+  diy: 'Electrical parts, I\'ll install them',
+  assembled: 'Pre-wired electrical panel, I\'ll install it',
+  installed: 'Electrical built and installed for me, with sign-off',
 };

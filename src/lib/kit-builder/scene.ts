@@ -300,55 +300,18 @@ export class KitScene {
   // -------------------------------------------------------------------------
 
   private buildEnvelope(layout: Layout) {
+    // Just the fit-out on a soft ground shadow: no car body, seats or arches.
     const v = layout.vehicle;
-    const key = `${v.id}|${layout.seatsFolded}|${v.floorWidth}|${v.archWidth}|${v.cargoLength}|${v.roofHeight}`;
+    const key = v.id;
     if (key === this.envelopeKey) return;
     this.envelopeKey = key;
     this.envelope.clear();
-
-    const W = v.floorWidth;
-    const totalLength = v.sleepLength + 300;
-
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), this.m.ground);
     ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -0.03;
+    ground.position.y = -0.002;
     ground.receiveShadow = true;
     this.envelope.add(ground);
-
-    this.envelope.add(this.at(this.box(W, 20, totalLength, this.m.floor), 0, -10, -totalLength / 2));
-
-    const archW = (W - v.archWidth) / 2;
-    for (const side of [-1, 1]) {
-      this.envelope.add(this.at(this.box(archW - 10, v.archHeight, v.archLength, this.m.arch), side * (W / 2 - archW / 2), v.archHeight / 2, -v.cargoLength * 0.6));
-    }
-
-    const seatZ = -(v.cargoLength + 280);
-    if (layout.seatsFolded) {
-      this.envelope.add(this.at(this.box(W - 120, 240, 520, this.m.seat), 0, 120, seatZ));
-    } else {
-      this.envelope.add(this.at(this.box(W - 120, 420, 520, this.m.seat), 0, 210, seatZ));
-      const back = this.at(this.box(W - 120, 640, 120, this.m.seat), 0, 740, -(v.cargoLength + 60));
-      back.rotation.x = -0.12;
-      this.envelope.add(back);
-    }
-
-    const shellGeo = new THREE.BoxGeometry(W * MM, v.roofHeight * MM, totalLength * MM);
-    const shell = new THREE.Mesh(shellGeo, this.m.shell);
-    shell.position.set(0, (v.roofHeight / 2) * MM, (-totalLength / 2) * MM);
-    shell.renderOrder = -1;
-    this.envelope.add(shell);
-    const shellEdges = new THREE.LineSegments(new THREE.EdgesGeometry(shellGeo), this.m.shellLine);
-    shellEdges.position.copy(shell.position);
-    this.envelope.add(shellEdges);
-
-    for (const side of [-1, 1]) {
-      const pts = [new THREE.Vector3(side * (W / 2) * MM, v.windowHeight * MM, 0), new THREE.Vector3(side * (W / 2) * MM, v.windowHeight * MM, -totalLength * MM)];
-      const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), this.m.windowLine);
-      line.computeLineDistances();
-      this.envelope.add(line);
-    }
-
-    this.controls.target.set(0, 0.35, (-v.cargoLength / 2 - 100) * MM);
+    this.controls.target.set(0, 0.3, (-v.cargoLength / 2 - 100) * MM);
   }
 
   // -------------------------------------------------------------------------
@@ -449,19 +412,19 @@ export class KitScene {
         g.add(this.box(w, h, d, this.m.hex, 'birch'));
         break;
 
-      case 'drawer':
+      case 'drawer': {
         g.add(this.drawerTray(w, h, d));
         g.add(this.at(this.cabinetFront(w + 8, h + 6, { badge: spec.badge }), 0, 0, d / 2 + 8));
-        break;
-
-      case 'pullout': {
-        // Table top that slides out from under the left drawer.
-        g.add(this.at(this.box(w - 10, 16, d, this.m.hex, 'birch'), 0, h / 2 - 12, 0));
-        g.add(this.at(this.box(w - 40, h - 24, d * 0.9, this.m.ply, true), 0, -8, 0));
-        const front = this.box(w + 8, h + 4, 16, this.front(), 'birch');
-        g.add(this.at(front, 0, 0, d / 2 + 8));
-        const pull = this.box(Math.min(160, w * 0.3), 14, 18, this.m.black);
-        g.add(this.at(pull, 0, 0, d / 2 + 22));
+        if (spec.tableSlide) {
+          // Pull-out table inside the drawer, just under the top: slides out further than the drawer.
+          const table = new THREE.Group();
+          table.add(this.box(w - 40, 18, d - 40, this.m.hex, 'birch'));
+          table.add(this.at(this.box(w - 40, 30, 18, this.m.hex, 'birch'), 0, -6, (d - 40) / 2 - 9));
+          table.add(this.at(this.box(Math.min(140, w * 0.3), 10, 14, this.m.black), 0, -6, (d - 40) / 2 + 7));
+          table.position.set(0, ((h - 30) / 2 - 22) * MM, -20 * MM);
+          g.add(table);
+          g.userData.inner = { obj: table, z0: table.position.z, dz: spec.tableSlide };
+        }
         break;
       }
 
@@ -601,6 +564,8 @@ export class KitScene {
           g.add(this.at(this.box(70, h - 8, d, this.m.ply, true), -w / 2 + pitch * (i + 0.5), 4, 0));
         }
         for (const sz of [-1, 1]) g.add(this.at(this.box(w, h, 40, this.m.hex, 'birch'), 0, 0, sz * (d / 2 - 20)));
+        // Fold-down legs at the far end.
+        for (const sx of [-1, 1]) g.add(this.at(this.box(30, spec.y, 30, this.m.alu), sx * (w / 2 - 50), -h / 2 - spec.y / 2, -d / 2 + 30));
         break;
       }
 
@@ -626,7 +591,7 @@ export class KitScene {
 
   private sameShape(a: ModuleSpec, b: ModuleSpec) {
     return (
-      a.kind === b.kind && a.w === b.w && a.h === b.h && a.d === b.d && a.badge === b.badge && a.swing === b.swing &&
+      a.kind === b.kind && a.w === b.w && a.h === b.h && a.d === b.d && a.badge === b.badge && a.swing === b.swing && a.tableSlide === b.tableSlide &&
       (a.move ?? []).join() === (b.move ?? []).join() && (a.fixtures ?? []).join() === (b.fixtures ?? []).join()
     );
   }
@@ -736,6 +701,8 @@ export class KitScene {
       const drop = (1 - Math.min(1, ease)) * 0.35;
       const o = t.openT;
       t.object.position.set(t.pos.x + mv[0] * MM * o, t.pos.y + drop + mv[1] * MM * o, t.pos.z + mv[2] * MM * o);
+      const inner = t.object.userData.inner as { obj: THREE.Object3D; z0: number; dz: number } | undefined;
+      if (inner) inner.obj.position.z = inner.z0 + inner.dz * MM * o;
       const door = t.object.userData.door as THREE.Object3D | undefined;
       if (door) door.rotation.y = (door.userData.openAngle ?? -1.75) * o;
       const scale = t.removing ? a : Math.max(0.001, Math.min(ease, 1.06));
