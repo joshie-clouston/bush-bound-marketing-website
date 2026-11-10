@@ -341,17 +341,11 @@ export class KitScene {
 
   /** Where the camera should look and how far back it should sit right now. */
   private frameGoal(): { target: THREE.Vector3; dist: number } {
-    // Stay wide while the table is still out, folding or going away; only zoom back in once it's stowed.
+    // Always orbit the middle of the fit-out. Opening just pulls back (further if the table is out);
+    // we stay pulled back until the table has folded away, then come back in.
     const wide = this.open || this.seqT > 0.001;
-    if (!wide) return { target: this.fitCentre.clone(), dist: this.baseDist };
-    if (this.tableAt) {
-      // Centre between the fit-out (with drawers out) and the table beside it.
-      const fit = this.fitCentre.clone().add(new THREE.Vector3(0, 0, 0.25));
-      const target = fit.lerp(this.tableAt, 0.45);
-      target.y = 0.3;
-      return { target, dist: this.baseDist * 1.45 };
-    }
-    return { target: this.fitCentre.clone().add(new THREE.Vector3(0, 0, 0.2)), dist: this.baseDist * 1.3 };
+    const dist = !wide ? this.baseDist : this.baseDist * (this.tableAt ? 1.65 : 1.3);
+    return { target: this.fitCentre.clone(), dist };
   }
 
   // -------------------------------------------------------------------------
@@ -462,19 +456,26 @@ export class KitScene {
           g.add(this.at(this.cabinetFront(w + 8, h + 6, { badge: spec.badge }), 0, 0, d / 2 + 8));
           break;
         }
-        // Drawer with a pull-out table in its base: the drawer front stops short of the bottom, leaving
-        // a fine line above the table's own front strip. The table slides out from under the drawer.
-        const strip = 26;
+        // Drawer with a pull-out table inside it, resting on the drawer floor. It slides out through a
+        // slot near the bottom of the drawer front, so you see a fine line above the table's front edge.
+        const front = (w2: number, h2: number) => {
+          const panel = this.board([4]);
+          panel[0] = panel[1] = this.m.ply;
+          panel[5] = this.m.hex;
+          return this.box(w2, h2, 16, panel);
+        };
+        const floorTop = -h / 2 + 27; // top of the drawer tray floor
+        const railH = floorTop - (-h / 2 - 3); // drawer front below the slot
+        const strip = 22; // the table's front edge
         const line = 4;
-        const mainH = h + 6 - strip - line;
-        g.add(this.at(this.cabinetFront(w + 8, mainH, { badge: spec.badge }), 0, (strip + line) / 2, d / 2 + 8));
+        const mainBottom = floorTop + strip + line;
+        const mainH = h / 2 + 3 - mainBottom;
+        g.add(this.at(this.cabinetFront(w + 8, mainH, { badge: spec.badge }), 0, (h / 2 + 3 + mainBottom) / 2, d / 2 + 8));
+        g.add(this.at(front(w + 8, railH), 0, -h / 2 - 3 + railH / 2, d / 2 + 8));
         const table = new THREE.Group();
-        table.add(this.at(this.box(w - 30, 18, d - 20, this.m.hex, 'birch'), 0, 0, -10));
-        const stripPanel = this.board([4]);
-        stripPanel[0] = stripPanel[1] = this.m.ply;
-        stripPanel[5] = this.m.hex;
-        table.add(this.at(this.box(w + 8, strip, 16, stripPanel), 0, (strip - 18) / 2 - 2, d / 2 + 8));
-        table.position.set(0, (-h / 2 + 6) * MM, 0);
+        table.add(this.at(this.box(w - 40, 18, d - 40, this.m.hex, 'birch'), 0, 0, -20));
+        table.add(this.at(front(w + 8, strip), 0, strip / 2 - 9, d / 2 + 8));
+        table.position.set(0, (floorTop + 9) * MM, 0);
         g.add(table);
         g.userData.inner = { obj: table, z0: table.position.z, dz: spec.tableSlide };
         break;
