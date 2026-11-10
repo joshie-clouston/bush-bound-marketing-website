@@ -218,6 +218,7 @@ const viewerBtn = 'min-h-[44px] bg-stone-light/10 hover:bg-stone-light/20 backdr
       }
       const { KitScene } = await import('@/lib/kit-builder/scene');
       scene = new KitScene($('viewer-canvas'));
+      if (import.meta.env.DEV) (window as unknown as Record<string, unknown>).__kitScene = scene;
       refresh();
     }
 

@@ -138,6 +138,8 @@ export class KitScene {
   private open = false;
   /** Linear 0..1 progress for step-by-step animations (the camp table), so each step is easy to follow. */
   private seqT = 0;
+  /** Dev only: freeze the step-by-step sequence at a given point for checking each stage. */
+  private seqOverride: number | null = null;
   /** Camera distance we're easing towards (zooms out when opened), unless the customer takes over. */
   private distGoal: number | null = null;
   private look: Look = { fronts: 'hex', carpet: false };
@@ -437,13 +439,16 @@ export class KitScene {
         // Hinged cubby door (right hinge) with the folded Bush Bound table inside.
         // The opening and the folded table's edges, drawn on the cabinet face (hidden behind the closed door).
         g.add(this.at(this.box(w - 6, h - 6, 2, this.m.recess), 0, 0, -7));
-        for (const fx of [-0.18, 0, 0.18]) g.add(this.at(this.box(18, h - 50, 3, this.m.timber), w * fx, 0, -5));
+        const stored = new THREE.Group();
+        for (const fx of [-0.18, 0, 0.18]) stored.add(this.at(this.box(18, h - 50, 3, this.m.timber), w * fx, 0, -5));
+        g.add(stored);
         const door = this.cabinetFront(w, h, { latch: 'round' });
         const pivot = this.hingedDoor(w, h, 'right', door);
         g.add(pivot);
         // Door opens at the start of the table sequence and closes once the table is back in.
         g.userData.seq = (s: number) => {
-          pivot.rotation.y = pivot.userData.openAngle * ease(phase(s, 0, 0.1));
+          pivot.rotation.y = pivot.userData.openAngle * ease(phase(s, 0, 0.08));
+          stored.visible = s < 0.1;
         };
         break;
       }
@@ -463,9 +468,9 @@ export class KitScene {
           rig.add(m);
           return m;
         });
-        // Fold maths: slats B,C flip over hinge 1 (between slots 0 and 1), C,D flip over hinge 2 (centre).
-        const hinge1 = { x: -pitch, y: topY + 27 };
-        const hinge2 = { x: 0, y: topY + 9 };
+        // Fold maths. Folded: the outer slats (0 and 3) are folded in over slats 1 and 2, then the
+        // left half is folded over the right at the middle hinge, giving a stack of four over slot 2.
+        // Unfolding opens the middle hinge first, then the outer slats swing out to each side.
         const rot = (p: { x: number; y: number; a: number }, hx: number, hy: number, a: number) => {
           const dx = p.x - hx;
           const dy = p.y - hy;
@@ -479,43 +484,46 @@ export class KitScene {
         for (const sx of [-1, 1]) {
           for (const sz of [-1, 1]) {
             const pivot = new THREE.Group();
-            pivot.position.set(sx * (w / 2 - (sz > 0 ? 50 : 80)) * MM, (topY - 19) * MM, sz * (d / 2 - 40) * MM);
+            pivot.position.set(sx * (w / 2 - (sz > 0 ? 50 : 80)) * MM, (topY - 22) * MM, sz * (d / 2 - 40) * MM);
             const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, legLen * MM, 12), this.m.alu);
             leg.castShadow = true;
             leg.position.y = (-legLen / 2) * MM;
             pivot.add(leg);
-            pivot.userData.fold = sz > 0 ? -Math.PI / 2 : Math.PI / 2;
+            // Folded flat under the table pointing to the middle; opens down and slightly outwards.
+            pivot.userData.fold = sz > 0 ? Math.PI / 2 : -Math.PI / 2;
+            pivot.userData.open = sz > 0 ? -0.08 : 0.08;
             rig.add(pivot);
             legs.push(pivot);
           }
         }
         const from = spec.from ?? [0, 0, 0];
         // Where the rig sits with the folded stack (centred on slot 0) inside the cubby.
-        const inCubby = new THREE.Vector3(from[0] - cx[0], from[1] - (topY + 27), from[2]);
+        const inCubby = new THREE.Vector3(from[0] - cx[2], from[1] - (topY + 27), from[2]);
         const outside = new THREE.Vector3(inCubby.x, inCubby.y, from[2] + 1300);
         g.userData.seq = (sq: number) => {
-          // 0.10-0.26 slide out of the cubby, 0.26-0.42 carry to the set-up spot,
-          // 0.42-0.58 first unfold, 0.58-0.74 second unfold, 0.74-0.92 legs down.
-          const out = ease(phase(sq, 0.1, 0.26));
-          const carry = ease(phase(sq, 0.26, 0.42));
+          // 0.08-0.22 slide out of the cubby, 0.22-0.36 carry to the set-up spot,
+          // 0.36-0.52 middle unfold, 0.52-0.68 outer slats unfold, 0.72-0.95 legs swing down.
+          const out = ease(phase(sq, 0.08, 0.22));
+          const carry = ease(phase(sq, 0.22, 0.36));
           const pos = inCubby.clone().lerp(outside, out).lerp(new THREE.Vector3(0, 0, 0), carry);
           rig.position.copy(pos.multiplyScalar(MM));
-          rig.visible = sq > 0.1;
-          const u1 = ease(phase(sq, 0.42, 0.58));
-          const u2 = ease(phase(sq, 0.58, 0.74));
+          rig.visible = sq > 0.08;
+          const middle = ease(phase(sq, 0.36, 0.52));
+          const outer = ease(phase(sq, 0.52, 0.68));
           slats.forEach((m, k) => {
             let p = { x: cx[k], y: topY, a: 0 };
-            if (k === 2 || k === 3) p = rot(p, hinge2.x, hinge2.y, Math.PI * (1 - u2));
-            if (k === 1 || k === 2) p = rot(p, hinge1.x, hinge1.y, Math.PI * (1 - u1));
+            if (k === 0) p = rot(p, -pitch, topY + 9, -Math.PI * (1 - outer));
+            if (k === 3) p = rot(p, pitch, topY + 9, Math.PI * (1 - outer));
+            if (k === 0 || k === 1) p = rot(p, 0, topY + 27, -Math.PI * (1 - middle));
             m.position.set(p.x * MM, p.y * MM, 0);
             m.rotation.z = p.a;
           });
-          const legT = ease(phase(sq, 0.74, 0.92));
-          const showFrame = u2 > 0.98;
-          frame.visible = frame2.visible = showFrame;
+          const legT = ease(phase(sq, 0.72, 0.95));
+          const flat = outer > 0.98;
+          frame.visible = frame2.visible = flat;
           for (const leg of legs) {
-            leg.visible = showFrame;
-            leg.rotation.x = leg.userData.fold * (1 - legT);
+            leg.visible = flat;
+            leg.rotation.x = leg.userData.fold + (leg.userData.open - leg.userData.fold) * legT;
           }
         };
         break;
@@ -692,6 +700,12 @@ export class KitScene {
     this.distGoal = Math.min(this.controls.maxDistance, open ? dist * 1.45 : dist / 1.45);
   }
 
+  /** Dev only (wired up in development builds): freeze the table sequence at s (0..1), or null to resume. */
+  freezeSequence(s: number | null) {
+    this.seqOverride = s;
+    if (s !== null) this.open = s > 0;
+  }
+
   resetView() {
     this.camera.position.set(0.85, 1.4, 1.8);
     this.controls.autoRotate = !this.reduceMotion;
@@ -737,7 +751,8 @@ export class KitScene {
 
     const speed = this.reduceMotion ? 1 : 1 - Math.pow(0.0015, dt);
     const seqTarget = this.open ? 1 : 0;
-    this.seqT = this.reduceMotion ? seqTarget : this.seqT + Math.sign(seqTarget - this.seqT) * Math.min(Math.abs(seqTarget - this.seqT), realDt / 3.2);
+    this.seqT = this.reduceMotion ? seqTarget : this.seqT + Math.sign(seqTarget - this.seqT) * Math.min(Math.abs(seqTarget - this.seqT), realDt / 4);
+    if (this.seqOverride !== null) this.seqT = this.seqOverride;
     for (const [id, t] of this.tracked) {
       t.pos.lerp(this.basePosition(t.spec), speed);
       t.openT += ((this.open ? 1 : 0) - t.openT) * speed;
