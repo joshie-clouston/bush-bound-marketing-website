@@ -27,9 +27,15 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
 >
   <style is:global>
     #viewer-canvas canvas { width: 100% !important; height: 100% !important; display: block; }
-    /* Keep the question in view below the pinned 3D viewer on phones. */
-    #question-panel, #summary { scroll-margin-top: calc(6.25rem + max(48vh, 300px) + 0.75rem); }
-    @media (min-width: 1024px) { #question-panel, #summary { scroll-margin-top: 8rem; } }
+    /* Keep the options in view below the pinned 3D viewer on phones. */
+    #question-panel { scroll-margin-top: calc(6.25rem + max(48vh, 300px) + 0.75rem); }
+    @media (max-width: 1023px) {
+      /* After the options page the model shrinks and scrolls away, so forms and errors are never hidden under it. */
+      #builder:not([data-step="0"]) #viewer-wrap { position: relative; top: auto; }
+      #builder:not([data-step="0"]) #viewer { height: 30vh; min-height: 220px; }
+      #builder:not([data-step="0"]) #question-panel { scroll-margin-top: 6.75rem; }
+    }
+    @media (min-width: 1024px) { #question-panel { scroll-margin-top: 8rem; } }
   </style>
 
   <!-- INTRO -->
@@ -38,24 +44,24 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       <p class="text-sand font-medium text-sm uppercase tracking-widest mb-3">Flat Pack Fit-Out Kits</p>
       <h1 class="text-3xl sm:text-5xl font-extrabold max-w-3xl">Build your wagon fit-out. Watch it come together.</h1>
       <p class="text-stone-dark mt-4 max-w-2xl text-base sm:text-lg">
-        Pick your fridge and options, watch it build in 3D, and see a price range before you ask for an official quote.
+        Pick your fridge and options, watch it build in 3D and see a price range. Flat packed and delivered to your door, or built and installed by us.
       </p>
     </div>
   </section>
 
   <!-- BUILDER -->
-  <section class="bg-background" id="builder">
+  <section class="bg-background" id="builder" data-step="0">
     <div class="container-wide py-4 lg:py-10">
       <div class="grid lg:grid-cols-12 gap-5 lg:gap-10">
 
         <!-- 3D viewer (pinned while you scroll) -->
-        <div class="lg:col-span-7 lg:order-2 sticky top-[6.25rem] lg:top-[7.25rem] self-start z-20 -mx-5 sm:mx-0">
+        <div id="viewer-wrap" class="lg:col-span-7 lg:order-2 sticky top-[6.25rem] lg:top-[7.25rem] self-start z-20 -mx-5 sm:mx-0">
           <div id="viewer" class="relative flex flex-col h-[48vh] min-h-[300px] lg:h-[calc(100vh-9rem)] lg:max-h-[720px] sm:rounded-xl overflow-hidden bg-gradient-to-b from-[#7a7e7c] to-[#4d5150] shadow-lg lg:shadow-none">
             <div class="relative flex-1 min-h-0"><div id="viewer-canvas" class="absolute inset-0"></div></div>
 
             <div class="absolute top-2.5 left-3 right-3 z-10 flex items-start justify-between gap-3 pointer-events-none">
               <div class="min-w-0">
-                <p id="viewer-vehicle" class="text-stone-light font-bold text-sm sm:text-base truncate">LandCruiser 200 Series</p>
+                <p id="viewer-vehicle" class="text-stone-light font-bold text-sm sm:text-base truncate">Wagon base kit</p>
                 <p id="viewer-changes" class="text-stone-light/80 text-xs mt-0.5 line-clamp-1 sm:line-clamp-2"></p>
               </div>
               <div class="text-right shrink-0">
@@ -82,7 +88,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
           <ul id="module-chips" class="hidden lg:flex flex-wrap gap-2 mt-3" aria-label="What's in your layout"></ul>
         </div>
 
-        <!-- Questionnaire -->
+        <!-- Steps -->
         <div class="lg:col-span-5 lg:order-1">
           <div id="question-panel" class="bg-white rounded-xl border border-stone-dark/20 p-5 sm:p-7 shadow-sm">
             <div id="panel-head" class="flex items-center justify-between gap-3 mb-4">
@@ -91,20 +97,15 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
                 Back
               </button>
               <div class="flex items-center gap-3">
-                <button id="start-over" type="button" class="hidden min-h-[44px] px-2 text-xs font-semibold text-muted-foreground hover:text-primary underline">Start over</button>
-                <p id="step-count" class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">1 of 8</p>
-                <button id="see-kit" type="button" class="hidden min-h-[44px] px-3 text-xs font-bold bg-sand text-charcoal rounded-md">See my kit</button>
+                <button id="start-over" type="button" class="min-h-[44px] px-2 text-xs font-semibold text-muted-foreground hover:text-primary underline">Start over</button>
+                <p id="step-count" class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Step 1 of 3</p>
               </div>
             </div>
             <div id="panel-progress" class="h-1.5 bg-stone rounded-full overflow-hidden mb-6">
-              <div id="progress-bar" class="h-full bg-primary rounded-full transition-all duration-500" style="width: 10%"></div>
+              <div id="progress-bar" class="h-full bg-primary rounded-full transition-all duration-500" style="width: 33%"></div>
             </div>
             <div id="question-body" aria-live="polite"></div>
           </div>
-
-          <div id="summary" class="hidden space-y-5"></div>
-
-          <ol id="answered" class="mt-5 flex flex-wrap gap-2" aria-label="Your answers"></ol>
         </div>
       </div>
     </div>
@@ -143,53 +144,88 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
     </div>
   </section>
 
+
   <script>
-    import { QUESTIONS, VEHICLES, getVehicle, type Question, type VehicleId } from '@/data/kit-builder';
-    import { carpetOn, isAsked, recommend, sanitiseAnswers, type KitAnswers, type Recommendation } from '@/lib/kit-builder/engine';
+    import { BUILD_OPTIONS, DEFAULT_STORAGE, ORDERING, QUESTIONS, VEHICLES, getVehicle, type VehicleId } from '@/data/kit-builder';
+    import { carpetOn, recommend, sanitiseAnswers, type KitAnswers, type Recommendation } from '@/lib/kit-builder/engine';
     import { getUtmParams } from '@/lib/utm';
     import type { KitScene } from '@/lib/kit-builder/scene';
 
-    const STORAGE_KEY = 'bb-kit-builder-v5';
-    const INTRO = -1;
-    const SUMMARY = QUESTIONS.length;
+    // Steps: pick your options -> your details (lead saved) -> delivery and ordering -> done.
+    const PICK = 0;
+    const CONTACT = 1;
+    const DETAILS = 2;
+    const DONE = 3;
+    const STORAGE_KEY = 'bb-kit-builder-v6';
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // Same rule as the main quote form.
+    const MOBILE_RE = /^(\+?61|0)4\d{2}\s?\d{3}\s?\d{3}$/;
+    const TIMELINES = [
+      { value: 'asap', label: 'ASAP' },
+      { value: '3-months', label: 'Within 3 months' },
+      { value: '6-months', label: 'Within 6 months' },
+      { value: 'planning', label: 'Just planning' },
+    ];
+    const BUDGETS = [
+      { value: 'under-5k', label: 'Under $5K' },
+      { value: '5k-25k', label: '$5K to $25K' },
+      { value: '25k-50k', label: '$25K to $50K' },
+      { value: '50k-plus', label: '$50K+' },
+    ];
+    const REFERRALS = [
+      { value: 'instagram', label: 'Instagram' },
+      { value: 'facebook', label: 'Facebook' },
+      { value: 'tiktok', label: 'TikTok' },
+      { value: 'google', label: 'Google search' },
+      { value: 'word-of-mouth', label: 'Word of mouth' },
+      { value: 'other', label: 'Other' },
+    ];
+
     const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
     const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
     const isMobile = () => window.innerWidth < 1024;
+    const inputCls = 'mt-1 w-full min-h-[48px] rounded-md border border-stone-dark/40 px-3 py-2.5 text-base bg-white focus:border-primary focus:outline-none';
 
     let answers: KitAnswers = {};
-    let step = INTRO;
-    /** Where a returning customer got to, offered on the intro screen. */
-    let savedStep: number | null = null;
-    /** Contact details captured on the intro screen, and the lead row they created. */
-    let lead: { email: string; phone: string; leadId: number | null } | null = null;
+    let step = PICK;
+    /** The lead row saved on the details step, so the final request updates it instead of making a new one. */
+    let lead: { email: string; leadId: number | null } | null = null;
+    /** Everything typed into the forms (survives Back, re-renders and reloads). */
+    let form: Record<string, string> = {};
+    /** What they sent, for the thank-you screen. */
+    let sent: { name: string } | null = null;
+    /** They've already sent this build once; sending again updates the same request. */
+    let sentBefore = false;
     let scene: KitScene | null = null;
-    /** Set when the customer jumps back from the summary to change one answer. */
-    let returnToSummary = false;
-    /** Order form values survive re-rendering the summary. */
-    const formDraft: Record<string, string> = {};
-    function prefillFromLead() {
-      if (!lead) return;
-      formDraft.email ??= lead.email;
-      formDraft.phone ??= lead.phone;
-    }
-
     /** Latest price bracket from the server (we never ship prices to the browser). */
     let bracket = '';
+
+    function withDefaults(a: KitAnswers): KitAnswers {
+      a.fridge ??= 'upright-65';
+      a.storage ??= [...DEFAULT_STORAGE];
+      a.build ??= 'diy';
+      return a;
+    }
 
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
       if (saved && typeof saved === 'object') {
         answers = sanitiseAnswers(saved.answers);
-        if (saved.lead && typeof saved.lead.email === 'string' && typeof saved.lead.phone === 'string') {
-          lead = { email: saved.lead.email, phone: saved.lead.phone, leadId: Number.isInteger(saved.lead.leadId) ? saved.lead.leadId : null };
+        if (saved.form && typeof saved.form === 'object') {
+          for (const [k, v] of Object.entries(saved.form)) if (typeof v === 'string') form[k] = v.slice(0, 2000);
         }
-        const s = Math.min(Math.max(INTRO, saved.step | 0), SUMMARY);
-        if (s > INTRO) savedStep = s;
+        if (saved.lead && typeof saved.lead.email === 'string') {
+          lead = { email: saved.lead.email, leadId: Number.isInteger(saved.lead.leadId) ? saved.lead.leadId : null };
+        }
+        sentBefore = saved.sentBefore === true;
+        const s = saved.step | 0;
+        step = s === DETAILS && lead ? DETAILS : s === CONTACT ? CONTACT : PICK;
       }
     } catch { /* storage unavailable, start fresh */ }
+    withDefaults(answers);
 
     function save() {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, step, lead })); } catch { /* ignore */ }
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, step: Math.min(step, DETAILS), lead, form, sentBefore })); } catch { /* ignore */ }
     }
 
     // -----------------------------------------------------------------------
@@ -251,22 +287,20 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       drawer: 'Drawers',
       'fridge-upright': 'Upright fridge',
       'drawer-fridge': 'Drawer fridge',
-      'fridge-chest': 'Chest fridge',
       cubby: 'Table cubby',
-      slats: 'Pull-out bed',
-      'end-panel': 'Power panels',
+      slats: 'Sliding bed',
     };
 
     function vehicleName() {
-      if (answers.vehicle === 'other') return answers.vehicleName || 'Your vehicle';
+      if (answers.vehicle === 'other') return answers.vehicleName || 'your vehicle';
       return getVehicle(answers.vehicle).label;
     }
 
     function refresh(): Recommendation {
       const rec = recommend(answers);
-      $('viewer-vehicle').textContent = answers.vehicle ? vehicleName() : `Preview: ${getVehicle(undefined).short}`;
+      $('viewer-vehicle').textContent = answers.vehicle ? `${rec.kitName}: ${answers.vehicle === 'other' ? answers.vehicleName || 'Your vehicle' : rec.vehicle.short}` : rec.kitName;
       $('viewer-changes').textContent = rec.addOns.join(' · ');
-      const kinds = [...new Set(rec.layout.modules.map((m) => (m.kind === 'end-panel' && !m.fixtures?.length ? '' : m.kind)))].filter((k) => MODULE_LABELS[k]);
+      const kinds = [...new Set(rec.layout.modules.map((m) => m.kind))].filter((k) => MODULE_LABELS[k]);
       $('module-chips').innerHTML = kinds.map((k) => `<li class="text-xs font-medium bg-white border border-stone-dark/20 text-charcoal px-2.5 py-1 rounded-full">${MODULE_LABELS[k]}</li>`).join('');
       scene?.update(rec.layout, { fronts: answers.finish ?? 'hex', carpet: carpetOn(answers) });
       requestEstimate();
@@ -274,503 +308,589 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
     }
 
     // -----------------------------------------------------------------------
-    // Navigation (skips questions that don't apply, supports browser Back)
+    // Navigation (supports the browser Back button)
     // -----------------------------------------------------------------------
 
-    const value = (id: string) => (answers as Record<string, unknown>)[id];
-    const asked = () => QUESTIONS.map((q, i) => ({ q, i })).filter(({ q }) => isAsked(q, answers));
-
-    function isAnswered(q: Question) {
-      const v = value(q.id);
-      return q.multi ? Array.isArray(v) : v !== undefined;
-    }
-    const allAnswered = () => asked().every(({ q }) => isAnswered(q));
-
-    function nextIndex(from: number) {
-      for (let i = from + 1; i < QUESTIONS.length; i++) if (isAsked(QUESTIONS[i], answers)) return i;
-      return SUMMARY;
-    }
-    function prevIndex(from: number) {
-      for (let i = Math.min(from, QUESTIONS.length) - 1; i >= 0; i--) if (isAsked(QUESTIONS[i], answers)) return i;
-      return INTRO;
-    }
-
     function render() {
-      $('start-over').classList.toggle('hidden', step === INTRO);
-      $('panel-head').classList.toggle('hidden', step === INTRO);
-      $('panel-progress').classList.toggle('hidden', step === INTRO);
-      if (step === INTRO) return renderIntro();
-      if (step < SUMMARY && !isAsked(QUESTIONS[step], answers)) step = nextIndex(step);
-      if (step >= SUMMARY) renderSummary();
-      else renderQuestion();
+      $('builder').dataset.step = String(step);
+      $<HTMLButtonElement>('back-btn').disabled = step === PICK;
+      $('start-over').classList.toggle('hidden', step === DONE);
+      $('step-count').textContent = step === DONE ? 'Sent' : `Step ${step + 1} of 3`;
+      $('progress-bar').style.width = `${step === DONE ? 100 : ((step + 1) / 3) * 100}%`;
+      if (step === PICK) renderPick();
+      else if (step === CONTACT) renderContact();
+      else if (step === DETAILS) renderDetails();
+      else renderDone();
     }
 
-    function goTo(next: number, opts: { push?: boolean; replace?: boolean; scroll?: boolean } = {}) {
-      step = Math.max(INTRO, Math.min(next, SUMMARY));
+    function scrollToPanel() {
+      const panel = $('question-panel');
+      if (isMobile() || panel.getBoundingClientRect().top < 0) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function goTo(next: number, opts: { push?: boolean; replace?: boolean } = {}) {
+      // Can't skip ahead of the lead capture.
+      if (next === DETAILS && !lead) next = CONTACT;
+      step = next;
       save();
       if (opts.replace) history.replaceState({ kitStep: step }, '');
       else if (opts.push !== false) history.pushState({ kitStep: step }, '');
       render();
-      if (opts.scroll !== false && isMobile()) (step >= SUMMARY ? $('summary') : $('question-panel')).scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    function goNext() {
-      if (returnToSummary && allAnswered()) {
-        returnToSummary = false;
-        goTo(SUMMARY);
-      } else {
-        goTo(nextIndex(step));
-      }
+      scrollToPanel();
     }
 
     window.addEventListener('popstate', (e) => {
       const s = (e.state as { kitStep?: number } | null)?.kitStep;
-      if (typeof s === 'number') goTo(s, { push: false });
+      if (typeof s !== 'number') return;
+      goTo(Math.min(s, DETAILS), { push: false });
     });
 
-    $('back-btn').addEventListener('click', () => goTo(prevIndex(step), { replace: true }));
+    $('back-btn').addEventListener('click', () => {
+      if (step === DONE) goTo(DETAILS);
+      else if (step > PICK) goTo(step - 1, { replace: true });
+    });
 
-    /** Clear everything and go back to the first option. */
+    /** Clear the options (keeps their contact details) and go back to the first page. */
     function startOver() {
-      answers = {};
-      savedStep = null;
-      returnToSummary = false;
-      for (const k of Object.keys(formDraft)) if (k !== 'email' && k !== 'phone') delete formDraft[k];
+      answers = withDefaults({});
+      sent = null;
+      // A new build is a new request.
+      if (sentBefore) lead = null;
+      sentBefore = false;
+      for (const k of ['notes']) delete form[k];
       setOpen(false);
       refresh();
-      goTo(0);
+      goTo(PICK);
     }
     $('start-over').addEventListener('click', startOver);
 
+    function showError(id: string, message: string, focusId?: string) {
+      const el = $(id);
+      el.innerHTML = message;
+      el.classList.remove('hidden');
+      // Show the message (it sits by the button they just tapped, or under the field), then focus the field.
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      (focusId ? document.getElementById(focusId) : null)?.focus({ preventScroll: true });
+    }
+
     // -----------------------------------------------------------------------
-    // Intro: show the fit-out first, then start building
+    // Step 1: pick your options
     // -----------------------------------------------------------------------
 
-    function renderIntro() {
-      $('question-panel').classList.remove('hidden');
-      $('summary').classList.add('hidden');
-      $('answered').classList.add('hidden');
-      $<HTMLButtonElement>('back-btn').disabled = true;
-      $('step-count').textContent = '';
-      $('progress-bar').style.width = '0%';
-      $('see-kit').classList.add('hidden');
-      const resuming = savedStep !== null;
+    function optionCard(name: string, value: string, label: string, sub: string | undefined, selected: boolean, multi: boolean) {
+      return `
+        <button type="button" data-q="${name}" data-value="${value}" role="${multi ? 'checkbox' : 'radio'}" aria-checked="${selected}"
+          class="option min-h-[56px] text-left rounded-lg border-2 px-4 py-3 transition-all ${selected ? 'border-primary bg-primary/5' : 'border-stone-dark/30 hover:border-primary/60 bg-white'}">
+          <span class="flex items-start justify-between gap-2">
+            <span class="block font-semibold text-charcoal text-sm sm:text-base">${escapeHtml(label)}</span>
+            <span class="w-5 h-5 shrink-0 ${multi ? 'rounded' : 'rounded-full'} border-2 flex items-center justify-center text-xs ${selected ? 'bg-primary border-primary text-white' : 'border-stone-dark'}">${selected ? '&#10003;' : ''}</span>
+          </span>
+          ${sub ? `<span class="block text-xs text-muted-foreground mt-0.5">${escapeHtml(sub)}</span>` : ''}
+        </button>`;
+    }
+
+    type SupplyKey = 'ownFridge' | 'ownBedding' | 'ownTable';
+    const SUPPLY: Record<SupplyKey, { title: string; inc: [string, string]; own: [string, string] }> = {
+      ownFridge: { title: 'Fridge', inc: ['Fridge included', 'We supply the fridge'], own: ['Cabinetry only', 'I\'ve got one or I\'ll buy it'] },
+      ownBedding: { title: 'Mattress', inc: ['Mattress included', 'Folding mattress made to fit'], own: ['Bed only', 'I\'ll sort my own mattress'] },
+      ownTable: { title: 'Table', inc: ['Table included', 'Our folding Bush Bound table'], own: ['Storage only', 'I\'ve got a table or I\'ll buy one'] },
+    };
+
+    /** Is the gear included, or are they just buying the cabinetry? */
+    function supplyToggle(key: SupplyKey) {
+      const s = SUPPLY[key];
+      const own = answers[key] === true;
+      const btn = (isOwn: boolean, [label, sub]: [string, string]) => {
+        const on = own === isOwn;
+        return `<button type="button" data-supply="${key}" data-own="${isOwn ? 1 : 0}" role="radio" aria-checked="${on}"
+          class="min-h-[52px] text-left rounded-md border-2 px-3 py-2 transition-colors ${on ? 'border-primary bg-white' : 'border-transparent bg-white/60 hover:border-primary/40'}">
+          <span class="flex items-center gap-1.5 text-sm font-semibold text-charcoal"><span class="w-3.5 h-3.5 shrink-0 rounded-full border-2 ${on ? 'border-primary bg-primary' : 'border-stone-dark'}"></span>${label}</span>
+          <span class="block text-xs text-muted-foreground mt-0.5 pl-5">${sub}</span>
+        </button>`;
+      };
+      return `<div class="grid grid-cols-2 gap-2 rounded-lg bg-stone-light p-2" role="radiogroup" aria-label="${s.title}: included or not">${btn(false, s.inc)}${btn(true, s.own)}</div>`;
+    }
+
+    function renderPick() {
+      const sections = QUESTIONS.map((q) => {
+        const v = (answers as Record<string, unknown>)[q.id];
+        const selected = (x: string) => (Array.isArray(v) ? v.includes(x) : v === x);
+        const extra = q.id === 'fridge' ? `<div class="mt-2.5">${supplyToggle('ownFridge')}</div>` : '';
+        const after = (value: string) => {
+          if (q.id !== 'storage' || !selected(value)) return '';
+          if (value === 'bed') return supplyToggle('ownBedding');
+          if (value === 'cubby') return supplyToggle('ownTable');
+          return '';
+        };
+        return `
+          <div class="mt-6 first:mt-0">
+            <h3 class="text-lg font-bold text-charcoal">${escapeHtml(q.title)}</h3>
+            <p class="text-sm text-muted-foreground mt-0.5 mb-3">${escapeHtml(q.help)}</p>
+            <div class="grid gap-2.5" role="${q.multi ? 'group' : 'radiogroup'}" aria-label="${escapeHtml(q.title)}">
+              ${q.options.map((o) => optionCard(q.id, o.value, o.label, o.sub, selected(o.value), !!q.multi) + after(o.value)).join('')}
+            </div>
+            ${extra}
+          </div>`;
+      }).join('');
+
       $('question-body').innerHTML = `
         <p class="text-sand-dark font-medium text-xs uppercase tracking-widest mb-2">Wagon fit-out builder</p>
-        <h2 class="text-2xl sm:text-3xl font-bold text-charcoal">${resuming ? 'Welcome back' : 'This is our wagon base kit'}</h2>
-        <p class="text-sm text-muted-foreground mt-2">${resuming
-          ? 'Here\'s the fit-out you were putting together.'
-          : 'Black honeycomb birch ply, evenly split drawers and an upright fridge, cut to suit your vehicle.'} Tap <button type="button" data-open-preview class="font-semibold text-primary underline">Open</button> on the model to see the drawers, bed and table in action.</p>
-        <ul class="mt-4 space-y-1.5 text-sm text-charcoal">
-          <li class="flex gap-2"><span class="text-primary">&#10003;</span>Pick your fridge, then add a sliding bed or tables</li>
-          <li class="flex gap-2"><span class="text-primary">&#10003;</span>Watch the model update as you go</li>
-          <li class="flex gap-2"><span class="text-primary">&#10003;</span>See a price range, then get an official quote</li>
-        </ul>
-        ${lead ? '' : `
-             <div class="mt-6 space-y-3">
-               <label class="block text-sm"><span class="font-medium text-charcoal">Email</span>
-                 <input id="lead-email" type="email" autocomplete="email" inputmode="email" required
-                   class="mt-1 w-full min-h-[48px] rounded-md border border-stone-dark/40 px-3 py-2.5 text-base focus:border-primary focus:outline-none" /></label>
-               <label class="block text-sm"><span class="font-medium text-charcoal">Mobile</span>
-                 <input id="lead-phone" type="tel" autocomplete="tel" inputmode="tel" required
-                   class="mt-1 w-full min-h-[48px] rounded-md border border-stone-dark/40 px-3 py-2.5 text-base focus:border-primary focus:outline-none" /></label>
-               <p id="lead-error" class="hidden text-sm text-destructive"></p>
-               <p class="text-xs text-muted-foreground">So we can send you your design and quote. No spam.</p>
-             </div>`}
-        ${resuming
-          ? `<button type="button" id="resume-btn" class="mt-6 w-full min-h-[52px] bg-primary text-primary-foreground font-bold rounded-md hover:bg-primary-light transition-colors">Pick up where you left off</button>
-             <button type="button" id="fresh-btn" class="mt-2 w-full min-h-[48px] text-primary font-semibold hover:underline">Start fresh</button>`
-          : `
-             <button type="button" id="start-btn" class="mt-4 w-full min-h-[52px] bg-primary text-primary-foreground font-bold rounded-md hover:bg-primary-light transition-colors disabled:opacity-60">Start building yours</button>`}
+        <h2 class="text-2xl sm:text-3xl font-bold text-charcoal">Build your fit-out</h2>
+        <p class="text-sm text-muted-foreground mt-2">Our wagon base kit: evenly split drawers in black honeycomb birch ply, cut to suit your vehicle. Pick your options and watch the model update. Tap <button type="button" data-open-preview class="font-semibold text-primary underline">Open</button> to see it in action.</p>
+        <div class="mt-6">${sections}</div>
+        <button type="button" id="next-btn" class="mt-6 w-full min-h-[52px] bg-primary text-primary-foreground font-bold rounded-md hover:bg-primary-light transition-colors">Next: your details</button>
+        <p class="mt-2 text-center text-xs text-muted-foreground">Free, no obligation. Takes about a minute.</p>
       `;
     }
-    $('see-kit').addEventListener('click', () => {
-      returnToSummary = false;
-      goTo(SUMMARY);
-    });
 
-    function jumpTo(i: number) {
-      returnToSummary = allAnswered();
-      goTo(i);
+    // -----------------------------------------------------------------------
+    // Step 2: your details (this is where the lead is saved)
+    // -----------------------------------------------------------------------
+
+    function field(name: string, label: string, type: string, ac: string, extra = '') {
+      return `
+        <label class="block text-sm"><span class="font-medium text-charcoal">${label}</span>
+          <input id="f-${name}" name="${name}" type="${type}" autocomplete="${ac}" ${extra} value="${escapeHtml(form[name] ?? '')}" class="${inputCls}" /></label>`;
     }
 
-    // -----------------------------------------------------------------------
-    // Answer chips
-    // -----------------------------------------------------------------------
-
-    function answerLabel(q: Question) {
-      const v = value(q.id);
-      if (Array.isArray(v)) return v.length ? v.map((x) => q.options.find((o) => o.value === x)?.label ?? x).join(', ') : 'None';
-      let label = q.options.find((o) => o.value === v)?.label ?? '';
-      if (q.id === 'fridge' && answers.ownFridge) label += ' (have one)';
-      return label;
-    }
-
-    function chipsHtml(skip = -1) {
-      return asked().map(({ q, i }) => {
-        if (!isAnswered(q) || i === skip) return '';
-        return `<li><button type="button" data-jump="${i}" class="min-h-[44px] inline-flex items-center text-left text-sm bg-white border border-stone-dark/20 hover:border-primary text-charcoal px-3 py-2 rounded-lg transition-colors"><span><span class="text-muted-foreground">${escapeHtml(q.title)}:</span> ${escapeHtml(answerLabel(q))}</span></button></li>`;
-      }).join('');
-    }
-
-    document.addEventListener('click', (e) => {
-      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-jump]');
-      if (btn) jumpTo(Number(btn.dataset.jump));
-    });
-
-    // -----------------------------------------------------------------------
-    // Question rendering
-    // -----------------------------------------------------------------------
-
-    const nextLabel = () => {
-      if (returnToSummary && allAnswered()) return 'Back to my kit';
-      return nextIndex(step) >= SUMMARY ? 'See my kit' : 'Next';
-    };
-    const nextButton = (label = nextLabel(), disabled = false) =>
-      `<button type="button" id="next-btn" ${disabled ? 'disabled' : ''} class="mt-5 w-full min-h-[48px] py-3 bg-primary text-primary-foreground font-semibold rounded-md hover:bg-primary-light transition-colors disabled:opacity-40">${label}</button>`;
-
-
-    function renderQuestion() {
-      const q = QUESTIONS[step];
-      const list = asked();
-      const pos = list.findIndex((x) => x.i === step);
-      $('question-panel').classList.remove('hidden');
-      $('summary').classList.add('hidden');
-      $('answered').classList.remove('hidden');
-      $<HTMLButtonElement>('back-btn').disabled = false;
-      $('step-count').textContent = `${pos + 1} of ${list.length}`;
-      $('progress-bar').style.width = `${((pos + 1) / (list.length + 1)) * 100}%`;
-      $('see-kit').classList.toggle('hidden', !allAnswered());
-      $('answered').innerHTML = chipsHtml(step);
-
-      // Options start with our base build's pick (the foldable table storage).
-      if (q.id === 'storage' && !Array.isArray(answers.storage)) {
-        answers.storage = ['cubby'];
-        save();
-        refresh();
-      }
-
-      const v = value(q.id);
-      const selected = (x: string) => (Array.isArray(v) ? v.includes(x) : v === x);
-      const grid = 'grid-cols-1';
-
-      const optionHtml = q.options.map((o, i) => {
-        const isSel = selected(o.value);
-        const heading = o.group && o.group !== q.options[i - 1]?.group ? `<p class="col-span-full text-xs font-bold uppercase tracking-wider text-sand-dark ${i ? 'mt-3' : ''}">${escapeHtml(o.group)}</p>` : '';
-        return `${heading}
-          <button type="button" data-value="${o.value}" role="${q.multi ? 'checkbox' : 'radio'}" aria-checked="${isSel}"
-            class="option min-h-[56px] text-left rounded-lg border-2 px-4 py-3 transition-all ${isSel ? 'border-primary bg-primary/5' : 'border-stone-dark/30 hover:border-primary/60 bg-white'}">
-            <span class="flex items-start justify-between gap-2">
-              <span class="block font-semibold text-charcoal text-sm sm:text-base">${escapeHtml(o.label)}</span>
-              ${q.multi ? `<span class="w-5 h-5 shrink-0 rounded border-2 flex items-center justify-center ${isSel ? 'bg-primary border-primary text-white' : 'border-stone-dark'}">${isSel ? '&#10003;' : ''}</span>` : ''}
-            </span>
-            ${o.sub ? `<span class="block text-xs text-muted-foreground mt-0.5">${escapeHtml(o.sub)}</span>` : ''}
-          </button>`;
-      }).join('');
-
-      let extras = '';
-      if (q.id === 'fridge' && v !== undefined) {
-        extras += `
-          <label class="mt-4 flex items-center gap-3 min-h-[48px] cursor-pointer rounded-lg bg-stone-light px-4 py-2 text-sm text-charcoal">
-            <input id="own-fridge" type="checkbox" class="w-5 h-5 accent-[#2D4A3E]" ${answers.ownFridge ? 'checked' : ''} />
-            <span><strong>I already have this fridge.</strong> Just build around it.</span>
-          </label>`;
-      }
-      if (q.id === 'storage' && answers.storage?.length) {
-        extras += `<p class="mt-4 text-sm text-muted-foreground">Tap <button type="button" data-open-preview class="font-semibold text-primary underline">Open</button> on the model to see them in action.</p>`;
-      }
-
-      let footer = '';
-      if (q.multi) footer = nextButton((v as string[] | undefined)?.length ? nextLabel() : `None, ${nextLabel().toLowerCase()}`);
-      else if (v !== undefined) footer = nextButton();
-
+    function renderContact() {
       $('question-body').innerHTML = `
-        <h2 class="text-2xl font-bold text-charcoal">${escapeHtml(q.title)}</h2>
-        <p class="text-sm text-muted-foreground mt-1.5 mb-5">${escapeHtml(q.help)}</p>
-        <div class="grid ${grid} gap-2.5" role="${q.multi ? 'group' : 'radiogroup'}" aria-label="${escapeHtml(q.title)}">${optionHtml}</div>
-        ${extras}
-        ${footer}
+        <h2 class="text-2xl font-bold text-charcoal">Your details</h2>
+        <p class="text-sm text-muted-foreground mt-1.5 mb-5">So we can send you your design and an official quote. No spam.</p>
+        <form id="contact-form" class="space-y-3" novalidate>
+          ${field('name', 'Name', 'text', 'name', 'maxlength="120" required')}
+          ${field('email', 'Email', 'email', 'email', 'inputmode="email" maxlength="200" required')}
+          ${field('phone', 'Mobile', 'tel', 'tel', 'inputmode="tel" maxlength="20" placeholder="04xx xxx xxx" required')}
+          <label class="block text-sm"><span class="font-medium text-charcoal">What are you driving?</span>
+            <select id="f-vehicle" name="vehicle" class="${inputCls}" required>
+              <option value="">Pick your vehicle</option>
+              ${VEHICLES.map((veh) => `<option value="${veh.id}" ${answers.vehicle === veh.id ? 'selected' : ''}>${escapeHtml(veh.id === 'other' ? 'Something else' : veh.label)}</option>`).join('')}
+            </select></label>
+          <label id="vehicle-name-wrap" class="block text-sm ${answers.vehicle === 'other' ? '' : 'hidden'}"><span class="font-medium text-charcoal">Make, model and year</span>
+            <input id="f-vehicleName" type="text" maxlength="80" placeholder="e.g. 2016 Toyota Fortuner" value="${escapeHtml(answers.vehicleName ?? '')}" class="${inputCls}" /></label>
+          <p id="contact-error" class="hidden text-sm text-destructive" role="alert"></p>
+          <button type="submit" class="!mt-5 w-full min-h-[52px] bg-primary text-primary-foreground font-bold rounded-md hover:bg-primary-light transition-colors disabled:opacity-60">Next</button>
+        </form>
       `;
     }
 
-    /** Save their email + mobile as a lead before they start building, then move on regardless. */
-    async function captureLead(btn: HTMLButtonElement, next: () => void) {
-      const email = $<HTMLInputElement>('lead-email').value.trim().toLowerCase();
-      const phone = $<HTMLInputElement>('lead-phone').value.trim();
-      const error = $('lead-error');
-      error.classList.add('hidden');
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        error.textContent = 'Pop in a valid email so we can send your design.';
-        error.classList.remove('hidden');
-        $('lead-email').focus();
-        return;
+    async function submitContact(btn: HTMLButtonElement) {
+      $('contact-error').classList.add('hidden');
+      const name = (form.name ?? '').trim();
+      const email = (form.email ?? '').trim().toLowerCase();
+      const phone = (form.phone ?? '').trim();
+      if (!name) return showError('contact-error', 'Pop in your name.', 'f-name');
+      if (!EMAIL_RE.test(email)) return showError('contact-error', 'Pop in a valid email so we can send your design.', 'f-email');
+      if (!MOBILE_RE.test(phone)) return showError('contact-error', 'Pop in your mobile, like 0412 345 678.', 'f-phone');
+      if (!answers.vehicle) return showError('contact-error', 'Pick what you\'re driving so we can cut it to suit.', 'f-vehicle');
+      if (answers.vehicle === 'other' && !answers.vehicleName) return showError('contact-error', 'Tell us the make and model.', 'f-vehicleName');
+
+      // One lead per build: only save a new one if we haven't got this email yet.
+      if (!lead || lead.email !== email || !lead.leadId) {
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+        let leadId: number | null = null;
+        try {
+          const rec = recommend(answers);
+          const res = await fetch('/api/kit-lead', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name, email, phone,
+              vehicle: answers.vehicle === 'other' ? answers.vehicleName : rec.vehicle.label,
+              picks: `${rec.kitName}: ${rec.addOns.join(', ')}`,
+              ...getUtmParams(),
+            }),
+          });
+          const data = (await res.json()) as { leadId?: number | null };
+          leadId = typeof data.leadId === 'number' ? data.leadId : null;
+        } catch { /* don't hold them up if saving the lead fails; the final request saves it anyway */ }
+        lead = { email, leadId };
       }
-      if (phone.replace(/\D/g, '').length < 8) {
-        error.textContent = 'Pop in your mobile number too.';
-        error.classList.remove('hidden');
-        $('lead-phone').focus();
-        return;
+      goTo(DETAILS);
+    }
+
+    // -----------------------------------------------------------------------
+    // Step 3: delivery, timing and the rest of the quote form
+    // -----------------------------------------------------------------------
+
+    function orderingHtml() {
+      const installed = answers.build === 'installed';
+      const rows = [
+        ['Payment', ORDERING.payment],
+        ['Made in', ORDERING.make],
+        installed ? ['Install', 'We book you in at our Gold Coast workshop once it\'s made'] : ['Delivery', `${ORDERING.delivery}, Australia-wide`],
+      ];
+      return `
+        <p class="text-xs font-bold uppercase tracking-wider text-sand-dark mb-2">How ordering works</p>
+        <dl class="space-y-1.5 text-sm">
+          ${rows.map(([k, v]) => `<div class="flex gap-3"><dt class="w-20 shrink-0 font-semibold text-charcoal">${k}</dt><dd class="text-charcoal">${escapeHtml(v)}</dd></div>`).join('')}
+          <div class="flex gap-3"><dt class="w-20 shrink-0 font-semibold text-charcoal">Estimate</dt><dd class="text-charcoal"><span data-bracket class="font-bold">${escapeHtml(bracket || '…')}</span></dd></div>
+        </dl>
+        <p class="mt-2.5 text-xs text-muted-foreground">${escapeHtml(ORDERING.note)}</p>`;
+    }
+
+    function chips(name: string, options: { value: string; label: string }[]) {
+      return `<div class="flex flex-wrap gap-2" role="radiogroup">${options.map((o) => {
+        const on = form[name] === o.value;
+        return `<button type="button" data-chip="${name}" data-value="${o.value}" role="radio" aria-checked="${on}"
+          class="min-h-[44px] px-3.5 rounded-full border-2 text-sm font-medium transition-colors ${on ? 'border-primary bg-primary text-primary-foreground' : 'border-stone-dark/30 text-charcoal hover:border-primary/60 bg-white'}">${o.label}</button>`;
+      }).join('')}</div>`;
+    }
+
+    function renderDetails() {
+      const first = (form.name ?? '').trim().split(' ')[0];
+      $('question-body').innerHTML = `
+        <h2 class="text-2xl font-bold text-charcoal">Almost done${first ? `, ${escapeHtml(first)}` : ''}</h2>
+        <p class="text-sm text-muted-foreground mt-1.5 mb-5">A few quick ones so we can quote it properly.</p>
+        <form id="details-form" class="space-y-6" novalidate>
+          <fieldset>
+            <legend class="text-sm font-semibold text-charcoal mb-2">How do you want it?</legend>
+            <div class="grid gap-2.5" role="radiogroup">
+              ${BUILD_OPTIONS.map((o) => optionCard('build', o.value, o.label, o.sub, answers.build === o.value, false)).join('')}
+            </div>
+          </fieldset>
+
+          <div id="ordering-box" class="rounded-lg bg-stone-light border border-stone-dark/15 p-4">${orderingHtml()}</div>
+
+          <div class="relative">
+            <label for="loc-input" class="block text-sm font-semibold text-charcoal">${answers.build === 'installed' ? 'Where are you based?' : 'Where are we delivering to?'}</label>
+            <input id="loc-input" type="text" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="loc-results" aria-autocomplete="list"
+              placeholder="Type a postcode or suburb" value="${escapeHtml(form.location ?? '')}" class="${inputCls}" />
+            <ul id="loc-results" role="listbox" class="hidden absolute z-30 left-0 right-0 mt-1 max-h-64 overflow-auto bg-white border border-stone-dark/30 rounded-md shadow-lg"></ul>
+            <p id="loc-error" class="hidden mt-1.5 text-sm text-destructive" role="alert"></p>
+          </div>
+
+          <div>
+            <p class="text-sm font-semibold text-charcoal mb-2">When do you need it?</p>
+            ${chips('timeline', TIMELINES)}
+          </div>
+
+          <div>
+            <p class="text-sm font-semibold text-charcoal mb-2">Rough budget for your whole setup <span class="font-normal text-muted-foreground">(optional)</span></p>
+            ${chips('budget', BUDGETS)}
+          </div>
+
+          <label class="block text-sm"><span class="font-semibold text-charcoal">How did you hear about us? <span class="font-normal text-muted-foreground">(optional)</span></span>
+            <select name="referral" class="${inputCls}">
+              <option value="">Select one</option>
+              ${REFERRALS.map((r) => `<option value="${r.value}" ${form.referral === r.value ? 'selected' : ''}>${r.label}</option>`).join('')}
+            </select></label>
+
+          <label class="block text-sm"><span class="font-semibold text-charcoal">Anything else? <span class="font-normal text-muted-foreground">(model year, 12V or 240V power, a different finish)</span></span>
+            <textarea name="notes" rows="3" maxlength="2000" class="${inputCls}">${escapeHtml(form.notes ?? '')}</textarea></label>
+
+          <div>
+            <p id="details-error" class="hidden mb-3 text-sm text-destructive" role="alert"></p>
+            <button type="submit" class="w-full min-h-[52px] bg-primary text-primary-foreground font-bold rounded-md hover:bg-primary-light transition-colors disabled:opacity-60">${sentBefore ? 'Send my updated build' : 'Get my official quote'}</button>
+            <p class="mt-2 text-center text-xs text-muted-foreground">Luke will check your build and send an exact price within 48 hours.</p>
+          </div>
+        </form>
+      `;
+    }
+
+    // Postcode / suburb lookup (same list as the main quote form).
+    type Place = { postcode: string; suburb: string; state: string };
+    let places: Place[] | null = null;
+    let placesPromise: Promise<Place[]> | null = null;
+    let matches: Place[] = [];
+    let hi = -1;
+
+    function loadPlaces(): Promise<Place[]> {
+      if (places) return Promise.resolve(places);
+      placesPromise ??= fetch('/data/au-postcodes.json')
+        .then((r) => {
+          if (!r.ok) throw new Error('postcodes');
+          return r.json() as Promise<Place[]>;
+        })
+        .then((d) => (places = d))
+        .catch((err) => {
+          placesPromise = null;
+          throw err;
+        });
+      return placesPromise;
+    }
+
+    function showMatches(list: Place[]) {
+      matches = list;
+      hi = -1;
+      const ul = document.getElementById('loc-results');
+      const input = document.getElementById('loc-input');
+      if (!ul || !input) return;
+      ul.innerHTML = list.map((m, i) => `<li role="option" data-place="${i}" class="px-4 py-2.5 cursor-pointer text-sm text-charcoal hover:bg-primary/10">${escapeHtml(`${m.suburb}, ${m.state} ${m.postcode}`)}</li>`).join('');
+      ul.classList.toggle('hidden', !list.length);
+      input.setAttribute('aria-expanded', String(!!list.length));
+    }
+
+    function pickPlace(p: Place) {
+      form.suburb = p.suburb;
+      form.state = p.state;
+      form.postcode = p.postcode;
+      form.location = `${p.suburb}, ${p.state} ${p.postcode}`;
+      $<HTMLInputElement>('loc-input').value = form.location;
+      showMatches([]);
+      $('loc-error').classList.add('hidden');
+      save();
+    }
+
+    async function submitDetails(btn: HTMLButtonElement) {
+      $('details-error').classList.add('hidden');
+      $('loc-error').classList.add('hidden');
+      if (!form.postcode || !form.suburb || !form.state) {
+        return showError('loc-error', 'Start typing your postcode or suburb, then pick it from the list.', 'loc-input');
       }
       btn.disabled = true;
-      btn.textContent = 'Starting...';
-      let leadId: number | null = null;
+      btn.textContent = 'Sending...';
+      const contact = {
+        name: form.name, email: form.email, phone: form.phone,
+        suburb: form.suburb, state: form.state, postcode: form.postcode,
+        timeline: form.timeline ?? '', budget: form.budget ?? '', referral: form.referral ?? '', notes: form.notes ?? '',
+      };
       try {
-        const res = await fetch('/api/kit-lead', {
+        const res = await fetch('/api/kit-builder', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, phone, ...getUtmParams() }),
+          body: JSON.stringify({ answers, contact, leadId: lead?.leadId ?? null, updated: sentBefore, ...getUtmParams() }),
         });
+        if (!res.ok) throw new Error(String(res.status));
+        // Keep the lead row so changing the build and sending again updates the same request.
         const data = (await res.json()) as { leadId?: number | null };
-        leadId = typeof data.leadId === 'number' ? data.leadId : null;
-      } catch { /* don't hold them up if saving the lead fails */ }
-      lead = { email, phone, leadId };
-      prefillFromLead();
+        lead = { email: (form.email ?? '').trim().toLowerCase(), leadId: typeof data.leadId === 'number' ? data.leadId : lead?.leadId ?? null };
+      } catch {
+        btn.disabled = false;
+        btn.textContent = sentBefore ? 'Send my updated build' : 'Get my official quote';
+        return showError('details-error', 'Something went wrong sending that. Give it another go, or call us on <a class="underline" href="tel:+61424770875">0424 770 875</a>.');
+      }
+      sent = { name: form.name ?? '' };
+      sentBefore = true;
+      step = DONE;
       save();
-      next();
+      history.pushState({ kitStep: DONE }, '');
+      render();
+      $('question-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      import('canvas-confetti').then(({ default: confetti }) => {
+        confetti({ particleCount: 120, spread: 70, origin: { y: 0.7 }, colors: ['#2D4A3E', '#C4A882', '#E8E0D6'] });
+      }).catch(() => {});
     }
 
-    function rerender() {
-      save();
-      refresh();
-      renderQuestion();
+    // -----------------------------------------------------------------------
+    // Done
+    // -----------------------------------------------------------------------
+
+    function renderDone() {
+      const rec = recommend(answers);
+      const first = (sent?.name ?? '').trim().split(' ')[0];
+      const groups = (['Cabinetry', 'Gear', 'Power'] as const)
+        .map((g) => ({ g, items: rec.items.filter((i) => i.group === g) }))
+        .filter((x) => x.items.length);
+      const steps = [
+        'We check your picks and send your official quote within 48 hours',
+        'We confirm your design and exact price with you',
+        'Full payment up front locks it in',
+        answers.build === 'installed' ? `We make it (${ORDERING.make}), then book your install` : `We make it: ${ORDERING.make}`,
+        ...(answers.build === 'installed' ? [] : [`Delivered to your door: ${ORDERING.delivery}`]),
+      ];
+      $('question-body').innerHTML = `
+        <div class="bg-primary text-primary-foreground rounded-xl p-5 sm:p-6">
+          <h2 class="text-2xl font-extrabold">Thanks${first ? ` ${escapeHtml(first)}` : ''}, we've got it.</h2>
+          <p class="mt-2 text-stone-light/90 text-sm">Luke will check your build for your ${escapeHtml(vehicleName())} and send your official quote within 48 hours. We've emailed you a copy.</p>
+        </div>
+
+        <div class="mt-5">
+          <p class="text-xs font-bold uppercase tracking-wider text-sand-dark">Your kit</p>
+          <h3 class="text-xl font-extrabold text-charcoal">${escapeHtml(rec.kitName)}</h3>
+          <p class="text-sm text-muted-foreground">Estimated range <span data-bracket class="font-bold text-charcoal">${escapeHtml(bracket || '…')}</span>. Your quote has the exact price.</p>
+        </div>
+
+        <div class="mt-5">
+          <p class="text-xs font-bold uppercase tracking-wider text-sand-dark mb-2">How ordering works</p>
+          <ol class="space-y-2 text-sm text-charcoal">
+            ${steps.map((s, i) => `<li class="flex gap-3"><span class="w-6 h-6 shrink-0 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">${i + 1}</span><span class="pt-0.5">${escapeHtml(s)}</span></li>`).join('')}
+          </ol>
+          <p class="mt-2 text-xs text-muted-foreground">${escapeHtml(ORDERING.note)}</p>
+        </div>
+
+        <div class="mt-5">
+          <p class="text-xs font-bold uppercase tracking-wider text-sand-dark mb-2">What we'll quote you on</p>
+          ${groups.map(({ g, items }) => `<p class="text-sm font-semibold text-charcoal mt-3 mb-1">${g === 'Gear' ? 'Gear' : g}</p><ul class="space-y-1.5 text-sm text-charcoal">${items.map((i) => `<li class="flex gap-2"><span class="${i.label.includes('not included') ? 'text-muted-foreground' : 'text-primary'}">${i.label.includes('not included') ? '&ndash;' : '&#10003;'}</span>${escapeHtml(i.label)}</li>`).join('')}</ul>`).join('')}
+          <p class="text-sm font-semibold text-charcoal mt-3 mb-1">Every kit comes with</p>
+          <ul class="space-y-1.5 text-sm text-muted-foreground">${rec.includes.map((i) => `<li class="flex gap-2"><span class="text-primary">&#10003;</span>${escapeHtml(i)}</li>`).join('')}</ul>
+        </div>
+
+        <button type="button" id="change-btn" class="mt-6 w-full min-h-[48px] bg-primary text-primary-foreground font-semibold rounded-md hover:bg-primary-light transition-colors">Change my build</button>
+        <p class="mt-1.5 text-center text-xs text-muted-foreground">Change anything and send it again. We'll update your request.</p>
+        <button type="button" id="another-btn" class="mt-3 w-full min-h-[48px] border-2 border-primary text-primary font-semibold rounded-md hover:bg-primary/5 transition-colors">Start another build</button>
+      `;
     }
 
-    $('question-body').addEventListener('click', (e) => {
+    // -----------------------------------------------------------------------
+    // Events (one set for every step, since the panel is re-rendered)
+    // -----------------------------------------------------------------------
+
+    const body = $('question-body');
+
+    body.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
-      const startBtn = target.closest<HTMLButtonElement>('#start-btn, #resume-btn, #fresh-btn');
-      if (startBtn) {
-        const go = () => {
-          if (startBtn.id === 'fresh-btn') return startOver();
-          setOpen(false);
-          if (startBtn.id === 'resume-btn') {
-            const to = savedStep ?? 0;
-            savedStep = null;
-            return goTo(to);
-          }
-          goTo(0);
-        };
-        if (!lead) void captureLead(startBtn, go);
-        else go();
-        return;
-      }
-      if (target.closest('[data-open-preview]') && step === INTRO) {
-        setOpen(true);
-        if (isMobile()) $('viewer').scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
-      const q = QUESTIONS[step];
-      if (!q) return;
 
-      if (target.closest('#next-btn')) {
-        if (q.multi && !Array.isArray(value(q.id))) (answers as Record<string, unknown>)[q.id] = [];
-        save();
-        goNext();
-        return;
-      }
       if (target.closest('[data-open-preview]')) {
         setOpen(true);
         if (isMobile()) $('viewer').scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
-
-      const btn = target.closest<HTMLButtonElement>('.option');
-      if (!btn) return;
-      const picked = btn.dataset.value!;
-
-      if (q.multi) {
-        const list = new Set((value(q.id) as string[] | undefined) ?? []);
-        const adding = !list.has(picked);
-        adding ? list.add(picked) : list.delete(picked);
-        (answers as Record<string, unknown>)[q.id] = [...list];
-        if (adding) setOpen(true);
-        return rerender();
+      if (target.closest('#next-btn')) {
+        setOpen(false);
+        goTo(CONTACT);
+        return;
       }
+      if (target.closest('#another-btn')) return startOver();
+      if (target.closest('#change-btn')) return goTo(PICK);
 
-      const already = value(q.id) === picked;
-      (answers as Record<string, unknown>)[q.id] = picked;
-      if (already) {
+      const supply = target.closest<HTMLButtonElement>('[data-supply]');
+      if (supply) {
+        const key = supply.dataset.supply as SupplyKey;
+        if (supply.dataset.own === '1') answers[key] = true;
+        else delete answers[key];
         save();
         refresh();
-        goNext();
+        renderPick();
         return;
       }
-      rerender();
-    });
 
-    $('question-body').addEventListener('change', (e) => {
-      const t = e.target as HTMLInputElement;
-      if (t.id === 'own-fridge') {
-        if (t.checked) answers.ownFridge = true;
-        else delete answers.ownFridge;
-        rerender();
-      }
-    });
-
-    // -----------------------------------------------------------------------
-    // Summary + quote request
-    // -----------------------------------------------------------------------
-
-    function renderSummary() {
-      prefillFromLead();
-      const rec: Recommendation = refresh();
-      $('question-panel').classList.add('hidden');
-      $('answered').classList.add('hidden');
-      const firstUnanswered = asked().find(({ q }) => !isAnswered(q));
-      const groups = (['Cabinetry', 'Fridge', 'Power'] as const)
-        .map((g) => ({ g, items: rec.items.filter((i) => i.group === g) }))
-        .filter((x) => x.items.length);
-
-      $('summary').classList.remove('hidden');
-      $('summary').innerHTML = `
-        <div class="bg-charcoal text-stone-light rounded-xl p-6 sm:p-7">
-          <p class="text-sand text-xs font-bold uppercase tracking-widest mb-2">Your kit</p>
-          <h2 class="text-3xl font-extrabold">${escapeHtml(rec.kitName)}</h2>
-          <p class="text-stone-dark mt-1">${answers.vehicle ? `For your ${escapeHtml(vehicleName())}.` : 'Tell us your vehicle below and we\'ll cut it to suit.'}</p>
-          <div class="mt-5 bg-stone-light/5 rounded-lg p-4">
-            <p class="text-xs text-stone-dark uppercase tracking-wider font-semibold">Estimated range</p>
-            <p class="text-3xl font-extrabold text-sand" data-bracket>${escapeHtml(bracket || '…')}</p>
-            <p class="text-xs text-stone-dark mt-1">A rough guide only. Your official quote has the exact price for your vehicle.</p>
-            <a href="#order-form" class="mt-4 inline-flex items-center justify-center w-full min-h-[48px] bg-sand text-charcoal font-bold rounded-md hover:bg-sand-light transition-colors">Get an official quote</a>
-          </div>
-          <ul class="flex flex-wrap gap-2 mt-4">${rec.addOns.map((a) => `<li class="text-xs font-semibold bg-sand/90 text-charcoal px-2.5 py-1 rounded-full">${escapeHtml(a)}</li>`).join('')}</ul>
-          ${firstUnanswered ? `<button type="button" data-jump="${firstUnanswered.i}" class="mt-4 min-h-[44px] text-sm text-sand underline">You skipped a question. Answer it for a sharper estimate</button>` : ''}
-          <button type="button" data-start-over class="mt-2 min-h-[44px] text-sm text-stone-dark underline">Start over</button>
-          <h3 class="text-sm font-bold uppercase tracking-wider text-sand mt-6 mb-2">Your layout</h3>
-          <ul class="space-y-2 text-sm">
-            ${rec.why.map((w) => `<li class="flex gap-2"><span class="text-sand mt-0.5">&#10003;</span><span>${escapeHtml(w)}</span></li>`).join('')}
-          </ul>
-        </div>
-
-        <div class="bg-white rounded-xl border border-stone-dark/20 p-5 sm:p-6">
-          <h3 class="font-bold text-charcoal text-lg mb-1">Your picks</h3>
-          <p class="text-sm text-muted-foreground mb-3">Tap one to change it. You'll come straight back here.</p>
-          <ol class="flex flex-wrap gap-2">${chipsHtml()}</ol>
-        </div>
-
-        <div class="bg-white rounded-xl border border-stone-dark/20 p-5 sm:p-6">
-          <h3 class="font-bold text-charcoal text-lg mb-3">What we'll quote you on</h3>
-          ${groups.map(({ g, items }) => `
-            <p class="text-xs font-bold uppercase tracking-wider text-sand-dark mt-3 mb-1.5">${g}</p>
-            <ul class="space-y-1.5 text-sm text-charcoal">${items.map((i) => `<li class="flex gap-2"><span class="text-primary">&#10003;</span>${escapeHtml(i.label)}</li>`).join('')}</ul>`).join('')}
-          <p class="text-xs font-bold uppercase tracking-wider text-sand-dark mt-5 mb-1.5">Every kit includes</p>
-          <ul class="space-y-1.5 text-sm text-muted-foreground">${rec.includes.map((i) => `<li class="flex gap-2"><span class="text-primary">&#10003;</span>${escapeHtml(i)}</li>`).join('')}</ul>
-        </div>
-
-        ${rec.tips.length ? `
-        <div class="bg-stone rounded-xl p-5 sm:p-6">
-          <h3 class="font-bold text-charcoal text-lg mb-3">Straight-up advice</h3>
-          <ul class="space-y-3 text-sm">${rec.tips.map((t) => `<li class="text-charcoal">${escapeHtml(t)}</li>`).join('')}</ul>
-        </div>` : ''}
-
-        <form id="order-form" class="bg-white rounded-xl border-2 border-primary p-5 sm:p-6 space-y-4" novalidate style="scroll-margin-top: calc(6.25rem + max(48vh, 300px) + 0.75rem)">
-          <div>
-            <h3 class="font-bold text-charcoal text-xl">Get your official quote</h3>
-            <p class="text-sm text-muted-foreground mt-1">Free and no obligation. Luke will check your picks and send you an exact price within 48 hours.</p>
-          </div>
-          <div class="grid sm:grid-cols-2 gap-3">
-            <label class="block text-sm sm:col-span-2"><span class="font-medium text-charcoal">What are you driving?</span>
-              <select id="vehicle-select" name="vehicle" class="mt-1 w-full min-h-[48px] rounded-md border border-stone-dark/40 px-3 py-2.5 text-base bg-white focus:border-primary focus:outline-none">
-                <option value="">Pick your vehicle</option>
-                ${VEHICLES.map((veh) => `<option value="${veh.id}" ${answers.vehicle === veh.id ? 'selected' : ''}>${escapeHtml(veh.id === 'other' ? 'Something else' : veh.label)}</option>`).join('')}
-              </select></label>
-            <label id="vehicle-name-wrap" class="block text-sm sm:col-span-2 ${answers.vehicle === 'other' ? '' : 'hidden'}"><span class="font-medium text-charcoal">Make and model</span>
-              <input id="vehicle-name" type="text" maxlength="80" placeholder="e.g. 2016 Toyota Fortuner" value="${escapeHtml(answers.vehicleName ?? '')}"
-                class="mt-1 w-full min-h-[48px] rounded-md border border-stone-dark/40 px-3 py-2.5 text-base focus:border-primary focus:outline-none" /></label>
-            ${[
-              ['name', 'Name', 'text', 'name'],
-              ['phone', 'Mobile', 'tel', 'tel'],
-              ['email', 'Email', 'email', 'email'],
-              ['postcode', 'Postcode', 'text', 'postal-code'],
-            ].map(([name, label, type, ac]) => `
-              <label class="block text-sm"><span class="font-medium text-charcoal">${label}</span>
-                <input name="${name}" type="${type}" autocomplete="${ac}" ${name === 'postcode' ? 'inputmode="numeric" maxlength="4"' : ''} value="${escapeHtml(formDraft[name] ?? '')}"
-                  class="mt-1 w-full min-h-[48px] rounded-md border border-stone-dark/40 px-3 py-2.5 text-base focus:border-primary focus:outline-none" /></label>`).join('')}
-          </div>
-          <label class="block text-sm"><span class="font-medium text-charcoal">Anything else? <span class="text-muted-foreground font-normal">(model year, 12V or 240V power, finish, whether you'd like us to build or install it)</span></span>
-            <textarea name="notes" rows="3" maxlength="2000" class="mt-1 w-full rounded-md border border-stone-dark/40 px-3 py-2.5 text-base focus:border-primary focus:outline-none">${escapeHtml(formDraft.notes ?? '')}</textarea></label>
-          <p id="order-error" class="hidden text-sm text-destructive"></p>
-          <button type="submit" class="w-full min-h-[52px] py-3.5 bg-primary text-primary-foreground font-bold rounded-md hover:bg-primary-light transition-colors disabled:opacity-60">Get my official quote</button>
-        </form>
-      `;
-    }
-
-    $('summary').addEventListener('click', (e) => {
-      if ((e.target as HTMLElement).closest('[data-start-over]')) startOver();
-    });
-
-    $('summary').addEventListener('input', (e) => {
-      const t = e.target as HTMLInputElement;
-      if (t.id === 'vehicle-name') {
-        answers.vehicleName = t.value.trim().slice(0, 80) || undefined;
+      const chip = target.closest<HTMLButtonElement>('[data-chip]');
+      if (chip) {
+        const name = chip.dataset.chip!;
+        form[name] = form[name] === chip.dataset.value ? '' : chip.dataset.value!;
         save();
+        chip.parentElement!.querySelectorAll<HTMLButtonElement>('[data-chip]').forEach((b) => {
+          const on = form[name] === b.dataset.value;
+          b.setAttribute('aria-checked', String(on));
+          b.classList.toggle('border-primary', on);
+          b.classList.toggle('bg-primary', on);
+          b.classList.toggle('text-primary-foreground', on);
+          b.classList.toggle('border-stone-dark/30', !on);
+          b.classList.toggle('text-charcoal', !on);
+          b.classList.toggle('bg-white', !on);
+        });
         return;
       }
-      if (t.name && t.name !== 'vehicle') formDraft[t.name] = t.value;
-    });
 
-    $('summary').addEventListener('change', (e) => {
-      const t = e.target as HTMLSelectElement;
-      if (t.id !== 'vehicle-select') return;
-      answers.vehicle = (t.value || undefined) as VehicleId | undefined;
-      if (answers.vehicle !== 'other') delete answers.vehicleName;
-      $('vehicle-name-wrap').classList.toggle('hidden', answers.vehicle !== 'other');
+      const opt = target.closest<HTMLButtonElement>('.option');
+      if (!opt) return;
+      const q = opt.dataset.q!;
+      const picked = opt.dataset.value!;
+      if (q === 'build') {
+        answers.build = picked as KitAnswers['build'];
+        save();
+        refresh();
+        const y = window.scrollY;
+        renderDetails();
+        window.scrollTo({ top: y });
+        return;
+      }
+      if (q === 'storage') {
+        const list = new Set(answers.storage ?? []);
+        const adding = !list.has(picked as never);
+        adding ? list.add(picked as never) : list.delete(picked as never);
+        answers.storage = [...list];
+        if (adding) setOpen(true);
+      } else {
+        (answers as Record<string, unknown>)[q] = picked;
+      }
       save();
       refresh();
-      document.querySelector('#summary p.text-stone-dark')!.textContent = answers.vehicle ? `For your ${vehicleName()}.` : 'Tell us your vehicle below and we\'ll cut it to suit.';
+      renderPick();
     });
 
-    $('summary').addEventListener('submit', async (e) => {
-      const form = (e.target as HTMLElement).closest<HTMLFormElement>('#order-form');
-      if (!form) return;
+    body.addEventListener('submit', (e) => {
       e.preventDefault();
-      const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
-      const error = $('order-error');
-      error.classList.add('hidden');
+      const f = e.target as HTMLFormElement;
+      const btn = f.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+      if (f.id === 'contact-form') void submitContact(btn);
+      if (f.id === 'details-form') void submitDetails(btn);
+    });
 
-      if (!answers.vehicle) {
-        error.textContent = 'Pick what you\'re driving so we can cut it to suit.';
-        error.classList.remove('hidden');
-        $('vehicle-select').focus();
+    body.addEventListener('input', async (e) => {
+      const t = e.target as HTMLInputElement;
+      if (t.id === 'f-vehicleName') {
+        answers.vehicleName = t.value.trim().slice(0, 80) || undefined;
+        save();
+        refresh();
         return;
       }
-      if (!data.name?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email || '')) {
-        error.textContent = 'Pop in your name and a valid email so we can send your quote.';
-        error.classList.remove('hidden');
+      if (t.id === 'loc-input') {
+        form.location = t.value;
+        delete form.suburb;
+        delete form.state;
+        delete form.postcode;
+        save();
+        try {
+          const all = await loadPlaces();
+          const q = t.value.trim().toLowerCase();
+          if (!q) return showMatches([]);
+          const digits = /^\d/.test(q);
+          showMatches(all.filter((p) => (digits ? p.postcode.startsWith(q) : p.suburb.toLowerCase().startsWith(q))).slice(0, 8));
+        } catch {
+          showError('loc-error', 'Couldn\'t load the suburb list. Refresh the page and try again.');
+        }
         return;
       }
-      if (data.postcode && !/^\d{4}$/.test(data.postcode)) {
-        error.textContent = 'Postcode should be 4 digits.';
-        error.classList.remove('hidden');
+      if (t.name && t.name !== 'vehicle') {
+        form[t.name] = t.value;
+        save();
+      }
+    });
+
+    body.addEventListener('change', (e) => {
+      const t = e.target as HTMLInputElement;
+      if (t.id === 'f-vehicle') {
+        answers.vehicle = (t.value || undefined) as VehicleId | undefined;
+        if (answers.vehicle !== 'other') delete answers.vehicleName;
+        $('vehicle-name-wrap').classList.toggle('hidden', answers.vehicle !== 'other');
+        save();
+        refresh();
         return;
       }
+      if (t.name === 'referral') {
+        form.referral = t.value;
+        save();
+      }
+    });
 
-      const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
-      submit.disabled = true;
-      submit.textContent = 'Sending...';
+    body.addEventListener('focusin', (e) => {
+      if ((e.target as HTMLElement).id === 'loc-input') loadPlaces().catch(() => {});
+    });
 
-      try {
-        const res = await fetch('/api/kit-builder', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ answers, contact: data, leadId: lead?.leadId ?? null, ...getUtmParams() }),
-        });
-        if (!res.ok) throw new Error(String(res.status));
-        // That lead is now a quote request; another build from here starts a new lead row.
-        if (lead) lead.leadId = null;
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers: {}, step: INTRO, lead })); } catch { /* ignore */ }
-        form.outerHTML = `
-          <div class="bg-primary text-primary-foreground rounded-xl p-6 sm:p-7">
-            <h3 class="text-2xl font-extrabold">Thanks ${escapeHtml(data.name.split(' ')[0])}, we've got it.</h3>
-            <p class="mt-2 text-stone-dark">Luke will check your picks for your ${escapeHtml(vehicleName())} and send your official quote within 48 hours.</p>
-            <button type="button" data-start-over class="mt-4 min-h-[44px] text-sm font-semibold text-sand underline">Start another build</button>
-          </div>`;
-        const { default: confetti } = await import('canvas-confetti');
-        confetti({ particleCount: 120, spread: 70, origin: { y: 0.7 }, colors: ['#2D4A3E', '#C4A882', '#E8E0D6'] });
-      } catch {
-        submit.disabled = false;
-        submit.textContent = 'Get my official quote';
-        error.innerHTML = 'Something went wrong sending that. Give it another go, or call us on <a class="underline" href="tel:+61424770875">0424 770 875</a>.';
-        error.classList.remove('hidden');
+    body.addEventListener('keydown', (e) => {
+      if ((e.target as HTMLElement).id !== 'loc-input') return;
+      const items = document.querySelectorAll<HTMLElement>('#loc-results li');
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        if (!items.length) return;
+        e.preventDefault();
+        hi = e.key === 'ArrowDown' ? Math.min(hi + 1, items.length - 1) : Math.max(hi - 1, 0);
+        items.forEach((el, i) => el.classList.toggle('bg-primary/10', i === hi));
+        items[hi]?.scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') {
+        // Enter picks the highlighted (or only) suburb instead of submitting early.
+        if (matches.length && (hi >= 0 || matches.length === 1)) {
+          e.preventDefault();
+          pickPlace(matches[Math.max(hi, 0)]);
+        }
+      } else if (e.key === 'Escape') {
+        showMatches([]);
+      }
+    });
+
+    // mousedown so the pick lands before the input loses focus.
+    body.addEventListener('mousedown', (e) => {
+      const li = (e.target as HTMLElement).closest<HTMLElement>('[data-place]');
+      if (!li) return;
+      e.preventDefault();
+      pickPlace(matches[Number(li.dataset.place)]);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!(e.target as HTMLElement).closest('#loc-input, #loc-results')) {
+        if (document.getElementById('loc-results') && !document.getElementById('loc-results')!.classList.contains('hidden')) showMatches([]);
       }
     });
 

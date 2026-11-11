@@ -151,13 +151,13 @@ export function getFridge(id: string | undefined): Fridge | null {
 export type StorageId = 'bed' | 'pullout' | 'cubby';
 
 export const STORAGE: { id: StorageId; label: string; sub: string }[] = [
-  { id: 'bed', label: 'Sliding bed', sub: 'Slides out over the folded rear seats, with a folding mattress' },
-  { id: 'pullout', label: 'Pull-out table', sub: 'Slides out from the bottom of the left drawer' },
-  { id: 'cubby', label: 'Foldable table storage', sub: 'Our folding Bush Bound table, in its own hinged cubby' },
+  { id: 'bed', label: 'Sliding bed', sub: 'Slides out over the folded rear seats' },
+  { id: 'pullout', label: 'Pull-out table', sub: 'Built into the bottom of the left drawer' },
+  { id: 'cubby', label: 'Foldable table storage', sub: 'A hinged cubby that holds a folding table' },
 ];
 
-/** Ticked before the customer reaches the storage step (matches our base wagon build). */
-export const DEFAULT_STORAGE: StorageId[] = ['cubby'];
+/** Nothing is ticked until the customer picks it. */
+export const DEFAULT_STORAGE: StorageId[] = [];
 
 // ---------------------------------------------------------------------------
 // Finishes
@@ -227,6 +227,21 @@ export const HIDDEN_QUESTIONS = ['power12', 'power240', 'electricalBuild', 'fini
 export const BASE_KIT = {
   name: 'Wagon Base Kit',
   tagline: 'Evenly split drawers and an upright fridge cabinet in black honeycomb birch ply.',
+};
+
+/** How they want it, asked on the details page (customer's voice). */
+export const BUILD_OPTIONS: { value: 'diy' | 'assembled' | 'installed'; label: string; sub: string }[] = [
+  { value: 'diy', label: 'Flat pack, delivered to me', sub: 'I\'ll build and install it myself' },
+  { value: 'assembled', label: 'Build it for me, I\'ll install it', sub: 'Arrives assembled, I bolt it in' },
+  { value: 'installed', label: 'Build and install it for me', sub: 'At your Gold Coast workshop' },
+];
+
+/** Rough ordering timeframes shown to customers (confirmed per order). */
+export const ORDERING = {
+  payment: 'Full payment up front, once we\'ve confirmed your design and exact price',
+  make: '2 to 4 weeks',
+  delivery: '3 to 5 days',
+  note: 'These are rough estimates. We\'ll confirm timing for your vehicle and location.',
 };
 
 export const BUILD_LABELS: Record<string, string> = {

@@ -19,6 +19,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const body = (await request.json()) as Record<string, unknown>;
     const email = clean(body.email, 200).toLowerCase();
     const phone = clean(body.phone, 40);
+    const name = clean(body.name, 120) || email;
+    const vehicle = clean(body.vehicle, 120);
+    const picks = clean(body.picks, 500);
     const utm_source = clean(body.utm_source);
     const utm_medium = clean(body.utm_medium);
     const utm_campaign = clean(body.utm_campaign);
@@ -29,9 +32,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
     let leadId: number | null = null;
     try {
       const result = await runtime.env.DB.prepare(
-        `INSERT INTO quotes (name, email, phone, vehicle_type, utm_source, utm_medium, utm_campaign, status, created_at)
-         VALUES (?, ?, ?, 'flatpack-kit', ?, ?, ?, 'kit-started', ?)`
-      ).bind(email, email, phone, utm_source || null, utm_medium || null, utm_campaign || null, Date.now()).run();
+        `INSERT INTO quotes (name, email, phone, vehicle_type, vehicle_model, wishlist, utm_source, utm_medium, utm_campaign, status, created_at)
+         VALUES (?, ?, ?, 'flatpack-kit', ?, ?, ?, ?, ?, 'kit-started', ?)`
+      ).bind(name, email, phone, vehicle || null, picks || null, utm_source || null, utm_medium || null, utm_campaign || null, Date.now()).run();
       leadId = result.meta.last_row_id as number;
     } catch (dbError) {
       console.error('D1 write failed (kit lead):', dbError);
@@ -41,9 +44,11 @@ export const POST: APIRoute = async ({ request, locals }) => {
     if (runtime.env.NOTION_TOKEN && runtime.env.NOTION_DATABASE_ID) {
       try {
         const pageId = await createNotionLead(runtime.env.NOTION_TOKEN as string, runtime.env.NOTION_DATABASE_ID as string, {
-          name: email,
+          name,
           email,
           phone,
+          vehicle,
+          wishlist: picks,
           type: 'Flatpack Kit',
           message: 'Started the kit builder (no quote request yet).',
           referral: 'Kit builder',

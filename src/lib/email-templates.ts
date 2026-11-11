@@ -136,6 +136,14 @@ export function kitCustomerHtml(fullName: string, kitName: string, vehicle: stri
     <p style="color: ${BRAND.muted}; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin: 24px 0 8px 0;">What you picked</p>
     <ul style="padding-left: 18px; margin: 0;">${list}</ul>
     <p style="color: ${BRAND.text}; font-size: 15px; line-height: 1.6; margin: 16px 0;">Estimated range: <strong>${total}</strong>. Your official quote will have the exact price.</p>
+    <p style="color: ${BRAND.muted}; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin: 24px 0 8px 0;">How ordering works</p>
+    <ol style="padding-left: 18px; margin: 0; color: ${BRAND.text}; font-size: 14px; line-height: 1.6;">
+      <li>We confirm your design and exact price</li>
+      <li>Full payment up front locks in your kit</li>
+      <li>We cut and pack it: 2 to 4 weeks</li>
+      <li>Delivered to your door: 3 to 5 days</li>
+    </ol>
+    <p style="color: ${BRAND.muted}; font-size: 12px; margin: 8px 0 0 0;">Rough estimates only. We'll confirm timing for your vehicle and location.</p>
     <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
     <p style="color: ${BRAND.muted}; font-size: 13px; line-height: 1.5;">Questions in the meantime? Call <a href="tel:+61424770875" style="color: ${BRAND.text}; font-weight: bold; text-decoration: none;">0424 770 875</a> or reply to this email.</p>
     <p style="color: ${BRAND.text}; font-size: 15px; line-height: 1.6; margin: 24px 0 0 0;">Cheers,<br /><strong>The Bush Bound Team</strong></p>

@@ -27,21 +27,23 @@ Why people pay for a kit instead of doing it from scratch:
 
 An options-first builder: customers pick what they want, watch it build in 3D and get a price **range** before asking for an official quote.
 
-1. **Steps** (kept deliberately simple):
-   - **Intro:** the wagon base kit in 3D with Open/Close, and a Start button. Returning visitors can resume or start fresh.
-   - **Pick your fridge:** upright 65L, upright 85L, or drawer fridge 30L. There's an "I already have this fridge" tickbox.
-   - **Add options:** sliding bed, pull-out table (from the bottom of the left drawer), foldable table storage (the Bush Bound table in its hinged cubby).
-   - **Summary and quote form:** the vehicle is picked in the form. "Start over" is available throughout.
-   - **Not asked yet:** 12V, 240V, finish and who builds it. The code is still there (`HIDDEN_QUESTIONS` in `src/data/kit-builder.ts`), and the quote form's notes prompt covers them for now.
+1. **Steps.** A second lead-gen flow alongside Get a Quote (it may replace it, depending on how it performs):
+   - **Step 1, build your fit-out:** the wagon base kit in 3D with Open/Close, and every option on one page. Fridge: upright 65L (preselected), upright 85L or drawer fridge 30L. Options: sliding bed, pull-out table (built into the bottom of the left drawer), foldable table storage. Nothing extra is pre-ticked. For the fridge, the bed and the table cubby the customer also picks **included** (we supply the fridge, the folding mattress, the Bush Bound folding table) or **cabinetry only** (they've already got one or will buy it). Then Next.
+   - **Step 2, your details:** name, email, mobile (same AU mobile rule as the quote form) and vehicle (or make and model). The lead is saved here (`/api/kit-lead`, status `kit-started`, Notion lead), so we keep it even if they drop off.
+   - **Step 3, almost done:** how they want it (flat pack delivered, we build and they install, or we build and install), an ordering box (full payment up front once the design and exact price are confirmed, made in 2 to 4 weeks, delivered in 3 to 5 days, with a "rough estimates" note), postcode/suburb (required, same lookup as the quote form), timeline, budget, how they heard about us and notes. This sends the request (`/api/kit-builder`) and updates the step 2 lead to `kit-request`.
+   - **Sent:** their kit, the price range, the ordering steps and what we'll quote on (with what's included and what isn't). **Back** or **Change my build** lets them change anything and send it again, which updates the same request (emails say "Updated"). **Start another build** starts a new one.
+   - **Not asked yet:** 12V, 240V and finish. The code is still there (`HIDDEN_QUESTIONS` in `src/data/kit-builder.ts`), and the notes prompt covers them for now.
+   - On phones the 3D viewer is pinned on step 1 only. After that it shrinks and scrolls away, so forms and errors are never hidden under it.
 2. **3D preview** in the Bush Bound look: black honeycomb birch ply with birch edges, laminate on the drawer fronts and fridge cabinet sides, and carpet tops for installed builds. **Open** slides the drawers out as open trays, swings the upright fridge door and the table cubby door, sets up the Bush Bound table beside the car, slides the pull-out bed out and unfolds the mattress. **Close** reverses it all.
 3. **No public pricing.** Prices live only in `src/lib/kit-builder/pricing.server.ts`, which runs on the server. The page asks `/api/kit-estimate` for a bracket: under $5k, $5k to $10k, $10k to $15k, $15k to $30k, $30k to $50k, or $50k+. The builder shows nothing more precise than that. The full itemised internal price goes only to the staff email. A production build check confirms no prices are in the client JavaScript.
-4. **"Get an official quote"** form: D1 (`quotes`), Notion lead, staff email (picks, internal pricing, and the bracket the customer saw), and a customer confirmation with the bracket.
+4. **Quote request:** D1 (`quotes`, including suburb, state, postcode, timeline, budget and referral), Notion lead, staff email (picks, included or not, internal pricing, and the bracket the customer saw), and a customer confirmation with the bracket and how ordering works.
 
 Browser-side option names and copy live in `src/data/kit-builder.ts` (no prices in there).
 
 ## Before launch: must do
 
-- [ ] **Set real prices** in `src/lib/kit-builder/pricing.server.ts`. They're placeholders. Never move them into a file a page imports.
+- [ ] **Set real prices** in `src/lib/kit-builder/pricing.server.ts`. They're placeholders, including the new folding mattress and Bush Bound table lines. Never move them into a file a page imports.
+- [ ] **Confirm ordering terms** (`ORDERING` in `src/data/kit-builder.ts`): full payment up front, made in 2 to 4 weeks, delivered in 3 to 5 days.
 - [ ] **Exact fridge models** to replace the guessed sizes in `FRIDGES`.
 - [ ] **Vehicle measurements** in `VEHICLES`. These now drive the layout directly, since customers no longer enter them.
 - [ ] **Where the air compressor goes.** It's been taken out of the builder until we know its real spot.
@@ -51,7 +53,7 @@ Browser-side option names and copy live in `src/data/kit-builder.ts` (no prices 
 ## Next phases
 
 **Phase 2: real checkout**
-- Stripe Checkout for a deposit (say $500, or 30%) at "Lock in", with the balance invoiced when the design is approved. Stripe Checkout and webhooks work fine on Cloudflare Workers using `fetch`, no Node SDK needed.
+- Stripe Checkout for full payment once the design and exact price are confirmed (a payment link sent with the official quote to start). Stripe Checkout and webhooks work fine on Cloudflare Workers using `fetch`, no Node SDK needed.
 - A dedicated `kit_orders` table (answers JSON, recommendation JSON, Stripe session or payment IDs, status: `requested → deposit_paid → design_sent → approved → cutting → shipped`). **This needs a numbered migration and `db:migrate:remote` before push**, per CLAUDE.md.
 - Freight quote by postcode (flat rate by zone to start).
 

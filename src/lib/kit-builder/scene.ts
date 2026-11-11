@@ -143,6 +143,7 @@ export class KitScene {
   /** Automatic framing: fit-out only when closed, fit-out plus table (and drawers/bed) when open. */
   private autoFrame = true;
   private baseDist = 0;
+  private heightBoost = 1;
   private fitCentre = new THREE.Vector3(0, 0.3, -0.65);
   private tableAt: THREE.Vector3 | null = null;
   private look: Look = { fronts: 'hex', carpet: false };
@@ -342,7 +343,7 @@ export class KitScene {
     // Always orbit the middle of the fit-out. Opening just pulls back (further if the table is out);
     // we stay pulled back until the table has folded away, then come back in.
     const wide = this.open || this.seqT > 0.001;
-    const dist = !wide ? this.baseDist : this.baseDist * (this.tableAt ? 1.65 : 1.3);
+    const dist = (!wide ? this.baseDist : this.baseDist * (this.tableAt ? 1.65 : 1.3)) * this.heightBoost;
     return { target: this.fitCentre.clone(), dist };
   }
 
@@ -727,6 +728,9 @@ export class KitScene {
   update(layout: Layout, look: Look) {
     const table = layout.modules.find((m) => m.kind === 'camp-table');
     this.tableAt = table ? new THREE.Vector3(table.x * MM, 0.3, table.z * MM) : null;
+    // Tall cabinets (the 85L upright) need the camera a touch further back to stay clear of the labels.
+    const top = Math.max(0, ...layout.modules.filter((m) => m.kind !== 'camp-table').map((m) => m.y + m.h));
+    this.heightBoost = top > 950 ? 1 + (top - 950) / 800 : 1;
     const finishChanged = look.fronts !== this.look.fronts || look.carpet !== this.look.carpet;
     this.look = { ...look };
     this.buildEnvelope(layout);

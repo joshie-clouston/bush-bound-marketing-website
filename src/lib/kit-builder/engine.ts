@@ -35,8 +35,12 @@ export interface KitAnswers {
   fridge?: FridgeId | 'none';
   /** Chest fridges only: on a slide-out rack, or fixed and reached from the side window */
   chestMount?: 'slide' | 'fixed';
-  /** Customer already owns the fridge */
+  /** Cabinetry only: they already have the fridge or will buy it themselves */
   ownFridge?: boolean;
+  /** Foldable table storage only: they're supplying their own table */
+  ownTable?: boolean;
+  /** Sliding bed only: they're supplying their own mattress */
+  ownBedding?: boolean;
   storage?: StorageId[];
   power12?: 'yes' | 'no';
   power240?: 'yes' | 'no';
@@ -65,8 +69,11 @@ export function sanitiseAnswers(input: unknown): KitAnswers {
     }
   }
   if (typeof raw.vehicle === 'string' && VEHICLES.some((v) => v.id === raw.vehicle)) out.vehicle = raw.vehicle;
+  if (raw.build === 'diy' || raw.build === 'assembled' || raw.build === 'installed') out.build = raw.build;
   if (raw.chestMount === 'slide' || raw.chestMount === 'fixed') out.chestMount = raw.chestMount;
   if (raw.ownFridge === true) out.ownFridge = true;
+  if (raw.ownTable === true) out.ownTable = true;
+  if (raw.ownBedding === true) out.ownBedding = true;
   if (raw.carpet === true && out.build === 'installed') out.carpet = true;
   if (typeof raw.vehicleName === 'string' && raw.vehicleName.trim()) out.vehicleName = raw.vehicleName.trim().slice(0, 80);
   if (out.power12 !== 'yes' && out.power240 !== 'yes') delete out.electricalBuild;
@@ -292,7 +299,7 @@ export function buildLayout(answers: KitAnswers): Layout {
 // ---------------------------------------------------------------------------
 
 export interface QuoteItem {
-  group: 'Cabinetry' | 'Fridge' | 'Power';
+  group: 'Cabinetry' | 'Gear' | 'Power';
   label: string;
 }
 
@@ -364,7 +371,10 @@ export function recommend(answers: KitAnswers): Recommendation {
   items.push({ group: 'Cabinetry', label: finish.id === 'hex' ? 'Black honeycomb birch ply' : `Black honeycomb with ${finish.label.toLowerCase()}` });
   if (carpet) items.push({ group: 'Cabinetry', label: 'Carpet-lined tops' });
   if (build) items.push({ group: 'Cabinetry', label: BUILD_LABELS[build] });
-  if (fridge) items.push({ group: 'Fridge', label: answers.ownFridge ? `${fridge.label} (you have one)` : `${fridge.label} (we can supply)` });
+  // Gear: what we supply versus what they're bringing themselves.
+  if (fridge) items.push({ group: 'Gear', label: answers.ownFridge ? `Fridge not included: you're supplying your own ${fridge.label.toLowerCase()}` : `Fridge included: ${fridge.label}` });
+  if (store.has('bed')) items.push({ group: 'Gear', label: answers.ownBedding ? 'Mattress not included: you\'re supplying your own' : 'Mattress included: folding mattress made to fit' });
+  if (store.has('cubby')) items.push({ group: 'Gear', label: answers.ownTable ? 'Table not included: you\'re supplying your own' : 'Table included: Bush Bound folding table' });
   if (p12 || p240) items.push({ group: 'Power', label: 'House battery with DC-DC charging' });
   if (p12) items.push({ group: 'Power', label: '12V and USB sockets, battery monitor and switch' });
   if (p240) items.push({ group: 'Power', label: 'Inverter and 240V outlet' });
@@ -376,7 +386,7 @@ export function recommend(answers: KitAnswers): Recommendation {
     'Pre-drilled joins and all hardware',
     'Floor install template, clear of fuel tanks, lines and wiring',
     'Heavy-duty ball-bearing slides and flush paddle latches',
-    build === 'installed' ? 'Workshop install on the Gold Coast' : build === 'assembled' ? 'Assembled and checked before it ships' : 'Flat packed and shipped Australia-wide, or built and installed for you',
+    build === 'installed' ? 'Workshop install on the Gold Coast' : build === 'assembled' ? 'Assembled and checked before it ships' : 'Flat packed and delivered to your door',
   ];
 
   return { kitName: BASE_KIT.name, tagline: BASE_KIT.tagline, addOns, vehicle: v, layout, why, tips, includes, items };
@@ -396,5 +406,11 @@ export function summaryText(answers: KitAnswers, rec: Recommendation): string {
     `${rec.kitName} for ${answers.vehicle === 'other' ? answers.vehicleName || 'Other vehicle (not specified)' : rec.vehicle.label}`,
     `Fridge: ${fridge ? `${fridge.label}${fridge.type === 'chest' ? (answers.chestMount === 'fixed' ? ', fixed (side window access)' : ', on slide-out rack') : ''}${answers.ownFridge ? ' (customer has their own)' : ''}` : 'None'}`,
     `Options: ${q('storage')}`,
+    `Included: ${[
+      fridge ? (answers.ownFridge ? 'fridge NOT included (customer supplying)' : 'fridge included') : '',
+      storage(answers).has('bed') ? (answers.ownBedding ? 'mattress NOT included (customer supplying)' : 'mattress included') : '',
+      storage(answers).has('cubby') ? (answers.ownTable ? 'table NOT included (customer supplying)' : 'folding table included') : '',
+    ].filter(Boolean).join(', ') || '-'}`,
+    `How they want it: ${answers.build ? BUILD_LABELS[answers.build] : '-'}`,
   ].join('\n');
 }

@@ -15,7 +15,9 @@ const PRICES = {
   fridgeCabinet: 450, // credit when there's no upright cabinet
   chestSlide: 450,
   chestFixedBase: 150,
-  storage: { bed: 690, pullout: 450, cubby: 390 } as Record<StorageId, number>,
+  storage: { bed: 690, pullout: 450, cubby: 390 } as Record<StorageId, number>, // cabinetry only
+  mattress: 390, // folding mattress for the sliding bed (placeholder)
+  campTable: 290, // Bush Bound folding table for the cubby (placeholder)
   finish: { hex: 0, green: 350, timber: 450 } as Record<FinishId, number>,
   carpet: 390,
   build: { diy: 0, assembled: 1450, installed: 2450 },
@@ -58,6 +60,8 @@ export function priceKit(answers: KitAnswers): { lines: PricedLine[]; total: num
   if (!fridge) lines.push({ label: 'No fridge cabinet', amount: -PRICES.fridgeCabinet });
   const names: Record<StorageId, string> = { bed: 'Sliding bed', pullout: 'Pull-out table', cubby: 'Foldable table storage' };
   for (const id of store) lines.push({ label: names[id], amount: PRICES.storage[id] });
+  if (store.has('bed') && !answers.ownBedding) lines.push({ label: 'Folding mattress', amount: PRICES.mattress });
+  if (store.has('cubby') && !answers.ownTable) lines.push({ label: 'Bush Bound folding table', amount: PRICES.campTable });
   const finish = answers.finish ?? 'hex';
   if (PRICES.finish[finish]) lines.push({ label: `Finish: ${finish}`, amount: PRICES.finish[finish] });
   if (carpetOn(answers)) lines.push({ label: 'Carpet-lined tops', amount: PRICES.carpet });
