@@ -333,7 +333,7 @@ export function recommend(answers: KitAnswers): Recommendation {
   for (const s of STORAGE) if (store.has(s.id)) addOns.push(s.label);
   if (p12) addOns.push('12V');
   if (p240) addOns.push('240V');
-  if (finish.id !== 'hex') addOns.push(finish.label.replace(' fronts', ''));
+  if (finish.id !== 'hex') addOns.push(finish.label);
   if (carpet) addOns.push('Carpet');
 
   const why: string[] = [`Drawers split evenly across the space between the wheel arches, in our black honeycomb birch ply${finish.id !== 'hex' ? ` with ${finish.label.toLowerCase()}` : ''}.`];
@@ -406,6 +406,7 @@ export function summaryText(answers: KitAnswers, rec: Recommendation): string {
     `${rec.kitName} for ${answers.vehicle === 'other' ? answers.vehicleName || 'Other vehicle (not specified)' : rec.vehicle.label}`,
     `Fridge: ${fridge ? `${fridge.label}${fridge.type === 'chest' ? (answers.chestMount === 'fixed' ? ', fixed (side window access)' : ', on slide-out rack') : ''}${answers.ownFridge ? ' (customer has their own)' : ''}` : 'None'}`,
     `Options: ${q('storage')}`,
+    `Finish: ${q('finish') === '-' ? 'Black honeycomb' : q('finish')}`,
     `Included: ${[
       fridge ? (answers.ownFridge ? 'fridge NOT included (customer supplying)' : 'fridge included') : '',
       storage(answers).has('bed') ? (answers.ownBedding ? 'mattress NOT included (customer supplying)' : 'mattress included') : '',

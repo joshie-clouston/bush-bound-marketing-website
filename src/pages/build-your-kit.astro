@@ -204,6 +204,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       a.fridge ??= 'upright-65';
       a.storage ??= [...DEFAULT_STORAGE];
       a.build ??= 'diy';
+      a.finish ??= 'hex';
       return a;
     }
 
@@ -577,7 +578,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
               ${REFERRALS.map((r) => `<option value="${r.value}" ${form.referral === r.value ? 'selected' : ''}>${r.label}</option>`).join('')}
             </select></label>
 
-          <label class="block text-sm"><span class="font-semibold text-charcoal">Anything else? <span class="font-normal text-muted-foreground">(model year, 12V or 240V power, a different finish)</span></span>
+          <label class="block text-sm"><span class="font-semibold text-charcoal">Anything else? <span class="font-normal text-muted-foreground">(model year, 12V or 240V power, anything we should know)</span></span>
             <textarea name="notes" rows="3" maxlength="2000" class="${inputCls}">${escapeHtml(form.notes ?? '')}</textarea></label>
 
           <div>

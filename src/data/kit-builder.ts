@@ -167,8 +167,8 @@ export type FinishId = 'hex' | 'green' | 'timber';
 
 export const FINISHES: { id: FinishId; label: string; sub: string }[] = [
   { id: 'hex', label: 'Black honeycomb', sub: 'Our standard. Hard-wearing black hex-top birch ply throughout' },
-  { id: 'green', label: 'Green laminate fronts', sub: 'Forest green on the drawer fronts and fridge cabinet sides' },
-  { id: 'timber', label: 'Timber grain laminate fronts', sub: 'Warm timber look on the drawer fronts and fridge cabinet sides' },
+  { id: 'green', label: 'Green laminate', sub: 'Forest green on the drawer fronts and fridge cabinet sides' },
+  { id: 'timber', label: 'Timber grain laminate', sub: 'Warm timber look on the drawer fronts and fridge cabinet sides' },
 ];
 
 
@@ -185,7 +185,7 @@ export interface QuestionOption {
 }
 
 export interface Question {
-  id: 'fridge' | 'storage';
+  id: 'fridge' | 'storage' | 'finish';
   title: string;
   help: string;
   multi?: boolean;
@@ -212,13 +212,19 @@ export const QUESTIONS: Question[] = [
     multi: true,
     options: STORAGE.map((o) => ({ value: o.id, label: o.label, sub: o.sub })),
   },
+  {
+    id: 'finish',
+    title: 'Pick your finish',
+    help: 'Black honeycomb is our standard. Laminate goes on the faces you see.',
+    options: FINISHES.map((f) => ({ value: f.id, label: f.label, sub: f.sub })),
+  },
 ];
 
 /**
- * Not asked in the builder for now (kept so they're easy to bring back): power, finish and who builds it.
+ * Not asked in the builder for now (kept so they're easy to bring back): 12V and 240V power.
  * The quote request covers these with the customer.
  */
-export const HIDDEN_QUESTIONS = ['power12', 'power240', 'electricalBuild', 'finish', 'build'] as const;
+export const HIDDEN_QUESTIONS = ['power12', 'power240', 'electricalBuild'] as const;
 
 // ---------------------------------------------------------------------------
 // Names (prices are server-side only, see pricing.server.ts)
