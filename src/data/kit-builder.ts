@@ -152,7 +152,7 @@ export type StorageId = 'bed' | 'pullout' | 'cubby';
 
 export const STORAGE: { id: StorageId; label: string; sub: string }[] = [
   { id: 'bed', label: 'Sliding bed', sub: 'Slides out over the folded rear seats' },
-  { id: 'pullout', label: 'Pull-out table', sub: 'Built into the bottom of the left drawer' },
+  { id: 'pullout', label: 'Pull-out table', sub: 'Built into the bottom of a drawer' },
   { id: 'cubby', label: 'Foldable table storage', sub: 'A hinged cubby that holds a folding table' },
 ];
 
@@ -202,7 +202,7 @@ export const QUESTIONS: Question[] = [
     options: FRIDGES.map((f) => ({
       value: f.id,
       label: f.label,
-      sub: f.type === 'upright' ? 'Front-opening, in its own cabinet' : 'Built into the drawers',
+      sub: f.type === 'upright' ? 'Front-opening, in its own cabinet' : 'Slides out on the left, in place of a drawer',
     })),
   },
   {

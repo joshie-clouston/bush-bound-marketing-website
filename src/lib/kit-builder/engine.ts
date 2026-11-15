@@ -178,9 +178,13 @@ export function buildLayout(answers: KitAnswers): Layout {
   let fridgeTooWide = false;
   let fridgeTooTall = false;
 
-  // The table cubby sits at the outer edge of the right-hand cabinet (as on our base build),
-  // or the left-hand column when the right column is taken by a drawer or chest fridge.
-  const cubbyCol = store.has('cubby') ? (drawerFridge || chest ? 0 : R) : -1;
+  // A drawer fridge takes the left column, so the right-hand side stays a drawer and table cubby
+  // like our base build. The table cubby sits at the outer edge of the right-hand cabinet
+  // (or the left one when a chest fridge takes the right).
+  const fridgeCol = drawerFridge ? 0 : R;
+  const cubbyCol = store.has('cubby') ? (chest ? 0 : R) : -1;
+  // The pull-out table goes in the left-most plain drawer (the next one along when the drawer fridge is on the left).
+  const tableCol = drawerFridge ? 1 : 0;
   const cubbyW = round(colW * 0.3);
   let cubbyAt: { x: number; y: number } | null = null;
 
@@ -202,8 +206,8 @@ export function buildLayout(answers: KitAnswers): Layout {
       modules.push({ id: 'fridge', kind: 'drawer-fridge', x: cx, y: T, z: fz, w: w - 4, h: h - 2 * T, d: depth - 30, move: out(depth * 0.6) });
       return;
     }
-    // The pull-out table lives inside the left drawer and slides out of it (and goes out with the drawer).
-    const tableSlide = i === 0 && store.has('pullout') ? round(depth * 0.55) : undefined;
+    // The pull-out table lives inside its drawer and slides out of it (and goes out with the drawer).
+    const tableSlide = i === tableCol && store.has('pullout') ? round(depth * 0.55) : undefined;
     modules.push({ id: `drawer-${i}`, kind: 'drawer', x: cx, y: T, z: fz, w: w - 4, h: h - 2 * T, d: depth - 30, move: out(depth * 0.6), badge: opts.badge, tableSlide });
   };
 
@@ -247,11 +251,11 @@ export function buildLayout(answers: KitAnswers): Layout {
 
     modules.push({ id: `carcass-${i}`, kind: 'carcass', x, y: 0, z: zMid, w: colW, h: H, d: depth });
     modules.push({ id: `deck-${i}`, kind: 'deck', x, y: H, z: zMid, w: colW, h: 12, d: depth });
-    if (i === R && drawerFridge && fridge) {
+    if (i === fridgeCol && drawerFridge && fridge) {
       fridgeTooWide = fridge.w > colW - 30;
       fillColumn(i, H, { fridgeDrawer: true });
     } else {
-      fillColumn(i, H, { badge: i === 0 });
+      fillColumn(i, H, { badge: i === tableCol });
     }
   }
 
@@ -338,7 +342,7 @@ export function recommend(answers: KitAnswers): Recommendation {
 
   const why: string[] = [`Drawers split evenly across the space between the wheel arches, in our black honeycomb birch ply${finish.id !== 'hex' ? ` with ${finish.label.toLowerCase()}` : ''}.`];
   if (fridge?.type === 'upright') why.push(`${fridge.label} in its own cabinet at waist height. The door opens straight towards you, like the one at home.`);
-  if (fridge?.type === 'drawer') why.push(`${fridge.label} built flush into the right-hand column. Slides out like any other drawer.`);
+  if (fridge?.type === 'drawer') why.push(`${fridge.label} built flush into the left-hand column. Slides out like any other drawer, and the right-hand side stays a drawer and table cubby.`);
   if (fridge?.type === 'chest') {
     why.push(chestOnSlide(answers)
       ? `${fridge.label} on a slide-out rack. Pull it out past the tailgate and the lid opens clear.`
@@ -346,7 +350,7 @@ export function recommend(answers: KitAnswers): Recommendation {
   }
   if (!fridge) why.push('No fridge, so it\'s drawers right across.');
   if (layout.bed) why.push(`Sliding bed: the slats slide forward over the folded rear seats and the mattress folds out on top${layout.bedIsSingle ? ', a single beside the fridge' : ''}. Packs away in seconds.`);
-  if (store.has('pullout')) why.push('Pull-out table slides out from the bottom of the left drawer. Instant bench at the tailgate.');
+  if (store.has('pullout')) why.push(`Pull-out table slides out from the bottom of the ${fridge?.type === 'drawer' ? (layout.columns > 2 ? 'middle' : 'right') : 'left'} drawer. Instant bench at the tailgate.`);
   if (store.has('cubby')) why.push('Your folding Bush Bound table lives in its own hinged cubby. Open the door, grab it, set it up beside the car.');
   if (p12) why.push('12V and USB sockets on the side panel, with a battery monitor and switch.');
   if (p240) why.push('240V outlet for laptops, chargers and small appliances, running off the 12V battery.');
