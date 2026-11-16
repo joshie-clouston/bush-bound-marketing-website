@@ -47,7 +47,7 @@ export interface KitAnswers {
   electricalBuild?: 'diy' | 'assembled' | 'installed';
   finish?: FinishId;
   build?: 'diy' | 'assembled' | 'installed';
-  /** Carpet-lined tops, only with build === 'installed' */
+  /** Marine carpet on the tops, only with build === 'installed' (done in our workshop) */
   carpet?: boolean;
   vehicle?: VehicleId;
   /** Free text when they picked "Something else" */
@@ -130,6 +130,10 @@ export interface ModuleSpec {
   tableSlide?: number;
   fixtures?: Fixture[];
   badge?: boolean;
+  /** Full-overlay front (drawers, cubby door, drawer fridge): width, height and x offset from the module centre, mm */
+  fw?: number;
+  fh?: number;
+  fx?: number;
 }
 
 export interface Layout {
@@ -188,27 +192,39 @@ export function buildLayout(answers: KitAnswers): Layout {
   const cubbyW = round(colW * 0.3);
   let cubbyAt: { x: number; y: number } | null = null;
 
-  /** Fronts for one column's cabinet, from the floor to height h. */
+  /**
+   * Fronts for one column's cabinet, from the floor to height h. Fronts are full overlay: they cover
+   * the carcass edges and fill the whole column (or their share of it), with a 3mm gap between them.
+   */
+  const FRONT_GAP = 3;
   const fillColumn = (i: number, h: number, opts: { fridgeDrawer?: boolean; badge?: boolean } = {}) => {
     const inner = colW - 2 * T;
-    let x0 = left + colW * i + T;
+    const cl = left + colW * i;
+    const cr = cl + colW;
+    let x0 = cl + T;
     let w = inner;
+    // The column's front opening that this drawer's front covers.
+    let span: [number, number] = [cl, cr];
+    const front = (cx: number, [a, b]: [number, number]) => ({ fw: b - a - FRONT_GAP, fh: h - FRONT_GAP, fx: (a + b) / 2 - cx });
     if (cubbyCol === i) {
       const atRight = i === R && i !== 0;
       const cx = atRight ? x0 + inner - cubbyW / 2 : x0 + cubbyW / 2;
-      modules.push({ id: 'cubby', kind: 'cubby', x: cx, y: T, z: -(GAP - 8), w: cubbyW - 4, h: h - 2 * T, d: 18, swing: 'right' });
+      const split = atRight ? x0 + inner - cubbyW : x0 + cubbyW;
+      const doorSpan: [number, number] = atRight ? [split, cr] : [cl, split];
+      span = atRight ? [cl, split] : [split, cr];
+      modules.push({ id: 'cubby', kind: 'cubby', x: cx, y: T, z: -(GAP - 8), w: cubbyW - 4, h: h - 2 * T, d: 18, swing: 'right', ...front(cx, doorSpan) });
       cubbyAt = { x: cx, y: T + (h - 2 * T) / 2 };
       w = inner - cubbyW;
       if (!atRight) x0 += cubbyW;
     }
     const cx = x0 + w / 2;
     if (opts.fridgeDrawer) {
-      modules.push({ id: 'fridge', kind: 'drawer-fridge', x: cx, y: T, z: fz, w: w - 4, h: h - 2 * T, d: depth - 30, move: out(depth * 0.6) });
+      modules.push({ id: 'fridge', kind: 'drawer-fridge', x: cx, y: T, z: fz, w: w - 4, h: h - 2 * T, d: depth - 30, move: out(depth * 0.6), ...front(cx, span) });
       return;
     }
     // The pull-out table lives inside its drawer and slides out of it (and goes out with the drawer).
     const tableSlide = i === tableCol && store.has('pullout') ? round(depth * 0.55) : undefined;
-    modules.push({ id: `drawer-${i}`, kind: 'drawer', x: cx, y: T, z: fz, w: w - 4, h: h - 2 * T, d: depth - 30, move: out(depth * 0.6), badge: opts.badge, tableSlide });
+    modules.push({ id: `drawer-${i}`, kind: 'drawer', x: cx, y: T, z: fz, w: w - 4, h: h - 2 * T, d: depth - 30, move: out(depth * 0.6), badge: opts.badge, tableSlide, ...front(cx, span) });
   };
 
   for (let i = 0; i < columns; i++) {
@@ -338,7 +354,7 @@ export function recommend(answers: KitAnswers): Recommendation {
   if (p12) addOns.push('12V');
   if (p240) addOns.push('240V');
   if (finish.id !== 'hex') addOns.push(finish.label);
-  if (carpet) addOns.push('Carpet');
+  if (carpet) addOns.push('Marine carpet');
 
   const why: string[] = [`Drawers split evenly across the space between the wheel arches, in our black honeycomb birch ply${finish.id !== 'hex' ? ` with ${finish.label.toLowerCase()}` : ''}.`];
   if (fridge?.type === 'upright') why.push(`${fridge.label} in its own cabinet at waist height. The door opens straight towards you, like the one at home.`);
@@ -364,7 +380,7 @@ export function recommend(answers: KitAnswers): Recommendation {
   if (wantsPower(answers)) tips.push('We\'ll chat about what you want to run (fridge, Starlink, laptops, coffee) and size the battery and solar to suit before anything ships.');
   if (wantsPower(answers) && eBuild === 'installed' && build !== 'installed') tips.push('Electrical install happens at our Gold Coast workshop, so you\'ll need to bring the car in for that part.');
   if (build === 'diy') tips.push('Most people build our kits in a weekend with a drill, a few clamps and a mate. Every panel is numbered and the floor template marks exactly where to drill, clear of fuel tanks and wiring.');
-  if (build && build !== 'installed') tips.push('Carpet-lined tops are only available if we build and install it for you, because carpet doesn\'t flat pack.');
+  if (build && build !== 'installed') tips.push('Marine carpet tops are only available if we build and install it for you in our Gold Coast workshop.');
 
   // What goes on the quote (labels only, priced on the server).
   const items: QuoteItem[] = [{ group: 'Cabinetry', label: `${BASE_KIT.name} for ${answers.vehicle === 'other' ? answers.vehicleName || 'your vehicle' : v.short}` }];
@@ -373,7 +389,7 @@ export function recommend(answers: KitAnswers): Recommendation {
   if (fridge?.type === 'chest') items.push({ group: 'Cabinetry', label: chestOnSlide(answers) ? 'Chest fridge slide-out rack' : 'Fixed chest fridge tie-down base' });
   for (const s of STORAGE) if (store.has(s.id)) items.push({ group: 'Cabinetry', label: s.label });
   items.push({ group: 'Cabinetry', label: finish.id === 'hex' ? 'Black honeycomb birch ply' : `Black honeycomb with ${finish.label.toLowerCase()}` });
-  if (carpet) items.push({ group: 'Cabinetry', label: 'Carpet-lined tops' });
+  if (carpet) items.push({ group: 'Cabinetry', label: 'Marine carpet on the tops' });
   if (build) items.push({ group: 'Cabinetry', label: BUILD_LABELS[build] });
   // Gear: what we supply versus what they're bringing themselves.
   if (fridge) items.push({ group: 'Gear', label: answers.ownFridge ? `Fridge not included: you're supplying your own ${fridge.label.toLowerCase()}` : `Fridge included: ${fridge.label}` });
@@ -410,7 +426,7 @@ export function summaryText(answers: KitAnswers, rec: Recommendation): string {
     `${rec.kitName} for ${answers.vehicle === 'other' ? answers.vehicleName || 'Other vehicle (not specified)' : rec.vehicle.label}`,
     `Fridge: ${fridge ? `${fridge.label}${fridge.type === 'chest' ? (answers.chestMount === 'fixed' ? ', fixed (side window access)' : ', on slide-out rack') : ''}${answers.ownFridge ? ' (customer has their own)' : ''}` : 'None'}`,
     `Options: ${q('storage')}`,
-    `Finish: ${q('finish') === '-' ? 'Black honeycomb' : q('finish')}`,
+    `Finish: ${q('finish') === '-' ? 'Black honeycomb' : q('finish')}${carpetOn(answers) ? ', marine carpet tops' : ''}`,
     `Included: ${[
       fridge ? (answers.ownFridge ? 'fridge NOT included (customer supplying)' : 'fridge included') : '',
       storage(answers).has('bed') ? (answers.ownBedding ? 'mattress NOT included (customer supplying)' : 'mattress included') : '',

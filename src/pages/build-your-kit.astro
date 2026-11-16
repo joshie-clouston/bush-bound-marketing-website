@@ -194,6 +194,8 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
     let form: Record<string, string> = {};
     /** What they sent, for the thank-you screen. */
     let sent: { name: string } | null = null;
+    /** Shown on the delivery step when picking a DIY option took the marine carpet off. */
+    let carpetNote = '';
     /** They've already sent this build once; sending again updates the same request. */
     let sentBefore = false;
     let scene: KitScene | null = null;
@@ -416,7 +418,12 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       const sections = QUESTIONS.map((q) => {
         const v = (answers as Record<string, unknown>)[q.id];
         const selected = (x: string) => (Array.isArray(v) ? v.includes(x) : v === x);
-        const extra = q.id === 'fridge' ? `<div class="mt-2.5">${supplyToggle('ownFridge')}</div>` : '';
+        const extra = q.id === 'fridge' ? `<div class="mt-2.5">${supplyToggle('ownFridge')}</div>` : q.id === 'finish' ? `
+          <label class="mt-2.5 flex items-start gap-3 min-h-[56px] cursor-pointer rounded-lg border-2 px-4 py-3 transition-colors ${answers.carpet ? 'border-primary bg-primary/5' : 'border-stone-dark/30 bg-white hover:border-primary/60'}">
+            <input id="carpet" type="checkbox" class="mt-0.5 w-5 h-5 shrink-0 accent-[#2D4A3E]" ${answers.carpet ? 'checked' : ''} />
+            <span><span class="block font-semibold text-charcoal text-sm sm:text-base">Marine carpet on top</span>
+              <span class="block text-xs text-muted-foreground mt-0.5">Only available if we build and install your fit-out in our Gold Coast workshop.</span></span>
+          </label>` : '';
         const after = (value: string) => {
           if (q.id !== 'storage' || !selected(value)) return '';
           if (value === 'bed') return supplyToggle('ownBedding');
@@ -550,6 +557,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
             <div class="grid gap-2.5" role="radiogroup">
               ${BUILD_OPTIONS.map((o) => optionCard('build', o.value, o.label, o.sub, answers.build === o.value, false)).join('')}
             </div>
+            ${carpetNote ? `<p class="mt-2.5 rounded-md bg-sand/25 px-3 py-2 text-sm text-charcoal" role="status">${escapeHtml(carpetNote)}</p>` : answers.carpet ? '<p class="mt-2.5 text-xs text-muted-foreground">Includes marine carpet on the tops, done in our workshop.</p>' : ''}
           </fieldset>
 
           <div id="ordering-box" class="rounded-lg bg-stone-light border border-stone-dark/15 p-4">${orderingHtml()}</div>
@@ -781,6 +789,14 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       const picked = opt.dataset.value!;
       if (q === 'build') {
         answers.build = picked as KitAnswers['build'];
+        if (answers.carpet && picked !== 'installed') {
+          delete answers.carpet;
+          carpetNote = 'Marine carpet is only available if we build and install it in our workshop, so we\'ve taken it off. Pick "Build and install it for me" to put it back.';
+        } else if (picked === 'installed' && carpetNote) {
+          // They switched back to a workshop install: put the carpet back.
+          answers.carpet = true;
+          carpetNote = '';
+        }
         save();
         refresh();
         const y = window.scrollY;
@@ -843,6 +859,20 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
 
     body.addEventListener('change', (e) => {
       const t = e.target as HTMLInputElement;
+      if (t.id === 'carpet') {
+        // Marine carpet is done in our workshop, so it comes with "build and install it for me".
+        if (t.checked) {
+          answers.carpet = true;
+          answers.build = 'installed';
+        } else {
+          delete answers.carpet;
+        }
+        carpetNote = '';
+        save();
+        refresh();
+        renderPick();
+        return;
+      }
       if (t.id === 'f-vehicle') {
         answers.vehicle = (t.value || undefined) as VehicleId | undefined;
         if (answers.vehicle !== 'other') delete answers.vehicleName;

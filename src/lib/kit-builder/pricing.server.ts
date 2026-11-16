@@ -64,7 +64,7 @@ export function priceKit(answers: KitAnswers): { lines: PricedLine[]; total: num
   if (store.has('cubby') && !answers.ownTable) lines.push({ label: 'Bush Bound folding table', amount: PRICES.campTable });
   const finish = answers.finish ?? 'hex';
   if (PRICES.finish[finish]) lines.push({ label: `Finish: ${finish}`, amount: PRICES.finish[finish] });
-  if (carpetOn(answers)) lines.push({ label: 'Carpet-lined tops', amount: PRICES.carpet });
+  if (carpetOn(answers)) lines.push({ label: 'Marine carpet tops', amount: PRICES.carpet });
   const build = answers.build ?? 'diy';
   if (PRICES.build[build]) lines.push({ label: `Cabinetry: ${build}`, amount: PRICES.build[build] });
   if (fridge && !answers.ownFridge) lines.push({ label: fridge.label, amount: PRICES.fridges[fridge.id] });

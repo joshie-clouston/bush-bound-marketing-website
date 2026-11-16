@@ -230,6 +230,8 @@ export class KitScene {
       birchEdge: new THREE.LineBasicMaterial({ color: 0xe2cfa6, transparent: true, opacity: 0.85 }),
       green: new THREE.MeshStandardMaterial({ color: 0x34453e, roughness: 0.55 }),
       timber: new THREE.MeshStandardMaterial({ map: timberTexture(), roughness: 0.5 }),
+      // Timber grain laminate runs horizontally across the fronts and panels.
+      timberLam: new THREE.MeshStandardMaterial({ map: (() => { const t = timberTexture(); t.center.set(0.5, 0.5); t.rotation = Math.PI / 2; return t; })(), roughness: 0.5 }),
       carpet: new THREE.MeshStandardMaterial({ map: carpet, roughness: 1 }),
       hex: new THREE.MeshStandardMaterial({ map: hexTexture(), roughness: 0.85 }),
       alu: new THREE.MeshStandardMaterial({ color: 0xb8bcc0, metalness: 0.8, roughness: 0.3 }),
@@ -261,9 +263,16 @@ export class KitScene {
     };
   }
 
-  /** Drawer fronts and fridge cabinet sides: black honeycomb, or green / timber laminate. */
+  /** Every seen face (fronts, front panels, side panels, fridge cabinet): black honeycomb, or green / timber laminate. */
   private front(): THREE.Material {
-    return this.look.fronts === 'green' ? this.m.green : this.look.fronts === 'timber' ? this.m.timber : this.m.hex;
+    return this.look.fronts === 'green' ? this.m.green : this.look.fronts === 'timber' ? this.m.timberLam : this.m.hex;
+  }
+
+  /** A carcass-type box with the finish on the given faces (BoxGeometry order: +x, -x, +y, -y, +z, -z). */
+  private skinned(seen: number[]): THREE.Material[] {
+    const faces: THREE.Material[] = Array(6).fill(this.m.hex);
+    for (const i of seen) faces[i] = this.front();
+    return faces;
   }
 
   /**
@@ -446,13 +455,18 @@ export class KitScene {
 
     switch (spec.kind) {
       case 'carcass':
-        g.add(this.box(w, h, d, this.m.hex, 'birch'));
+        // Mostly hidden behind the full-overlay fronts; the finish shows in the gaps between them.
+        g.add(this.box(w, h, d, this.skinned([4]), 'birch'));
         break;
 
       case 'drawer': {
+        // Full-overlay front: covers the carcass edges and fills the column.
+        const FW = spec.fw ?? w + 8;
+        const FH = spec.fh ?? h + 6;
+        const FX = spec.fx ?? 0;
         if (!spec.tableSlide) {
           g.add(this.drawerTray(w, h, d));
-          g.add(this.at(this.cabinetFront(w + 8, h + 6, { badge: spec.badge }), 0, 0, d / 2 + 8));
+          g.add(this.at(this.cabinetFront(FW, FH, { badge: spec.badge }), FX, 0, d / 2 + 8));
           break;
         }
         // Drawer with a pull-out table at the very bottom: the drawer sides run all the way down around
@@ -478,14 +492,14 @@ export class KitScene {
         g.add(this.at(this.box(iw, top - (floorY + t / 2), t, this.m.ply, true), 0, (top + floorY + t / 2) / 2, d / 2 - t / 2));
         const strip = 22;
         const line = 4;
-        const frontBottom = -h / 2 - 3;
+        const frontBottom = -FH / 2;
         const mainBottom = frontBottom + strip + line;
-        const mainH = h / 2 + 3 - mainBottom;
-        g.add(this.at(this.cabinetFront(w + 8, mainH, { badge: spec.badge }), 0, (h / 2 + 3 + mainBottom) / 2, d / 2 + 8));
+        const mainH = FH / 2 - mainBottom;
+        g.add(this.at(this.cabinetFront(FW, mainH, { badge: spec.badge }), FX, (FH / 2 + mainBottom) / 2, d / 2 + 8));
         const table = new THREE.Group();
         const tableY = bottom + 2 + tableH / 2;
         table.add(this.at(this.box(iw - 2 * t - 6, tableH, d - 20, this.m.hex, 'birch'), 0, 0, -10));
-        table.add(this.at(front(w + 8, strip), 0, frontBottom + strip / 2 - tableY, d / 2 + 8));
+        table.add(this.at(front(FW, strip), FX, frontBottom + strip / 2 - tableY, d / 2 + 8));
         table.position.set(0, tableY * MM, 0);
         g.add(table);
         g.userData.inner = { obj: table, z0: table.position.z, dz: spec.tableSlide };
@@ -499,8 +513,12 @@ export class KitScene {
         const stored = new THREE.Group();
         for (const fx of [-0.18, 0, 0.18]) stored.add(this.at(this.box(18, h - 50, 3, this.m.timber), w * fx, 0, -5));
         g.add(stored);
-        const door = this.cabinetFront(w, h, { latch: 'round' });
-        const pivot = this.hingedDoor(w, h, 'right', door);
+        // Full-overlay door, sized like the drawer fronts so the edges and notch line up.
+        const DW = spec.fw ?? w;
+        const DH = spec.fh ?? h + 6;
+        const door = this.cabinetFront(DW, DH, { latch: 'round' });
+        const pivot = this.hingedDoor(DW, DH, 'right', door);
+        pivot.position.x += (spec.fx ?? 0) * MM;
         g.add(pivot);
         // Door opens at the start of the table sequence and closes once the table is back in.
         g.userData.seq = (s: number) => {
@@ -595,14 +613,15 @@ export class KitScene {
       case 'drawer-fridge': {
         g.add(this.at(this.box(w - 20, h - 30, d * 0.8, this.m.fridge), 0, -10, d * 0.1));
         g.add(this.at(this.box(w - 60, 8, d * 0.75, this.m.fridgeLid), 0, h / 2 - 22, d * 0.1));
-        g.add(this.at(this.box(w + 8, h + 6, 16, this.m.fridge), 0, 0, d / 2 + 8));
+        g.add(this.at(this.box(spec.fw ?? w + 8, spec.fh ?? h + 6, 16, this.m.fridge), spec.fx ?? 0, 0, d / 2 + 8));
         g.add(this.at(this.box(w * 0.5, 18, 20, this.m.steel), 0, h / 2 - 40, d / 2 + 24));
         g.add(this.at(new THREE.Mesh(new THREE.PlaneGeometry(0.05, 0.018), this.m.screen), w / 2 - 60, h / 2 - 40, d / 2 + 16.5));
         break;
       }
 
       case 'end-panel': {
-        g.add(this.box(w, h, d, this.m.hex, 'birch'));
+        // Side panels over the wheel arches: finish on the front and the outer side.
+        g.add(this.box(w, h, d, this.skinned([4, spec.x < 0 ? 1 : 0]), 'birch'));
         g.add(this.at(this.box(w + 4, 12, d + 2, this.top()), 0, h / 2 + 6, 0));
         const s = Math.min(1, (w - 30) / 100, h / 300);
         const fz = d / 2 + 4;
@@ -616,10 +635,10 @@ export class KitScene {
         break;
 
       case 'fridge-cabinet': {
-        // Gables: only the outer seen face takes the laminate; the board stays black honeycomb with birch edges.
-        for (const sx of [-1, 1]) g.add(this.at(this.box(18, h, d, this.board([sx < 0 ? 1 : 0]), 'birch'), sx * (w / 2 - 9), 0, 0));
-        // Top sits between the two gables.
-        g.add(this.at(this.box(w - 36, 18, d, this.m.hex, 'birch'), 0, h / 2 - 9, 0));
+        // Both gables take the finish on their outer face and front edge.
+        for (const sx of [-1, 1]) g.add(this.at(this.box(18, h, d, this.board([sx < 0 ? 1 : 0, 4]), 'birch'), sx * (w / 2 - 9), 0, 0));
+        // Top sits between the two gables, finish on its front edge.
+        g.add(this.at(this.box(w - 36, 18, d, this.skinned([4]), 'birch'), 0, h / 2 - 9, 0));
         break;
       }
 
@@ -720,7 +739,7 @@ export class KitScene {
 
   private sameShape(a: ModuleSpec, b: ModuleSpec) {
     return (
-      a.kind === b.kind && a.w === b.w && a.h === b.h && a.d === b.d && a.badge === b.badge && a.swing === b.swing && a.tableSlide === b.tableSlide && (a.from ?? []).join() === (b.from ?? []).join() &&
+      a.kind === b.kind && a.w === b.w && a.h === b.h && a.d === b.d && a.badge === b.badge && a.fw === b.fw && a.fh === b.fh && a.fx === b.fx && a.swing === b.swing && a.tableSlide === b.tableSlide && (a.from ?? []).join() === (b.from ?? []).join() &&
       (a.move ?? []).join() === (b.move ?? []).join() && (a.fixtures ?? []).join() === (b.fixtures ?? []).join()
     );
   }
