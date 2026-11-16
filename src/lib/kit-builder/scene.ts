@@ -111,19 +111,28 @@ function scaleBoxUVs(geo: THREE.BoxGeometry, w: number, h: number, d: number, ti
   uv.needsUpdate = true;
 }
 
-const carpetTexture = (colour = '#5a5b5c') =>
+/**
+ * Ribbed automotive/marine carpet (the solution-dyed polypropylene used on 4WD drawer tops):
+ * a speckled mix of lighter and darker fibres over the base colour, with fine ribs every ~4mm
+ * running front to back.
+ */
+const carpetTexture = (base: string, light: string, dark: string) =>
   canvasTexture((ctx, s) => {
-    ctx.fillStyle = colour;
+    ctx.fillStyle = base;
     ctx.fillRect(0, 0, s, s);
-    const img = ctx.getImageData(0, 0, s, s);
-    for (let i = 0; i < img.data.length; i += 4) {
-      const n = (Math.random() - 0.5) * 70;
-      img.data[i] += n;
-      img.data[i + 1] += n;
-      img.data[i + 2] += n;
+    for (let i = 0; i < (s * s) / 6; i++) {
+      ctx.fillStyle = Math.random() < 0.5 ? light : dark;
+      ctx.globalAlpha = 0.25 + Math.random() * 0.35;
+      ctx.fillRect(Math.random() * s, Math.random() * s, 1, 1 + Math.random() * 2);
     }
-    ctx.putImageData(img, 0, 0);
-  });
+    ctx.globalAlpha = 1;
+    for (let x = 0; x < s; x += 8) {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+      ctx.fillRect(x, 0, 1.5, s);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+      ctx.fillRect(x + 3, 0, 1, s);
+    }
+  }, 512);
 
 const phase = (s: number, a: number, b: number) => Math.min(1, Math.max(0, (s - a) / (b - a)));
 const ease = (x: number) => x * x * (3 - 2 * x);
@@ -223,10 +232,9 @@ export class KitScene {
   }
 
   private buildMaterials() {
-    const carpet = carpetTexture();
-    carpet.repeat.set(3, 3);
-    const carpetBlue = carpetTexture('#2b4a6f');
-    carpetBlue.repeat.set(3, 3);
+    // The popular marine carpet colours: dark grey/charcoal and dark navy. One tile covers ~260mm.
+    const carpet = carpetTexture('#4a4d51', '#6f7377', '#2c2e31');
+    const carpetBlue = carpetTexture('#1d2840', '#34496e', '#0f1626');
     this.m = {
       ply: new THREE.MeshStandardMaterial({ map: plyTexture(), roughness: 0.6 }),
       edge: new THREE.LineBasicMaterial({ color: 0x9a7b50, transparent: true, opacity: 0.6 }),
@@ -313,8 +321,9 @@ export class KitScene {
     sun.shadow.camera.bottom = -2.5;
     sun.shadow.bias = -0.0005;
     this.scene.add(sun);
-    const fill = new THREE.DirectionalLight(0xc4a882, 0.6);
-    fill.position.set(-2, 1.5, 3);
+    // Warm fill from the left so left-facing panels (like the fridge cabinet side by the bed) still read in their finish.
+    const fill = new THREE.DirectionalLight(0xfff1de, 1.1);
+    fill.position.set(-3, 2, 1.5);
     this.scene.add(fill);
   }
 

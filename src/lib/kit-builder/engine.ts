@@ -88,7 +88,7 @@ export const wants240 = (a: KitAnswers) => a.power240 === 'yes';
 export const wantsPower = (a: KitAnswers) => wants12(a) || wants240(a);
 export const chestOnSlide = (a: KitAnswers) => a.chestMount !== 'fixed';
 export type CarpetColour = 'grey' | 'blue';
-export const CARPET_LABELS: Record<CarpetColour, string> = { grey: 'Grey', blue: 'Blue' };
+export const CARPET_LABELS: Record<CarpetColour, string> = { grey: 'Grey', blue: 'Navy' };
 export const carpetOn = (a: KitAnswers) => a.build === 'installed' && (a.carpet === 'grey' || a.carpet === 'blue');
 /** The carpet colour the build will actually get, or null. */
 export const carpetColour = (a: KitAnswers): CarpetColour | null => (carpetOn(a) ? a.carpet! : null);

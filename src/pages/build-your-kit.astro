@@ -13,9 +13,9 @@ const usps = [
 const comparison = [
   { label: 'Design time', diy: 'Weeks of YouTube and sketching', kit: 'Done for you in 3D, approved before we cut' },
   { label: 'Cutting', diy: 'Panel saw or circular saw, rough edges', kit: 'CNC cut, clean edges, perfect joins' },
-  { label: 'Materials', diy: 'Guesswork at the hardware store', kit: 'Premium birch ply and rated slides' },
-  { label: 'Floor mounting', diy: 'Fingers crossed you miss the fuel tank', kit: 'Vehicle-specific floor template' },
-  { label: 'Build time', diy: 'Most weekends for a couple of months', kit: 'One weekend' },
+  { label: 'Materials', diy: 'Guesswork at the hardware store', kit: 'Premium birch ply, slides and hardware' },
+  { label: 'Floor mounting', diy: 'Fingers crossed you miss the fuel tank', kit: 'Vehicle-specific templated floor' },
+  { label: 'Build time', diy: 'Most weekends for a couple of months', kit: 'One weekend (depending on your skills)' },
 ];
 
 const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text-stone-light text-xs font-semibold px-3 rounded-md transition-colors';
@@ -36,6 +36,9 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       #builder:not([data-step="0"]) #question-panel { scroll-margin-top: 6.75rem; }
     }
     @media (min-width: 1024px) { #question-panel { scroll-margin-top: 8rem; } }
+    @keyframes kit-step-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    #question-body.step-in { animation: kit-step-in 0.25s ease-out; }
+    @media (prefers-reduced-motion: reduce) { #question-body.step-in { animation: none; } }
   </style>
 
   <!-- INTRO -->
@@ -327,9 +330,24 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       else renderDone();
     }
 
+    /**
+     * After the step content changes, jump straight to the top of the panel in the same frame (no smooth
+     * scroll), so the page never flashes blank while it shrinks from the long options list to a short form.
+     * Leaves the page alone if the top of the panel is already comfortably in view.
+     */
     function scrollToPanel() {
       const panel = $('question-panel');
-      if (isMobile() || panel.getBoundingClientRect().top < 0) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const margin = parseFloat(getComputedStyle(panel).scrollMarginTop) || 0;
+      const top = panel.getBoundingClientRect().top;
+      if (top < margin - 1 || top > window.innerHeight * 0.5) window.scrollTo({ top: window.scrollY + top - margin, behavior: 'instant' });
+    }
+
+    /** Fade the new step in so it reads as moving to the next step, not a page reload. */
+    function stepIn() {
+      const body = $('question-body');
+      body.classList.remove('step-in');
+      void body.offsetWidth;
+      body.classList.add('step-in');
     }
 
     function goTo(next: number, opts: { push?: boolean; replace?: boolean } = {}) {
@@ -341,6 +359,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       else if (opts.push !== false) history.pushState({ kitStep: step }, '');
       render();
       scrollToPanel();
+      stepIn();
     }
 
     window.addEventListener('popstate', (e) => {
@@ -429,7 +448,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
             <span class="text-sm text-charcoal mr-1">Colour:</span>
             ${(['grey', 'blue'] as const).map((col) => {
               const on = answers.carpet === col;
-              return `<button type="button" data-carpet="${col}" role="radio" aria-checked="${on}" class="min-h-[44px] inline-flex items-center gap-2 px-3.5 rounded-full border-2 text-sm font-medium transition-colors ${on ? 'border-primary bg-primary/5 text-charcoal' : 'border-stone-dark/30 bg-white text-charcoal hover:border-primary/60'}"><span class="w-4 h-4 rounded-full border border-black/20" style="background:${col === 'blue' ? '#2b4a6f' : '#5a5b5c'}"></span>${col === 'blue' ? 'Blue' : 'Grey'}</button>`;
+              return `<button type="button" data-carpet="${col}" role="radio" aria-checked="${on}" class="min-h-[44px] inline-flex items-center gap-2 px-3.5 rounded-full border-2 text-sm font-medium transition-colors ${on ? 'border-primary bg-primary/5 text-charcoal' : 'border-stone-dark/30 bg-white text-charcoal hover:border-primary/60'}"><span class="w-4 h-4 rounded-full border border-black/20" style="background:${col === 'blue' ? '#1d2840' : '#4a4d51'}"></span>${col === 'blue' ? 'Navy' : 'Grey'}</button>`;
             }).join('')}
           </div>` : ''}` : '';
         const after = (value: string) => {
@@ -684,7 +703,8 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       save();
       history.pushState({ kitStep: DONE }, '');
       render();
-      $('question-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      scrollToPanel();
+      stepIn();
       import('canvas-confetti').then(({ default: confetti }) => {
         confetti({ particleCount: 120, spread: 70, origin: { y: 0.7 }, colors: ['#2D4A3E', '#C4A882', '#E8E0D6'] });
       }).catch(() => {});
