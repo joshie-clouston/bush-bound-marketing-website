@@ -176,7 +176,12 @@ export function buildLayout(answers: KitAnswers): Layout {
   const depth = round(clamp(v.cargoLength - 60, 400, 1150));
   const zMid = -(GAP + depth / 2);
   const zFront = -(GAP + depth);
-  const fz = zMid + 15; // drawer centre, so the front sits proud of the carcass
+  // Fronts (16mm) sit inside the cabinet, flush with the side panels and the top: the carcass is set back
+  // by a front's thickness and the fronts fill the space in front of it, so their edges never show.
+  const FRONT_T = 16;
+  const carcassZ = zMid - FRONT_T / 2;
+  const carcassD = depth - FRONT_T;
+  const fz = zMid - 1; // drawer centre, so its front's face lands on the cabinet's front plane
   const out = (d: number): [number, number, number] => [0, 0, d];
 
   const H = drawerFridge && fridge ? Math.max(280, fridge.h + 40) : 280;
@@ -218,7 +223,7 @@ export function buildLayout(answers: KitAnswers): Layout {
       const split = atRight ? x0 + inner - cubbyW : x0 + cubbyW;
       const doorSpan: [number, number] = atRight ? [split, cr] : [cl, split];
       span = atRight ? [cl, split] : [split, cr];
-      modules.push({ id: 'cubby', kind: 'cubby', x: cx, y: T, z: -(GAP - 8), w: cubbyW - 4, h: h - 2 * T, d: 18, swing: 'right', ...front(cx, doorSpan) });
+      modules.push({ id: 'cubby', kind: 'cubby', x: cx, y: T, z: -(GAP + FRONT_T / 2), w: cubbyW - 4, h: h - 2 * T, d: 18, swing: 'right', ...front(cx, doorSpan) });
       cubbyAt = { x: cx, y: T + (h - 2 * T) / 2 };
       w = inner - cubbyW;
       if (!atRight) x0 += cubbyW;
@@ -238,7 +243,7 @@ export function buildLayout(answers: KitAnswers): Layout {
 
     if (i === R && upright && fridge) {
       // Upright fridge cabinet on top of a drawer and the table cubby.
-      modules.push({ id: `carcass-${i}`, kind: 'carcass', x, y: 0, z: zMid, w: colW, h: lowH, d: depth });
+      modules.push({ id: `carcass-${i}`, kind: 'carcass', x, y: 0, z: carcassZ, w: colW, h: lowH, d: carcassD });
       fillColumn(i, lowH);
       modules.push({ id: `deck-${i}`, kind: 'deck', x, y: lowH, z: zMid, w: colW, h: 12, d: depth });
       fridgeTooWide = fridge.w > colW - 40;
@@ -271,7 +276,7 @@ export function buildLayout(answers: KitAnswers): Layout {
       continue;
     }
 
-    modules.push({ id: `carcass-${i}`, kind: 'carcass', x, y: 0, z: zMid, w: colW, h: H, d: depth });
+    modules.push({ id: `carcass-${i}`, kind: 'carcass', x, y: 0, z: carcassZ, w: colW, h: H, d: carcassD });
     modules.push({ id: `deck-${i}`, kind: 'deck', x, y: H, z: zMid, w: colW, h: 12, d: depth });
     if (i === fridgeCol && drawerFridge && fridge) {
       fridgeTooWide = fridge.w > colW - 30;
