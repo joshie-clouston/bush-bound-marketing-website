@@ -15,7 +15,8 @@ import type { Fixture, Layout, ModuleSpec } from '@/lib/kit-builder/engine';
 
 export interface Look {
   fronts: 'hex' | 'green' | 'timber';
-  carpet: boolean;
+  /** Marine carpet colour on the tops, or false for black honeycomb */
+  carpet: false | 'grey' | 'blue';
 }
 
 const MM = 0.001;
@@ -110,9 +111,9 @@ function scaleBoxUVs(geo: THREE.BoxGeometry, w: number, h: number, d: number, ti
   uv.needsUpdate = true;
 }
 
-const carpetTexture = () =>
+const carpetTexture = (colour = '#5a5b5c') =>
   canvasTexture((ctx, s) => {
-    ctx.fillStyle = '#5a5b5c';
+    ctx.fillStyle = colour;
     ctx.fillRect(0, 0, s, s);
     const img = ctx.getImageData(0, 0, s, s);
     for (let i = 0; i < img.data.length; i += 4) {
@@ -224,6 +225,8 @@ export class KitScene {
   private buildMaterials() {
     const carpet = carpetTexture();
     carpet.repeat.set(3, 3);
+    const carpetBlue = carpetTexture('#2b4a6f');
+    carpetBlue.repeat.set(3, 3);
     this.m = {
       ply: new THREE.MeshStandardMaterial({ map: plyTexture(), roughness: 0.6 }),
       edge: new THREE.LineBasicMaterial({ color: 0x9a7b50, transparent: true, opacity: 0.6 }),
@@ -233,6 +236,7 @@ export class KitScene {
       // Timber grain laminate runs horizontally across the fronts and panels.
       timberLam: new THREE.MeshStandardMaterial({ map: (() => { const t = timberTexture(); t.center.set(0.5, 0.5); t.rotation = Math.PI / 2; return t; })(), roughness: 0.5 }),
       carpet: new THREE.MeshStandardMaterial({ map: carpet, roughness: 1 }),
+      carpetBlue: new THREE.MeshStandardMaterial({ map: carpetBlue, roughness: 1 }),
       hex: new THREE.MeshStandardMaterial({ map: hexTexture(), roughness: 0.85 }),
       alu: new THREE.MeshStandardMaterial({ color: 0xb8bcc0, metalness: 0.8, roughness: 0.3 }),
       recess: new THREE.MeshStandardMaterial({ color: 0x0e0e0e, roughness: 1 }),
@@ -288,7 +292,13 @@ export class KitScene {
 
   /** Top surfaces: black honeycomb, or carpet on installed builds. */
   private top(): THREE.Material {
-    return this.look.carpet ? this.m.carpet : this.m.hex;
+    return this.look.carpet === 'blue' ? this.m.carpetBlue : this.look.carpet ? this.m.carpet : this.m.hex;
+  }
+
+  /** A top board: honeycomb (or carpet) on top, birch ply on every edge. */
+  private topBoard(): THREE.Material[] {
+    const p = this.m.ply;
+    return [p, p, this.top(), this.m.hex, p, p];
   }
 
   private buildLights() {
@@ -455,8 +465,9 @@ export class KitScene {
 
     switch (spec.kind) {
       case 'carcass':
-        // Mostly hidden behind the full-overlay fronts; the finish shows in the gaps between them.
-        g.add(this.box(w, h, d, this.skinned([4]), 'birch'));
+        // Mostly hidden behind the full-overlay fronts. What shows in the gaps is the panels' edges,
+        // so it's birch ply whatever the finish.
+        g.add(this.box(w, h, d, [this.m.hex, this.m.hex, this.m.hex, this.m.hex, this.m.ply, this.m.hex], 'birch'));
         break;
 
       case 'drawer': {
@@ -490,15 +501,18 @@ export class KitScene {
         const floorY = bottom + tableH + 4 + t / 2; // drawer floor sits just above the table
         g.add(this.at(this.box(iw, t, d, this.m.ply, true), 0, floorY, 0));
         g.add(this.at(this.box(iw, top - (floorY + t / 2), t, this.m.ply, true), 0, (top + floorY + t / 2) / 2, d / 2 - t / 2));
-        const strip = 22;
+        // The table's front lip is the bottom strip of the full-overlay front: from the front's bottom edge
+        // up to just above the table top, so it's one piece with the table when it slides out.
         const line = 4;
         const frontBottom = -FH / 2;
+        const strip = bottom + 2 + tableH + 2 - frontBottom;
         const mainBottom = frontBottom + strip + line;
         const mainH = FH / 2 - mainBottom;
         g.add(this.at(this.cabinetFront(FW, mainH, { badge: spec.badge }), FX, (FH / 2 + mainBottom) / 2, d / 2 + 8));
         const table = new THREE.Group();
         const tableY = bottom + 2 + tableH / 2;
-        table.add(this.at(this.box(iw - 2 * t - 6, tableH, d - 20, this.m.hex, 'birch'), 0, 0, -10));
+        // Slab runs from inside the drawer back right up to the front lip, so they're one piece.
+        table.add(this.at(this.box(iw - 2 * t - 6, tableH, d - t, this.m.hex, 'birch'), 0, 0, t / 2));
         table.add(this.at(front(FW, strip), FX, frontBottom + strip / 2 - tableY, d / 2 + 8));
         table.position.set(0, tableY * MM, 0);
         g.add(table);
@@ -622,7 +636,7 @@ export class KitScene {
       case 'end-panel': {
         // Side panels over the wheel arches: finish on the front and the outer side.
         g.add(this.box(w, h, d, this.skinned([4, spec.x < 0 ? 1 : 0]), 'birch'));
-        g.add(this.at(this.box(w + 4, 12, d + 2, this.top()), 0, h / 2 + 6, 0));
+        g.add(this.at(this.box(w + 4, 12, d + 2, this.topBoard(), 'birch'), 0, h / 2 + 6, 0));
         const s = Math.min(1, (w - 30) / 100, h / 300);
         const fz = d / 2 + 4;
         const slots: Record<Fixture, number> = { sockets: h * 0.18, gpo: -h * 0.28, monitor: h * 0.22, switch: -h * 0.2 };
@@ -631,14 +645,14 @@ export class KitScene {
       }
 
       case 'deck':
-        g.add(this.box(w, h, d, this.top(), this.look.carpet ? false : 'birch'));
+        g.add(this.box(w, h, d, this.topBoard(), 'birch'));
         break;
 
       case 'fridge-cabinet': {
-        // Both gables take the finish on their outer face and front edge.
-        for (const sx of [-1, 1]) g.add(this.at(this.box(18, h, d, this.board([sx < 0 ? 1 : 0, 4]), 'birch'), sx * (w / 2 - 9), 0, 0));
-        // Top sits between the two gables, finish on its front edge.
-        g.add(this.at(this.box(w - 36, 18, d, this.skinned([4]), 'birch'), 0, h / 2 - 9, 0));
+        // Both gables take the finish on their outer face. Board edges are always birch ply.
+        for (const sx of [-1, 1]) g.add(this.at(this.box(18, h, d, this.board([sx < 0 ? 1 : 0]), 'birch'), sx * (w / 2 - 9), 0, 0));
+        // Top sits between the two gables: black honeycomb faces, birch ply edges.
+        g.add(this.at(this.box(w - 36, 18, d, [this.m.ply, this.m.ply, this.m.hex, this.m.hex, this.m.ply, this.m.ply], 'birch'), 0, h / 2 - 9, 0));
         break;
       }
 

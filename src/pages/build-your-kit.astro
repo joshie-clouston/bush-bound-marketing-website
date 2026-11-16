@@ -147,7 +147,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
 
   <script>
     import { BUILD_OPTIONS, DEFAULT_STORAGE, ORDERING, QUESTIONS, VEHICLES, getVehicle, type VehicleId } from '@/data/kit-builder';
-    import { carpetOn, recommend, sanitiseAnswers, type KitAnswers, type Recommendation } from '@/lib/kit-builder/engine';
+    import { carpetColour, recommend, sanitiseAnswers, type KitAnswers, type Recommendation } from '@/lib/kit-builder/engine';
     import { getUtmParams } from '@/lib/utm';
     import type { KitScene } from '@/lib/kit-builder/scene';
 
@@ -196,6 +196,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
     let sent: { name: string } | null = null;
     /** Shown on the delivery step when picking a DIY option took the marine carpet off. */
     let carpetNote = '';
+    let removedCarpet: 'grey' | 'blue' = 'grey';
     /** They've already sent this build once; sending again updates the same request. */
     let sentBefore = false;
     let scene: KitScene | null = null;
@@ -305,7 +306,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       $('viewer-changes').textContent = rec.addOns.join(' · ');
       const kinds = [...new Set(rec.layout.modules.map((m) => m.kind))].filter((k) => MODULE_LABELS[k]);
       $('module-chips').innerHTML = kinds.map((k) => `<li class="text-xs font-medium bg-white border border-stone-dark/20 text-charcoal px-2.5 py-1 rounded-full">${MODULE_LABELS[k]}</li>`).join('');
-      scene?.update(rec.layout, { fronts: answers.finish ?? 'hex', carpet: carpetOn(answers) });
+      scene?.update(rec.layout, { fronts: answers.finish ?? 'hex', carpet: carpetColour(answers) ?? false });
       requestEstimate();
       return rec;
     }
@@ -423,7 +424,14 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
             <input id="carpet" type="checkbox" class="mt-0.5 w-5 h-5 shrink-0 accent-[#2D4A3E]" ${answers.carpet ? 'checked' : ''} />
             <span><span class="block font-semibold text-charcoal text-sm sm:text-base">Marine carpet on top</span>
               <span class="block text-xs text-muted-foreground mt-0.5">Only available if we build and install your fit-out in our Gold Coast workshop.</span></span>
-          </label>` : '';
+          </label>
+          ${answers.carpet ? `<div class="mt-2 flex items-center gap-2 pl-1" role="radiogroup" aria-label="Carpet colour">
+            <span class="text-sm text-charcoal mr-1">Colour:</span>
+            ${(['grey', 'blue'] as const).map((col) => {
+              const on = answers.carpet === col;
+              return `<button type="button" data-carpet="${col}" role="radio" aria-checked="${on}" class="min-h-[44px] inline-flex items-center gap-2 px-3.5 rounded-full border-2 text-sm font-medium transition-colors ${on ? 'border-primary bg-primary/5 text-charcoal' : 'border-stone-dark/30 bg-white text-charcoal hover:border-primary/60'}"><span class="w-4 h-4 rounded-full border border-black/20" style="background:${col === 'blue' ? '#2b4a6f' : '#5a5b5c'}"></span>${col === 'blue' ? 'Blue' : 'Grey'}</button>`;
+            }).join('')}
+          </div>` : ''}` : '';
         const after = (value: string) => {
           if (q.id !== 'storage' || !selected(value)) return '';
           if (value === 'bed') return supplyToggle('ownBedding');
@@ -754,6 +762,15 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       if (target.closest('#another-btn')) return startOver();
       if (target.closest('#change-btn')) return goTo(PICK);
 
+      const carpetBtn = target.closest<HTMLButtonElement>('[data-carpet]');
+      if (carpetBtn) {
+        answers.carpet = carpetBtn.dataset.carpet as 'grey' | 'blue';
+        save();
+        refresh();
+        renderPick();
+        return;
+      }
+
       const supply = target.closest<HTMLButtonElement>('[data-supply]');
       if (supply) {
         const key = supply.dataset.supply as SupplyKey;
@@ -790,11 +807,12 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       if (q === 'build') {
         answers.build = picked as KitAnswers['build'];
         if (answers.carpet && picked !== 'installed') {
+          removedCarpet = answers.carpet;
           delete answers.carpet;
           carpetNote = 'Marine carpet is only available if we build and install it in our workshop, so we\'ve taken it off. Pick "Build and install it for me" to put it back.';
         } else if (picked === 'installed' && carpetNote) {
           // They switched back to a workshop install: put the carpet back.
-          answers.carpet = true;
+          answers.carpet = removedCarpet;
           carpetNote = '';
         }
         save();
@@ -862,7 +880,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       if (t.id === 'carpet') {
         // Marine carpet is done in our workshop, so it comes with "build and install it for me".
         if (t.checked) {
-          answers.carpet = true;
+          answers.carpet = 'grey';
           answers.build = 'installed';
         } else {
           delete answers.carpet;

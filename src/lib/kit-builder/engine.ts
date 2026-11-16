@@ -47,8 +47,8 @@ export interface KitAnswers {
   electricalBuild?: 'diy' | 'assembled' | 'installed';
   finish?: FinishId;
   build?: 'diy' | 'assembled' | 'installed';
-  /** Marine carpet on the tops, only with build === 'installed' (done in our workshop) */
-  carpet?: boolean;
+  /** Marine carpet on the tops (grey or blue), only with build === 'installed' (done in our workshop) */
+  carpet?: CarpetColour;
   vehicle?: VehicleId;
   /** Free text when they picked "Something else" */
   vehicleName?: string;
@@ -74,7 +74,9 @@ export function sanitiseAnswers(input: unknown): KitAnswers {
   if (raw.ownFridge === true) out.ownFridge = true;
   if (raw.ownTable === true) out.ownTable = true;
   if (raw.ownBedding === true) out.ownBedding = true;
-  if (raw.carpet === true && out.build === 'installed') out.carpet = true;
+  // (true is from before there was a colour choice: grey.)
+  const carpet = raw.carpet === true ? 'grey' : raw.carpet;
+  if ((carpet === 'grey' || carpet === 'blue') && out.build === 'installed') out.carpet = carpet;
   if (typeof raw.vehicleName === 'string' && raw.vehicleName.trim()) out.vehicleName = raw.vehicleName.trim().slice(0, 80);
   if (out.power12 !== 'yes' && out.power240 !== 'yes') delete out.electricalBuild;
   return out as KitAnswers;
@@ -85,7 +87,11 @@ export const wants12 = (a: KitAnswers) => a.power12 === 'yes';
 export const wants240 = (a: KitAnswers) => a.power240 === 'yes';
 export const wantsPower = (a: KitAnswers) => wants12(a) || wants240(a);
 export const chestOnSlide = (a: KitAnswers) => a.chestMount !== 'fixed';
-export const carpetOn = (a: KitAnswers) => a.build === 'installed' && a.carpet === true;
+export type CarpetColour = 'grey' | 'blue';
+export const CARPET_LABELS: Record<CarpetColour, string> = { grey: 'Grey', blue: 'Blue' };
+export const carpetOn = (a: KitAnswers) => a.build === 'installed' && (a.carpet === 'grey' || a.carpet === 'blue');
+/** The carpet colour the build will actually get, or null. */
+export const carpetColour = (a: KitAnswers): CarpetColour | null => (carpetOn(a) ? a.carpet! : null);
 /** Questions that apply to these answers (the electrical build question only shows if they want power). */
 export const isAsked = (q: Question, a: KitAnswers) => !q.needsPower || wantsPower(a);
 
@@ -354,7 +360,7 @@ export function recommend(answers: KitAnswers): Recommendation {
   if (p12) addOns.push('12V');
   if (p240) addOns.push('240V');
   if (finish.id !== 'hex') addOns.push(finish.label);
-  if (carpet) addOns.push('Marine carpet');
+  if (carpet) addOns.push(`${CARPET_LABELS[answers.carpet!]} marine carpet`);
 
   const why: string[] = [`Drawers split evenly across the space between the wheel arches, in our black honeycomb birch ply${finish.id !== 'hex' ? ` with ${finish.label.toLowerCase()}` : ''}.`];
   if (fridge?.type === 'upright') why.push(`${fridge.label} in its own cabinet at waist height. The door opens straight towards you, like the one at home.`);
@@ -389,7 +395,7 @@ export function recommend(answers: KitAnswers): Recommendation {
   if (fridge?.type === 'chest') items.push({ group: 'Cabinetry', label: chestOnSlide(answers) ? 'Chest fridge slide-out rack' : 'Fixed chest fridge tie-down base' });
   for (const s of STORAGE) if (store.has(s.id)) items.push({ group: 'Cabinetry', label: s.label });
   items.push({ group: 'Cabinetry', label: finish.id === 'hex' ? 'Black honeycomb birch ply' : `Black honeycomb with ${finish.label.toLowerCase()}` });
-  if (carpet) items.push({ group: 'Cabinetry', label: 'Marine carpet on the tops' });
+  if (carpet) items.push({ group: 'Cabinetry', label: `${CARPET_LABELS[answers.carpet!]} marine carpet on the tops` });
   if (build) items.push({ group: 'Cabinetry', label: BUILD_LABELS[build] });
   // Gear: what we supply versus what they're bringing themselves.
   if (fridge) items.push({ group: 'Gear', label: answers.ownFridge ? `Fridge not included: you're supplying your own ${fridge.label.toLowerCase()}` : `Fridge included: ${fridge.label}` });
@@ -426,7 +432,7 @@ export function summaryText(answers: KitAnswers, rec: Recommendation): string {
     `${rec.kitName} for ${answers.vehicle === 'other' ? answers.vehicleName || 'Other vehicle (not specified)' : rec.vehicle.label}`,
     `Fridge: ${fridge ? `${fridge.label}${fridge.type === 'chest' ? (answers.chestMount === 'fixed' ? ', fixed (side window access)' : ', on slide-out rack') : ''}${answers.ownFridge ? ' (customer has their own)' : ''}` : 'None'}`,
     `Options: ${q('storage')}`,
-    `Finish: ${q('finish') === '-' ? 'Black honeycomb' : q('finish')}${carpetOn(answers) ? ', marine carpet tops' : ''}`,
+    `Finish: ${q('finish') === '-' ? 'Black honeycomb' : q('finish')}${carpetOn(answers) ? `, ${CARPET_LABELS[answers.carpet!].toLowerCase()} marine carpet tops` : ''}`,
     `Included: ${[
       fridge ? (answers.ownFridge ? 'fridge NOT included (customer supplying)' : 'fridge included') : '',
       storage(answers).has('bed') ? (answers.ownBedding ? 'mattress NOT included (customer supplying)' : 'mattress included') : '',
