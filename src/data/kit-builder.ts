@@ -201,8 +201,10 @@ export const QUESTIONS: Question[] = [
     help: 'The cabinetry is built around it.',
     options: FRIDGES.map((f) => ({
       value: f.id,
-      label: f.label,
-      sub: f.type === 'upright' ? 'Front-opening, in its own cabinet' : 'Slides out on the left, in place of a drawer',
+      label: f.type === 'drawer' ? 'Drawer fridge cavity*' : f.label,
+      sub: f.type === 'upright'
+        ? 'Front-opening, in its own cabinet'
+        : `On the left, in place of a drawer. *Built to suit a ${f.litres}L drawer fridge; we'll confirm it fits yours.`,
     })),
   },
   {

@@ -150,7 +150,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
 
   <script>
     import { BUILD_OPTIONS, DEFAULT_STORAGE, ORDERING, QUESTIONS, VEHICLES, getVehicle, type VehicleId } from '@/data/kit-builder';
-    import { carpetColour, recommend, sanitiseAnswers, type KitAnswers, type Recommendation } from '@/lib/kit-builder/engine';
+    import { carpetColour, tableStorageAllowed, recommend, sanitiseAnswers, type KitAnswers, type Recommendation } from '@/lib/kit-builder/engine';
     import { getUtmParams } from '@/lib/utm';
     import type { KitScene } from '@/lib/kit-builder/scene';
 
@@ -400,10 +400,10 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
     // Step 1: pick your options
     // -----------------------------------------------------------------------
 
-    function optionCard(name: string, value: string, label: string, sub: string | undefined, selected: boolean, multi: boolean) {
+    function optionCard(name: string, value: string, label: string, sub: string | undefined, selected: boolean, multi: boolean, disabled = false) {
       return `
-        <button type="button" data-q="${name}" data-value="${value}" role="${multi ? 'checkbox' : 'radio'}" aria-checked="${selected}"
-          class="option min-h-[56px] text-left rounded-lg border-2 px-4 py-3 transition-all ${selected ? 'border-primary bg-primary/5' : 'border-stone-dark/30 hover:border-primary/60 bg-white'}">
+        <button type="button" data-q="${name}" data-value="${value}" role="${multi ? 'checkbox' : 'radio'}" aria-checked="${selected}" ${disabled ? 'disabled aria-disabled="true"' : ''}
+          class="option min-h-[56px] text-left rounded-lg border-2 px-4 py-3 transition-all ${disabled ? 'border-stone-dark/20 bg-stone-light/60 opacity-60 cursor-not-allowed' : selected ? 'border-primary bg-primary/5' : 'border-stone-dark/30 hover:border-primary/60 bg-white'}">
           <span class="flex items-start justify-between gap-2">
             <span class="block font-semibold text-charcoal text-sm sm:text-base">${escapeHtml(label)}</span>
             <span class="w-5 h-5 shrink-0 ${multi ? 'rounded' : 'rounded-full'} border-2 flex items-center justify-center text-xs ${selected ? 'bg-primary border-primary text-white' : 'border-stone-dark'}">${selected ? '&#10003;' : ''}</span>
@@ -462,7 +462,12 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
             <h3 class="text-lg font-bold text-charcoal">${escapeHtml(q.title)}</h3>
             <p class="text-sm text-muted-foreground mt-0.5 mb-3">${escapeHtml(q.help)}</p>
             <div class="grid gap-2.5" role="${q.multi ? 'group' : 'radiogroup'}" aria-label="${escapeHtml(q.title)}">
-              ${q.options.map((o) => optionCard(q.id, o.value, o.label, o.sub, selected(o.value), !!q.multi) + after(o.value)).join('')}
+              ${q.options.map((o) => {
+                // No folding table storage with the drawer fridge cavity (its taller cabinet leaves dead space).
+                const blocked = q.id === 'storage' && o.value === 'cubby' && !tableStorageAllowed(answers);
+                const sub = blocked ? 'Not available with the drawer fridge cavity. The taller cabinet would leave dead space above the table.' : o.sub;
+                return optionCard(q.id, o.value, o.label, sub, selected(o.value) && !blocked, !!q.multi, blocked) + (blocked ? '' : after(o.value));
+              }).join('')}
             </div>
             ${extra}
           </div>`;
@@ -821,7 +826,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       }
 
       const opt = target.closest<HTMLButtonElement>('.option');
-      if (!opt) return;
+      if (!opt || opt.disabled) return;
       const q = opt.dataset.q!;
       const picked = opt.dataset.value!;
       if (q === 'build') {
@@ -850,6 +855,11 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
         if (adding) setOpen(true);
       } else {
         (answers as Record<string, unknown>)[q] = picked;
+        // Switching to the drawer fridge cavity drops the folding table storage.
+        if (q === 'fridge' && !tableStorageAllowed(answers) && answers.storage?.includes('cubby')) {
+          answers.storage = answers.storage.filter((s) => s !== 'cubby');
+          delete answers.ownTable;
+        }
       }
       save();
       refresh();

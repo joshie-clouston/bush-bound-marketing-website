@@ -79,10 +79,25 @@ export function sanitiseAnswers(input: unknown): KitAnswers {
   if ((carpet === 'grey' || carpet === 'blue') && out.build === 'installed') out.carpet = carpet;
   if (typeof raw.vehicleName === 'string' && raw.vehicleName.trim()) out.vehicleName = raw.vehicleName.trim().slice(0, 80);
   if (out.power12 !== 'yes' && out.power240 !== 'yes') delete out.electricalBuild;
+  // No folding table storage with the drawer fridge cavity (see tableStorageAllowed).
+  if (!tableStorageAllowed(out as KitAnswers)) {
+    out.storage = ((out.storage as StorageId[] | undefined) ?? []).filter((s) => s !== 'cubby');
+    delete out.ownTable;
+  }
   return out as KitAnswers;
 }
 
-export const storage = (a: KitAnswers) => new Set<StorageId>(a.storage ?? DEFAULT_STORAGE);
+/**
+ * The folding table cubby isn't offered with the drawer fridge cavity: that cabinet is taller to suit
+ * the fridge, which would leave dead space above the table.
+ */
+export const tableStorageAllowed = (a: KitAnswers) => getFridge(a.fridge as FridgeId | undefined)?.type !== 'drawer';
+
+export const storage = (a: KitAnswers) => {
+  const set = new Set<StorageId>(a.storage ?? DEFAULT_STORAGE);
+  if (!tableStorageAllowed(a)) set.delete('cubby');
+  return set;
+};
 export const wants12 = (a: KitAnswers) => a.power12 === 'yes';
 export const wants240 = (a: KitAnswers) => a.power240 === 'yes';
 export const wantsPower = (a: KitAnswers) => wants12(a) || wants240(a);
@@ -318,8 +333,11 @@ export function buildLayout(answers: KitAnswers): Layout {
     modules.push({ id: 'slats', kind: 'slats', x: bedX, y: deckTop - 34, z: zFront + ext / 2 + 10, w: bedW, h: 30, d: ext, move: [0, 0, -ext - 10] });
     const half = round((v.sleepLength - GAP - 40) / 2);
     const lowerZ = -(GAP + 20 + half / 2);
-    modules.push({ id: 'mattress', kind: 'mattress', x: bedX, y: deckTop, z: lowerZ, w: bedW - 40, h: 80, d: half });
-    modules.push({ id: 'mattress-top', kind: 'mattress-fold', x: bedX, y: deckTop + 80, z: lowerZ, w: bedW - 40, h: 80, d: half, move: [0, -80, -half] });
+    // The mattress only shows when it's included ("Bed only" means they bring their own).
+    if (!answers.ownBedding) {
+      modules.push({ id: 'mattress', kind: 'mattress', x: bedX, y: deckTop, z: lowerZ, w: bedW - 40, h: 80, d: half });
+      modules.push({ id: 'mattress-top', kind: 'mattress-fold', x: bedX, y: deckTop + 80, z: lowerZ, w: bedW - 40, h: 80, d: half, move: [0, -80, -half] });
+    }
   }
 
   return { vehicle: v, modules, columns, fridge, bed, seatsFolded: bed, bedIsSingle: bed && tallFridge, fridgeTooWide, fridgeTooTall };
@@ -359,7 +377,7 @@ export function recommend(answers: KitAnswers): Recommendation {
   const p240 = wants240(answers);
   const eBuild = answers.electricalBuild ?? 'diy';
 
-  const fridgeName = fridge ? (fridge.type === 'chest' ? `${fridge.label}${chestOnSlide(answers) ? ' on slide' : ', fixed'}` : fridge.label) : 'No fridge';
+  const fridgeName = fridge ? (fridge.type === 'chest' ? `${fridge.label}${chestOnSlide(answers) ? ' on slide' : ', fixed'}` : fridge.type === 'drawer' ? 'Drawer fridge cavity' : fridge.label) : 'No fridge';
   const addOns: string[] = [fridgeName];
   for (const s of STORAGE) if (store.has(s.id)) addOns.push(s.label);
   if (p12) addOns.push('12V');
@@ -376,7 +394,7 @@ export function recommend(answers: KitAnswers): Recommendation {
       : `${fridge.label} fixed on a tie-down base. Reach in from the side window, no slide needed.`);
   }
   if (!fridge) why.push('No fridge, so it\'s drawers right across.');
-  if (layout.bed) why.push(`Sliding bed: the slats slide forward over the folded rear seats and the mattress folds out on top${layout.bedIsSingle ? ', a single beside the fridge' : ''}. Packs away in seconds.`);
+  if (layout.bed) why.push(`Sliding bed: the slats slide forward over the folded rear seats${answers.ownBedding ? ', ready for your own mattress' : ' and the mattress folds out on top'}${layout.bedIsSingle ? ', a single beside the fridge' : ''}. Packs away in seconds.`);
   if (store.has('pullout')) why.push(`Pull-out table slides out from the bottom of the ${fridge?.type === 'drawer' ? (layout.columns > 2 ? 'middle' : 'right') : 'left'} drawer. Instant bench at the tailgate.`);
   if (store.has('cubby')) why.push('Your folding Bush Bound table lives in its own hinged cubby. Open the door, grab it, set it up beside the car.');
   if (p12) why.push('12V and USB sockets on the side panel, with a battery monitor and switch.');
@@ -396,7 +414,7 @@ export function recommend(answers: KitAnswers): Recommendation {
   // What goes on the quote (labels only, priced on the server).
   const items: QuoteItem[] = [{ group: 'Cabinetry', label: `${BASE_KIT.name} for ${answers.vehicle === 'other' ? answers.vehicleName || 'your vehicle' : v.short}` }];
   if (fridge?.type === 'upright') items.push({ group: 'Cabinetry', label: 'Upright fridge cabinet' });
-  if (fridge?.type === 'drawer') items.push({ group: 'Cabinetry', label: 'Drawer fridge column' });
+  if (fridge?.type === 'drawer') items.push({ group: 'Cabinetry', label: `Drawer fridge cavity (to suit a ${fridge.litres}L drawer fridge)` });
   if (fridge?.type === 'chest') items.push({ group: 'Cabinetry', label: chestOnSlide(answers) ? 'Chest fridge slide-out rack' : 'Fixed chest fridge tie-down base' });
   for (const s of STORAGE) if (store.has(s.id)) items.push({ group: 'Cabinetry', label: s.label });
   items.push({ group: 'Cabinetry', label: finish.id === 'hex' ? 'Black honeycomb birch ply' : `Black honeycomb with ${finish.label.toLowerCase()}` });
