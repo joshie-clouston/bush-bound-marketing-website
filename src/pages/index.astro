@@ -5,6 +5,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import { faqs, homepageFaqSlugs } from '@/data/faqs';
 import { reviews as allReviews } from '@/data/reviews';
 import { electricalPhotos } from '@/data/electrical-photos';
+import { trustedBrands } from '@/data/brands';
 
 const electricalHeroPhoto = electricalPhotos.find((p) => p.slug === 'bay-overview-1')!;
 
@@ -21,20 +22,20 @@ const featuredReviews = featuredReviewSlugs.map((slug) => ({
   categoryLabel: featuredCategoryLabels[slug],
 }));
 
-const reviews = [
-  { name: "Joshua C.", vehicle: "Troop Carrier (Troopy)", text: "Highly recommend going with Bush Bound to just get it done right the first time. Absolutely stoked!" },
-  { name: "Brock C.", vehicle: "100 Series", text: "Super high attention to detail, quick turn around time, and clear communication throughout." },
-  { name: "Luke W.", vehicle: "VW Transporter", text: "Absolutely nailed it. Couldn't have asked for a better build. Attention to detail is what sets them apart." },
-  { name: "Mick D.", vehicle: "80 Series", text: "Deadset luke is a legend. Workmanship is top quality and materials he used are top notch!" },
-  { name: "Katrina S.", vehicle: "VW Multivan", text: "Luke did a great job. Very happy with it. Plenty of storage. Can't wait to get on the road." },
-  { name: "Jacob H.", vehicle: "76 Series", text: "Super creative and full of solutions to problems before they happen! Everything fit perfectly." },
-  { name: "Jack R.", vehicle: "Prado 150", text: "Luke is an absolute legend and put together the perfect install on my Prado." },
-  { name: "Norman H.", vehicle: "Troop Carrier (Troopy)", text: "Brilliant job and so helpful with the planning of this perfect build. Highly recommended." },
-  { name: "Russell H.", vehicle: "Silverado", text: "Excellent work, precisely neat and very well presented." },
-];
+// Short quotes shown under the hero photo, keyed by review slug (falls back to the first sentence of the review).
+const shortQuotes: Record<string, string> = {
+  'joshua-c-troopy': 'Highly recommend going with Bush Bound to just get it done right the first time. Absolutely stoked!',
+  'brock-c-100-series': 'Super high attention to detail, quick turn around time, and clear communication throughout.',
+  'luke-w-transporter': "Absolutely nailed it. Couldn't have asked for a better build. Attention to detail is what sets them apart.",
+  'mick-d-troopy': 'Deadset Luke is a legend. Workmanship is top quality and materials he used are top notch!',
+  'jacob-h-76-series': 'Super creative and full of solutions to problems before they happen! Everything fit perfectly.',
+  'jack-r-prado': 'Luke is an absolute legend and put together the perfect install on my Prado.',
+  'norman-h-troopy': 'Brilliant job and so helpful with the planning of this perfect build. Highly recommended.',
+  'russell-h-silverado': 'Excellent work, precisely neat and very well presented.',
+};
 const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z";
 
-const heroImages = [
+const heroPhotos = [
   { src: '/images/hero/toyota-landcruiser-troopcarrier-jack-1.webp', alt: "Jack F.'s Troop Carrier", href: '/reviews/jack-f-troopy' },
   { src: '/images/hero/toyota-landcruiser-troopcarrier-2-1.webp', alt: "Mick D.'s Troop Carrier", href: '/reviews/mick-d-troopy' },
   { src: '/images/hero/volkswagen-multivan-3.webp', alt: "Luke W.'s VW Transporter", href: '/reviews/luke-w-transporter' },
@@ -47,6 +48,21 @@ const heroImages = [
   { src: '/images/hero/toyota-landcruiser-76-series-4.webp', alt: "Jacob H.'s 76 Series", href: '/reviews/jacob-h-76-series' },
   { src: '/images/hero/toyota-prado-3.webp', alt: "Jack R.'s Prado 150", href: '/reviews/jack-r-prado' },
 ];
+
+// Each hero photo is a customer's build, with their Google review under it.
+const firstSentence = (t: string) => {
+  const m = t.match(/^.{20,160}?[.!](?=\s|$)/);
+  return (m ? m[0] : t.slice(0, 140).replace(/\s+\S*$/, '') + '...').trim();
+};
+const heroImages = heroPhotos.map((img) => {
+  const slug = img.href.split('/').pop()!;
+  const review = allReviews.find((r) => r.slug === slug);
+  const name = img.alt.split("'s ")[0];
+  const vehicle = img.alt.split("'s ").slice(1).join("'s ");
+  return { ...img, name, vehicle, quote: shortQuotes[slug] ?? (review ? firstSentence(review.testimonial) : '') };
+});
+// How many cards show in the stack (the front one plus those peeking out behind it).
+const STACK = 5;
 ---
 
 <BaseLayout title="Custom 4WD & Van Fit-Outs Gold Coast | Expedition Vehicle Builds | Bush Bound" description="Custom 4WD and van fit-outs on the Gold Coast, QLD. Designed in 3D, CNC-cut from premium plywood to millimetre precision, and professionally installed. Cabinetry, water systems and off-grid power. Get a free quote.">
@@ -178,61 +194,133 @@ const heroImages = [
           </div>
         </div>
 
-        <!-- Right: Photo carousel -->
-        <div class="w-full lg:flex lg:items-center lg:w-1/2">
-          <div id="hero-carousel" class="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl">
+        <!-- Right: stack of build photo cards, cycling, with that customer's Google review underneath -->
+        <div class="w-full lg:w-1/2 pt-12 sm:pt-14">
+          <div id="hero-stack" class="relative w-full aspect-[4/3]" style={`--stack: ${STACK}`} aria-roledescription="carousel" aria-label="Recent Bush Bound builds">
             {heroImages.map((img, i) => (
               <a
                 href={img.href}
-                class:list={['hero-slide absolute inset-0 transition-opacity duration-1000', i === 0 ? 'opacity-100' : 'opacity-0 pointer-events-none']}
+                class="hero-card absolute inset-0 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 bg-charcoal"
                 data-index={i}
+                data-pos={Math.min(i, STACK)}
+                aria-hidden={i === 0 ? undefined : 'true'}
+                tabindex={i === 0 ? undefined : -1}
               >
-                <img src={img.src} alt={img.alt} width="800" height="600" class="w-full h-full object-cover" loading={i === 0 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : undefined} />
+                <img src={img.src} alt={img.alt} width="800" height="600" class="w-full h-full object-cover" loading={i < STACK ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : undefined} />
                 <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-charcoal/80 to-transparent p-5">
                   <p class="text-stone-light text-sm font-medium">{img.alt}</p>
                 </div>
               </a>
             ))}
           </div>
+
+          <!-- Google review for the build on top -->
+          <a id="hero-review" href={heroImages[0].href} class="mt-5 flex items-start gap-3 rounded-xl bg-white/[0.06] border border-white/10 backdrop-blur-sm px-4 py-3.5 hover:bg-white/10 transition-colors text-left">
+            <svg class="w-6 h-6 shrink-0 mt-0.5" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="flex text-sand gap-0.5" role="img" aria-label="5 star Google review">
+                  {[1, 2, 3, 4, 5].map(() => (<svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20"><path d={starPath} /></svg>))}
+                </span>
+                <span class="text-xs font-semibold text-stone-light/80">Google review</span>
+              </div>
+              <p id="hero-review-quote" class="mt-1.5 text-sm text-stone-light/90 leading-snug transition-opacity duration-500">&ldquo;{heroImages[0].quote}&rdquo;</p>
+              <p id="hero-review-name" class="mt-1 text-xs text-stone-light/55 transition-opacity duration-500">{heroImages[0].name}, {heroImages[0].vehicle}</p>
+            </div>
+          </a>
+          <script is:inline type="application/json" id="hero-reviews-data" set:html={JSON.stringify(heroImages.map((i) => ({ href: i.href, quote: i.quote, name: i.name, vehicle: i.vehicle })))} />
         </div>
 
       </div>
     </div>
 
-    <!-- Social proof marquee -->
-    <div class="absolute bottom-8 left-0 right-0 z-10 overflow-hidden pointer-events-none" style="-webkit-mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%); mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);">
-      <div class="review-marquee flex gap-6 w-max pointer-events-auto">
-        {/* Render reviews twice for seamless loop */}
-        {[...reviews, ...reviews].map((r) => (
-        <div class="flex items-center gap-3 px-5 py-3 bg-white/8 backdrop-blur-sm rounded-lg border border-white/10 shrink-0">
-          <div class="flex text-sand text-sm gap-0.5" role="img" aria-label="5 star rating">
-            {[1,2,3,4,5].map(() => (
-              <svg class="w-3.5 h-3.5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20"><path d={starPath}/></svg>
-            ))}
-          </div>
-          <span class="text-stone-light/90 text-sm">"{r.text}"</span>
-          <span class="text-stone-light/50 text-xs whitespace-nowrap">- {r.name}, {r.vehicle}</span>
-        </div>
-        ))}
+    <!-- Trusted brands banner -->
+    <div class="absolute bottom-6 left-0 right-0 z-10 px-5">
+      <div class="container-wide flex flex-col sm:flex-row items-center justify-center gap-x-8 gap-y-3">
+        <p class="text-[11px] uppercase tracking-[0.2em] text-sand/90 font-semibold whitespace-nowrap">Trusted brands we fit</p>
+        <ul class="flex flex-wrap items-center justify-center gap-x-8 gap-y-2" aria-label="Brands we fit">
+          {trustedBrands.map((b) => (
+            <li title={b.what}>
+              {b.logo
+                ? <img src={b.logo} alt={b.name} class="h-6 sm:h-7 w-auto opacity-75 hover:opacity-100 transition-opacity" loading="lazy" />
+                : <span class="text-stone-light/70 hover:text-stone-light transition-colors font-extrabold tracking-wide text-base sm:text-lg uppercase">{b.name}</span>}
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
 
   </section>
 
   <script>
-    (function() {
-      const slides = document.querySelectorAll('.hero-slide');
-      if (slides.length < 2) return;
+    // Hero card stack: the top card flies off every few seconds, the rest move up, and the review
+    // underneath switches to that customer's. Pauses on hover and while the tab is hidden.
+    (function () {
+      const stack = document.getElementById('hero-stack');
+      const cards = [...document.querySelectorAll<HTMLElement>('.hero-card')];
+      if (!stack || cards.length < 2) return;
+      const data = JSON.parse(document.getElementById('hero-reviews-data')?.textContent || '[]') as { href: string; quote: string; name: string; vehicle: string }[];
+      const review = document.getElementById('hero-review') as HTMLAnchorElement | null;
+      const quote = document.getElementById('hero-review-quote');
+      const name = document.getElementById('hero-review-name');
+      const STACK = Number(getComputedStyle(stack).getPropertyValue('--stack')) || 5;
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       let current = 0;
+      let paused = false;
 
-      setInterval(() => {
-        const next = (current + 1) % slides.length;
-        (slides[current] as HTMLElement).style.opacity = '0';
-        (slides[current] as HTMLElement).classList.add('pointer-events-none');
-        (slides[next] as HTMLElement).style.opacity = '1';
-        (slides[next] as HTMLElement).classList.remove('pointer-events-none');
-        current = next;
-      }, 4000);
+      function place() {
+        cards.forEach((card, i) => {
+          const pos = (i - current + cards.length) % cards.length;
+          card.dataset.pos = String(Math.min(pos, STACK));
+          const top = pos === 0;
+          card.toggleAttribute('aria-hidden', !top);
+          card.tabIndex = top ? 0 : -1;
+        });
+      }
+
+      function showReview() {
+        const r = data[current];
+        if (!r || !review || !quote || !name) return;
+        quote.style.opacity = '0';
+        name.style.opacity = '0';
+        window.setTimeout(() => {
+          review.href = r.href;
+          quote.textContent = `\u201C${r.quote}\u201D`;
+          name.textContent = `${r.name}, ${r.vehicle}`;
+          quote.style.opacity = '1';
+          name.style.opacity = '1';
+        }, reduce ? 0 : 350);
+      }
+
+      function next() {
+        if (paused || document.hidden) return;
+        const leaving = cards[current];
+        current = (current + 1) % cards.length;
+        if (reduce) {
+          place();
+        } else {
+          // Fly the top card off, then tuck it in at the back.
+          leaving.classList.add('is-leaving');
+          window.setTimeout(() => {
+            leaving.classList.add('no-anim');
+            leaving.classList.remove('is-leaving');
+            place();
+            void leaving.offsetWidth;
+            leaving.classList.remove('no-anim');
+          }, 550);
+          // The others move up straight away.
+          cards.forEach((card, i) => {
+            if (card === leaving) return;
+            card.dataset.pos = String(Math.min((i - current + cards.length) % cards.length, STACK));
+          });
+        }
+        showReview();
+      }
+
+      place();
+      stack.addEventListener('mouseenter', () => { paused = true; });
+      stack.addEventListener('mouseleave', () => { paused = false; });
+      window.setInterval(next, 4500);
     })();
   </script>
 
@@ -756,19 +844,23 @@ const heroImages = [
       transform-box: fill-box;
       transform-origin: center;
     }
-    .review-marquee {
-      animation: marquee 70s linear infinite;
+    /* Hero card stack: the top card in front, the next four peeking out above and behind it. */
+    .hero-card {
+      transform-origin: 50% 0;
+      transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.7s ease, filter 0.7s ease;
+      will-change: transform;
     }
-    .review-marquee:hover {
-      animation-play-state: paused;
-    }
-    @keyframes marquee {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
-    }
+    .hero-card[data-pos="0"] { z-index: 6; transform: none; }
+    .hero-card[data-pos="1"] { z-index: 5; transform: translateY(-14px) scale(0.95) rotate(1.5deg); filter: brightness(0.7); pointer-events: none; }
+    .hero-card[data-pos="2"] { z-index: 4; transform: translateY(-26px) scale(0.9) rotate(-2deg); filter: brightness(0.55); pointer-events: none; }
+    .hero-card[data-pos="3"] { z-index: 3; transform: translateY(-37px) scale(0.85) rotate(2.5deg); filter: brightness(0.45); pointer-events: none; }
+    .hero-card[data-pos="4"] { z-index: 2; transform: translateY(-47px) scale(0.8) rotate(-3deg); filter: brightness(0.35); pointer-events: none; }
+    .hero-card[data-pos="5"] { z-index: 1; transform: translateY(-47px) scale(0.8); opacity: 0; pointer-events: none; }
+    .hero-card.is-leaving { z-index: 7; transform: translateX(-115%) rotate(-12deg); opacity: 0; transition-duration: 0.55s; }
+    .hero-card.no-anim { transition: none !important; }
     @media (prefers-reduced-motion: reduce) {
       #vehicle-scene, #vj-shooting-stars { display: none; }
-      .review-marquee { animation: none; }
+      .hero-card { transition: none; }
     }
   </style>
 
