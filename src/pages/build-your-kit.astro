@@ -27,13 +27,12 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
 >
   <style is:global>
     #viewer-canvas canvas { width: 100% !important; height: 100% !important; display: block; }
-    /* Keep the options in view below the pinned 3D viewer on phones. */
-    #question-panel { scroll-margin-top: calc(6.25rem + max(48vh, 300px) + 0.75rem); }
+    #question-panel { scroll-margin-top: 6.75rem; }
     @media (max-width: 1023px) {
-      /* After the options page the model shrinks and scrolls away, so forms and errors are never hidden under it. */
-      #builder:not([data-step="0"]) #viewer-wrap { position: relative; top: auto; }
-      #builder:not([data-step="0"]) #viewer { height: 30vh; min-height: 220px; }
-      #builder:not([data-step="0"]) #question-panel { scroll-margin-top: 6.75rem; }
+      /* Phones: the steps take the screen. The 3D model opens full-screen from the bottom bar when they want it. */
+      #builder[data-preview="open"] #viewer-wrap { display: block; position: fixed; inset: 0; z-index: 60; margin: 0; }
+      #builder[data-preview="open"] #viewer { height: 100vh; height: 100dvh; min-height: 0; border-radius: 0; }
+      #builder[data-preview="open"] #mobile-bar { display: none; }
     }
     @media (min-width: 1024px) { #question-panel { scroll-margin-top: 8rem; } }
     @keyframes kit-step-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
@@ -43,10 +42,10 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
 
   <!-- INTRO -->
   <section class="bg-charcoal text-stone-light">
-    <div class="container-wide pt-8 pb-6 sm:pt-14 sm:pb-10">
+    <div class="container-wide pt-6 pb-5 sm:pt-14 sm:pb-10">
       <p class="text-sand font-medium text-sm uppercase tracking-widest mb-3">Flat Pack Fit-Out Kits</p>
-      <h1 class="text-3xl sm:text-5xl font-extrabold max-w-3xl">Build your wagon fit-out. Watch it come together.</h1>
-      <p class="text-stone-dark mt-4 max-w-2xl text-base sm:text-lg">
+      <h1 class="text-2xl sm:text-5xl font-extrabold max-w-3xl">Build your wagon fit-out. Watch it come together.</h1>
+      <p class="hidden sm:block text-stone-dark mt-4 max-w-2xl text-base sm:text-lg">
         Pick your fridge and options, watch it build in 3D and see a price range. Flat packed and delivered to your door, or built and installed by us.
       </p>
     </div>
@@ -54,11 +53,11 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
 
   <!-- BUILDER -->
   <section class="bg-background" id="builder" data-step="0">
-    <div class="container-wide py-4 lg:py-10">
+    <div class="container-wide pt-4 pb-24 lg:py-10">
       <div class="grid lg:grid-cols-12 gap-5 lg:gap-10">
 
-        <!-- 3D viewer (pinned while you scroll) -->
-        <div id="viewer-wrap" class="lg:col-span-7 lg:order-2 sticky top-[6.25rem] lg:top-[7.25rem] self-start z-20 -mx-5 sm:mx-0">
+        <!-- 3D viewer: pinned beside the steps on desktop; full-screen on demand on phones -->
+        <div id="viewer-wrap" class="hidden lg:block lg:col-span-7 lg:order-2 lg:sticky lg:top-[7.25rem] self-start z-20" role="dialog" aria-label="3D preview of your fit-out">
           <div id="viewer" class="relative flex flex-col h-[48vh] min-h-[300px] lg:h-[calc(100vh-9rem)] lg:max-h-[720px] sm:rounded-xl overflow-hidden bg-gradient-to-b from-[#7a7e7c] to-[#4d5150] shadow-lg lg:shadow-none">
             <div class="relative flex-1 min-h-0"><div id="viewer-canvas" class="absolute inset-0"></div></div>
 
@@ -73,14 +72,15 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
               </div>
             </div>
 
-            <div class="sm:absolute sm:bottom-2.5 sm:left-3 sm:right-3 flex items-center sm:items-end justify-between gap-2 px-3 py-1 sm:p-0 bg-[#4d5150] sm:bg-transparent">
-              <p class="text-stone-light/75 text-[11px] leading-snug hidden sm:block max-w-[45%]">
+            <div class="lg:absolute lg:bottom-2.5 lg:left-3 lg:right-3 flex items-center lg:items-end justify-between gap-2 px-3 pt-2 lg:p-0 bg-[#4d5150] lg:bg-transparent" style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom))">
+              <p class="text-stone-light/75 text-[11px] leading-snug hidden lg:block max-w-[45%]">
                 <span class="hidden lg:inline">Drag to rotate · Ctrl + scroll to zoom.</span>
                 Tap Open to see the drawers, bed and table in action.
               </p>
               <div class="flex gap-1.5 ml-auto">
                 <button id="toggle-open" type="button" aria-pressed="false" class={`${viewerBtn} min-w-[72px]`}>Open</button>
                 <button id="reset-view" type="button" class={viewerBtn} aria-label="Reset 3D view">Reset</button>
+                <button id="close-preview" type="button" class="lg:hidden min-h-[44px] min-w-[72px] bg-sand text-charcoal text-sm font-bold px-4 rounded-md">Done</button>
               </div>
             </div>
 
@@ -111,6 +111,18 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
           </div>
         </div>
       </div>
+    </div>
+  
+    <!-- Phones: price range and the 3D preview, always one tap away -->
+    <div id="mobile-bar" class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-charcoal text-stone-light border-t border-black/40 px-4 pt-2.5 flex items-center justify-between gap-3 transition-transform duration-300" style="padding-bottom: max(0.625rem, env(safe-area-inset-bottom))">
+      <div class="min-w-0">
+        <p class="text-[10px] uppercase tracking-wider text-stone-dark">Estimated range</p>
+        <p data-bracket class="text-base font-extrabold text-sand leading-tight">…</p>
+      </div>
+      <button id="view-3d" type="button" class="min-h-[44px] shrink-0 inline-flex items-center gap-2 bg-sand text-charcoal font-bold text-sm px-4 rounded-md">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" /></svg>
+        View in 3D
+      </button>
     </div>
   </section>
 
@@ -278,8 +290,46 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       const { KitScene } = await import('@/lib/kit-builder/scene');
       scene = new KitScene($('viewer-canvas'));
       if (import.meta.env.DEV) (window as unknown as Record<string, unknown>).__kitScene = scene;
+      if ($('toggle-open').getAttribute('aria-pressed') === 'true') scene.setOpen(true);
       refresh();
     }
+
+    // The 3D model loads straight away on desktop, and on phones only the first time they open the preview.
+    let sceneStarted = false;
+    function ensureScene() {
+      if (sceneStarted) return;
+      sceneStarted = true;
+      void initScene();
+    }
+
+    /** Phones: show the 3D model full-screen. (On desktop it's always beside the steps.) */
+    function openPreview(animate = false) {
+      if (isMobile()) {
+        $('builder').dataset.preview = 'open';
+        document.documentElement.style.overflow = 'hidden';
+      }
+      ensureScene();
+      if (animate) setOpen(true);
+    }
+    function closePreview() {
+      delete $('builder').dataset.preview;
+      document.documentElement.style.overflow = '';
+    }
+    $('view-3d').addEventListener('click', () => openPreview());
+    $('close-preview').addEventListener('click', closePreview);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && $('builder').dataset.preview) closePreview();
+    });
+    window.addEventListener('resize', () => {
+      if (!isMobile()) {
+        closePreview();
+        ensureScene();
+      }
+    });
+    // Tuck the bottom bar away once the builder is scrolled off screen (so it never covers the footer).
+    new IntersectionObserver(([entry]) => {
+      $('mobile-bar').style.transform = entry.isIntersecting ? '' : 'translateY(110%)';
+    }).observe($('builder'));
 
     function setOpen(open: boolean) {
       const btn = $('toggle-open');
@@ -476,7 +526,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       $('question-body').innerHTML = `
         <p class="text-sand-dark font-medium text-xs uppercase tracking-widest mb-2">Wagon fit-out builder</p>
         <h2 class="text-2xl sm:text-3xl font-bold text-charcoal">Build your fit-out</h2>
-        <p class="text-sm text-muted-foreground mt-2">Our wagon base kit: evenly split drawers in black honeycomb birch ply, cut to suit your vehicle. Pick your options and watch the model update. Tap <button type="button" data-open-preview class="font-semibold text-primary underline">Open</button> to see it in action.</p>
+        <p class="text-sm text-muted-foreground mt-2">Our wagon base kit: evenly split drawers in black honeycomb birch ply, cut to suit your vehicle. Pick your options, then <button type="button" data-open-preview class="font-semibold text-primary underline">see it in 3D</button>.</p>
         <div class="mt-6">${sections}</div>
         <button type="button" id="next-btn" class="mt-6 w-full min-h-[52px] bg-primary text-primary-foreground font-bold rounded-md hover:bg-primary-light transition-colors">Next: your details</button>
         <p class="mt-2 text-center text-xs text-muted-foreground">Free, no obligation. Takes about a minute.</p>
@@ -775,8 +825,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       const target = e.target as HTMLElement;
 
       if (target.closest('[data-open-preview]')) {
-        setOpen(true);
-        if (isMobile()) $('viewer').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        openPreview(true);
         return;
       }
       if (target.closest('#next-btn')) {
@@ -852,7 +901,8 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
         const adding = !list.has(picked as never);
         adding ? list.add(picked as never) : list.delete(picked as never);
         answers.storage = [...list];
-        if (adding) setOpen(true);
+        // On desktop, show off what they just added. (On phones the model is only shown when they ask.)
+        if (adding && !isMobile()) setOpen(true);
       } else {
         (answers as Record<string, unknown>)[q] = picked;
         // Switching to the drawer fridge cavity drops the folding table storage.
@@ -980,6 +1030,6 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
     history.replaceState({ kitStep: step }, '');
     refresh();
     render();
-    initScene();
+    if (!isMobile()) ensureScene();
   </script>
 </BaseLayout>

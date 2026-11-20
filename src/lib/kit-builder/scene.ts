@@ -154,6 +154,8 @@ export class KitScene {
   private autoFrame = true;
   private baseDist = 0;
   private heightBoost = 1;
+  /** Tall, narrow viewers (a phone held upright) need the camera further back to fit the fit-out's width. */
+  private aspectBoost = 1;
   private fitCentre = new THREE.Vector3(0, 0.3, -0.65);
   private tableAt: THREE.Vector3 | null = null;
   private look: Look = { fronts: 'hex', carpet: false };
@@ -371,7 +373,7 @@ export class KitScene {
     // Always orbit the middle of the fit-out. Opening just pulls back (further if the table is out);
     // we stay pulled back until the table has folded away, then come back in.
     const wide = this.open || this.seqT > 0.001;
-    const dist = (!wide ? this.baseDist : this.baseDist * (this.tableAt ? 1.65 : 1.3)) * this.heightBoost;
+    const dist = (!wide ? this.baseDist : this.baseDist * (this.tableAt ? 1.65 : 1.3)) * this.heightBoost * this.aspectBoost;
     return { target: this.fitCentre.clone(), dist };
   }
 
@@ -832,6 +834,10 @@ export class KitScene {
     this.camera.aspect = w / h;
     this.camera.fov = w / h < 1 ? 50 : 38;
     this.camera.updateProjectionMatrix();
+    this.aspectBoost = w / h < 0.9 ? Math.min(2, 0.9 / (w / h)) : 1;
+    this.controls.maxDistance = 4.5 * this.aspectBoost;
+    // Re-frame for the new shape unless they've taken over the camera.
+    if (this.autoFrame && this.baseDist) this.resetView();
   }
 
   private loop = () => {

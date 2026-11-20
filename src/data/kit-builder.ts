@@ -210,7 +210,7 @@ export const QUESTIONS: Question[] = [
   {
     id: 'storage',
     title: 'Add options',
-    help: 'Tick any you want. Tap Open on the model to see them in action.',
+    help: 'Tick any you want.',
     multi: true,
     options: STORAGE.map((o) => ({ value: o.id, label: o.label, sub: o.sub })),
   },
