@@ -409,7 +409,6 @@ export function recommend(answers: KitAnswers): Recommendation {
   if (wantsPower(answers)) tips.push('We\'ll chat about what you want to run (fridge, Starlink, laptops, coffee) and size the battery and solar to suit before anything ships.');
   if (wantsPower(answers) && eBuild === 'installed' && build !== 'installed') tips.push('Electrical install happens at our Gold Coast workshop, so you\'ll need to bring the car in for that part.');
   if (build === 'diy') tips.push('Most people build our kits in a weekend with a drill, a few clamps and a mate. Every panel is numbered and the floor template marks exactly where to drill, clear of fuel tanks and wiring.');
-  if (build && build !== 'installed') tips.push('Marine carpet tops are only available if we build and install it for you in our Gold Coast workshop.');
 
   // What goes on the quote (labels only, priced on the server).
   const items: QuoteItem[] = [{ group: 'Cabinetry', label: `${BASE_KIT.name} for ${answers.vehicle === 'other' ? answers.vehicleName || 'your vehicle' : v.short}` }];

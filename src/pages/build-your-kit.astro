@@ -46,7 +46,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       <p class="text-sand font-medium text-sm uppercase tracking-widest mb-3">Flat Pack Fit-Out Kits</p>
       <h1 class="text-2xl sm:text-5xl font-extrabold max-w-3xl">Build your wagon fit-out. Watch it come together.</h1>
       <p class="hidden sm:block text-stone-dark mt-4 max-w-2xl text-base sm:text-lg">
-        Pick your fridge and options, watch it build in 3D and see a price range. Flat packed and delivered to your door, or built and installed by us.
+        Pick your fridge and options, watch it build in 3D and see a price range. Flat packed and delivered to your door, or built and shipped to you ready to bolt in.
       </p>
     </div>
   </section>
@@ -212,9 +212,6 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
     let form: Record<string, string> = {};
     /** What they sent, for the thank-you screen. */
     let sent: { name: string } | null = null;
-    /** Shown on the delivery step when picking a DIY option took the marine carpet off. */
-    let carpetNote = '';
-    let removedCarpet: 'grey' | 'blue' = 'grey';
     /** They've already sent this build once; sending again updates the same request. */
     let sentBefore = false;
     let scene: KitScene | null = null;
@@ -224,7 +221,9 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
     function withDefaults(a: KitAnswers): KitAnswers {
       a.fridge ??= 'upright-65';
       a.storage ??= [...DEFAULT_STORAGE];
-      a.build ??= 'diy';
+      // This form is flat pack only: flat packed or built, and shipped either way (no workshop install, so no carpet).
+      if (a.build !== 'diy' && a.build !== 'assembled') a.build = 'diy';
+      delete a.carpet;
       a.finish ??= 'hex';
       return a;
     }
@@ -506,19 +505,8 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       const sections = QUESTIONS.map((q) => {
         const v = (answers as Record<string, unknown>)[q.id];
         const selected = (x: string) => (Array.isArray(v) ? v.includes(x) : v === x);
-        const extra = q.id === 'fridge' ? `<div class="mt-2.5">${supplyToggle('ownFridge')}</div>` : q.id === 'finish' ? `
-          <label class="mt-2.5 flex items-start gap-3 min-h-[56px] cursor-pointer rounded-lg border-2 px-4 py-3 transition-colors ${answers.carpet ? 'border-primary bg-primary/5' : 'border-stone-dark/30 bg-white hover:border-primary/60'}">
-            <input id="carpet" type="checkbox" class="mt-0.5 w-5 h-5 shrink-0 accent-[#2D4A3E]" ${answers.carpet ? 'checked' : ''} />
-            <span><span class="block font-semibold text-charcoal text-sm sm:text-base">Marine carpet on top</span>
-              <span class="block text-xs text-muted-foreground mt-0.5">Only available if we build and install your fit-out in our Gold Coast workshop.</span></span>
-          </label>
-          ${answers.carpet ? `<div class="mt-2 flex items-center gap-2 pl-1" role="radiogroup" aria-label="Carpet colour">
-            <span class="text-sm text-charcoal mr-1">Colour:</span>
-            ${(['grey', 'blue'] as const).map((col) => {
-              const on = answers.carpet === col;
-              return `<button type="button" data-carpet="${col}" role="radio" aria-checked="${on}" class="min-h-[44px] inline-flex items-center gap-2 px-3.5 rounded-full border-2 text-sm font-medium transition-colors ${on ? 'border-primary bg-primary/5 text-charcoal' : 'border-stone-dark/30 bg-white text-charcoal hover:border-primary/60'}"><span class="w-4 h-4 rounded-full border border-black/20" style="background:${col === 'blue' ? '#1d2840' : '#4a4d51'}"></span>${col === 'blue' ? 'Navy' : 'Grey'}</button>`;
-            }).join('')}
-          </div>` : ''}` : '';
+        // (Marine carpet isn't offered here: it's only done when we build and install, and this form is flat pack only.)
+        const extra = q.id === 'fridge' ? `<div class="mt-2.5">${supplyToggle('ownFridge')}</div>` : '';
         const after = (value: string) => {
           if (q.id !== 'storage' || !selected(value)) return '';
           if (value === 'bed') return supplyToggle('ownBedding');
@@ -623,11 +611,10 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
     // -----------------------------------------------------------------------
 
     function orderingHtml() {
-      const installed = answers.build === 'installed';
       const rows = [
         ['Payment', ORDERING.payment],
         ['Made in', ORDERING.make],
-        installed ? ['Install', 'We book you in at our Gold Coast workshop once it\'s made'] : ['Delivery', `${ORDERING.delivery}, Australia-wide`],
+        ['Delivery', `${ORDERING.delivery}, Australia-wide`],
       ];
       return `
         <p class="text-xs font-bold uppercase tracking-wider text-sand-dark mb-2">How ordering works</p>
@@ -657,13 +644,13 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
             <div class="grid gap-2.5" role="radiogroup">
               ${BUILD_OPTIONS.map((o) => optionCard('build', o.value, o.label, o.sub, answers.build === o.value, false)).join('')}
             </div>
-            ${carpetNote ? `<p class="mt-2.5 rounded-md bg-sand/25 px-3 py-2 text-sm text-charcoal" role="status">${escapeHtml(carpetNote)}</p>` : answers.carpet ? '<p class="mt-2.5 text-xs text-muted-foreground">Includes marine carpet on the tops, done in our workshop.</p>' : ''}
           </fieldset>
 
           <div id="ordering-box" class="rounded-lg bg-stone-light border border-stone-dark/15 p-4">${orderingHtml()}</div>
 
           <div class="relative">
-            <label for="loc-input" class="block text-sm font-semibold text-charcoal">${answers.build === 'installed' ? 'Where are you based?' : 'Where are we delivering to?'}</label>
+            <label for="loc-input" class="block text-sm font-semibold text-charcoal">Delivery address</label>
+            <p class="text-xs text-muted-foreground mt-0.5">Your suburb or postcode for now. We'll grab the full street address when you order.</p>
             <input id="loc-input" type="text" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="loc-results" aria-autocomplete="list"
               placeholder="Type a postcode or suburb" value="${escapeHtml(form.location ?? '')}" class="${inputCls}" />
             <ul id="loc-results" role="listbox" class="hidden absolute z-30 left-0 right-0 mt-1 max-h-64 overflow-auto bg-white border border-stone-dark/30 rounded-md shadow-lg"></ul>
@@ -797,8 +784,8 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
         'We check your picks and send your official quote within 48 hours',
         'We confirm your design and exact price with you',
         'Full payment up front locks it in',
-        answers.build === 'installed' ? `We make it (${ORDERING.make}), then book your install` : `We make it: ${ORDERING.make}`,
-        ...(answers.build === 'installed' ? [] : [`Delivered to your door: ${ORDERING.delivery}`]),
+        answers.build === 'assembled' ? `We build it: ${ORDERING.make}` : `We cut and pack it: ${ORDERING.make}`,
+        `Delivered to your door: ${ORDERING.delivery}`,
       ];
       $('question-body').innerHTML = `
         <div class="bg-primary text-primary-foreground rounded-xl p-5 sm:p-6">
@@ -854,15 +841,6 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       if (target.closest('#another-btn')) return startOver();
       if (target.closest('#change-btn')) return goTo(PICK);
 
-      const carpetBtn = target.closest<HTMLButtonElement>('[data-carpet]');
-      if (carpetBtn) {
-        answers.carpet = carpetBtn.dataset.carpet as 'grey' | 'blue';
-        save();
-        refresh();
-        renderPick();
-        return;
-      }
-
       const supply = target.closest<HTMLButtonElement>('[data-supply]');
       if (supply) {
         const key = supply.dataset.supply as SupplyKey;
@@ -898,15 +876,6 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       const picked = opt.dataset.value!;
       if (q === 'build') {
         answers.build = picked as KitAnswers['build'];
-        if (answers.carpet && picked !== 'installed') {
-          removedCarpet = answers.carpet;
-          delete answers.carpet;
-          carpetNote = 'Marine carpet is only available if we build and install it in our workshop, so we\'ve taken it off. Pick "Build and install it for me" to put it back.';
-        } else if (picked === 'installed' && carpetNote) {
-          // They switched back to a workshop install: put the carpet back.
-          answers.carpet = removedCarpet;
-          carpetNote = '';
-        }
         save();
         refresh();
         const y = window.scrollY;
@@ -983,20 +952,6 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
 
     body.addEventListener('change', (e) => {
       const t = e.target as HTMLInputElement;
-      if (t.id === 'carpet') {
-        // Marine carpet is done in our workshop, so it comes with "build and install it for me".
-        if (t.checked) {
-          answers.carpet = 'grey';
-          answers.build = 'installed';
-        } else {
-          delete answers.carpet;
-        }
-        carpetNote = '';
-        save();
-        refresh();
-        renderPick();
-        return;
-      }
       if (t.id === 'f-vehicle') {
         answers.vehicle = (t.value || undefined) as VehicleId | undefined;
         if (answers.vehicle !== 'other') delete answers.vehicleName;

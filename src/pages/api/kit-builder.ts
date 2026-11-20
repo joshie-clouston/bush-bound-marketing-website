@@ -155,7 +155,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
               ['Phone', escapeHtml(phone || 'Not provided')],
               ['Email', escapeHtml(email)],
               ['Location', escapeHtml([suburb, state, postcode].filter(Boolean).join(' ') || 'Not provided')],
-              ['How they want it', escapeHtml(answers.build ? ({ diy: 'Flat pack, delivered (DIY)', assembled: 'Built, they install', installed: 'Built and installed by us' } as Record<string, string>)[answers.build] : 'Not specified')],
+              ['How they want it', escapeHtml(answers.build ? ({ diy: 'Flat pack, delivered (DIY)', assembled: 'Built and shipped (they bolt it in)', installed: 'Built and installed by us' } as Record<string, string>)[answers.build] : 'Not specified')],
               ['Timeline', escapeHtml(timeline || 'Not specified')],
               ['Budget', escapeHtml(budget || 'Not specified')],
               ['Heard about us via', escapeHtml(referral || 'Not specified')],
