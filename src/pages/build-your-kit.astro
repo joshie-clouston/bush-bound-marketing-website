@@ -390,7 +390,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       const barNext = $<HTMLButtonElement>('bar-next');
       barNext.classList.toggle('hidden', step === DONE);
       barNext.disabled = false;
-      barNext.textContent = step === DETAILS ? (sentBefore ? 'Send' : 'Get quote') : 'Next';
+      barNext.textContent = step === DETAILS ? 'Submit' : 'Next';
       if (step === PICK) renderPick();
       else if (step === CONTACT) renderContact();
       else if (step === DETAILS) renderDetails();
@@ -909,14 +909,13 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       const btn = f.querySelector<HTMLButtonElement>('button[type="submit"]')!;
       // Already saving or sending (e.g. a second tap on the bottom bar): ignore.
       if (btn.disabled) return;
+      const run = f.id === 'contact-form' ? submitContact : f.id === 'details-form' ? submitDetails : null;
+      if (!run) return;
+      // Busy while it saves or sends. Switched off before starting: when their details are already saved the
+      // step changes straight away, and switching it off afterwards would leave it stuck on the next step.
       const barNext = $<HTMLButtonElement>('bar-next');
-      const job = f.id === 'contact-form' ? submitContact(btn) : f.id === 'details-form' ? submitDetails(btn) : null;
-      if (!job) return;
       barNext.disabled = true;
-      void job.finally(() => {
-        // render() resets it on a step change; this covers a failed check or send.
-        if (document.body.contains(btn)) barNext.disabled = false;
-      });
+      void run(btn).finally(() => { barNext.disabled = false; });
     });
 
     body.addEventListener('input', async (e) => {
