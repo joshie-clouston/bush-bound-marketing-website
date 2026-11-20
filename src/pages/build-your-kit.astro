@@ -46,7 +46,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       <p class="text-sand font-medium text-sm uppercase tracking-widest mb-3">Flat Pack Fit-Out Kits</p>
       <h1 class="text-2xl sm:text-5xl font-extrabold max-w-3xl">Build your wagon fit-out. Watch it come together.</h1>
       <p class="hidden sm:block text-stone-dark mt-4 max-w-2xl text-base sm:text-lg">
-        Pick your fridge and options, watch it build in 3D and see a price range. Flat packed and delivered to your door, or built and shipped to you ready to bolt in.
+        Pick your fridge and options, watch it build in 3D and see a price range. Flat packed and delivered to your door, or built and shipped to you ready to install.
       </p>
     </div>
   </section>
@@ -176,6 +176,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
     const DONE = 3;
     const STORAGE_KEY = 'bb-kit-builder-v6';
     const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const GOOGLE_KEY = (import.meta.env.PUBLIC_GOOGLE_MAPS_API_KEY as string | undefined) || '';
     // Same rule as the main quote form.
     const MOBILE_RE = /^(\+?61|0)4\d{2}\s?\d{3}\s?\d{3}$/;
     const TIMELINES = [
@@ -648,14 +649,23 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
 
           <div id="ordering-box" class="rounded-lg bg-stone-light border border-stone-dark/15 p-4">${orderingHtml()}</div>
 
-          <div class="relative">
-            <label for="loc-input" class="block text-sm font-semibold text-charcoal">Delivery address</label>
-            <p class="text-xs text-muted-foreground mt-0.5">Your suburb or postcode for now. We'll grab the full street address when you order.</p>
-            <input id="loc-input" type="text" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="loc-results" aria-autocomplete="list"
-              placeholder="Type a postcode or suburb" value="${escapeHtml(form.location ?? '')}" class="${inputCls}" />
-            <ul id="loc-results" role="listbox" class="hidden absolute z-30 left-0 right-0 mt-1 max-h-64 overflow-auto bg-white border border-stone-dark/30 rounded-md shadow-lg"></ul>
-            <p id="loc-error" class="hidden mt-1.5 text-sm text-destructive" role="alert"></p>
-          </div>
+          <fieldset class="space-y-3">
+            <legend class="text-sm font-semibold text-charcoal mb-2">Delivery address</legend>
+            <div class="relative">
+              <label for="f-street" class="block text-sm text-charcoal">Street address</label>
+              <input id="f-street" name="street" type="text" maxlength="200" autocomplete="${GOOGLE_KEY ? 'off' : 'address-line1'}"
+                ${GOOGLE_KEY ? 'role="combobox" aria-expanded="false" aria-controls="street-results" aria-autocomplete="list"' : ''}
+                placeholder="${GOOGLE_KEY ? 'Start typing your address' : 'e.g. 12 Smith Street'}" value="${escapeHtml(form.street ?? '')}" class="${inputCls}" />
+              <ul id="street-results" role="listbox" class="hidden absolute z-30 left-0 right-0 mt-1 max-h-72 overflow-auto bg-white border border-stone-dark/30 rounded-md shadow-lg"></ul>
+            </div>
+            <div class="relative">
+              <label for="loc-input" class="block text-sm text-charcoal">Suburb or postcode</label>
+              <input id="loc-input" type="text" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="loc-results" aria-autocomplete="list"
+                placeholder="Type a postcode or suburb" value="${escapeHtml(form.location ?? '')}" class="${inputCls}" />
+              <ul id="loc-results" role="listbox" class="hidden absolute z-30 left-0 right-0 mt-1 max-h-64 overflow-auto bg-white border border-stone-dark/30 rounded-md shadow-lg"></ul>
+            </div>
+            <p id="loc-error" class="hidden text-sm text-destructive" role="alert"></p>
+          </fieldset>
 
           <div>
             <p class="text-sm font-semibold text-charcoal mb-2">When do you need it?</p>
@@ -718,6 +728,79 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       input.setAttribute('aria-expanded', String(!!list.length));
     }
 
+    // Google address suggestions for the street field (Places API). Switched on by a browser key set at
+    // build time (PUBLIC_GOOGLE_MAPS_API_KEY); without one the fields are plain typed fields.
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    type PlacesLib = { AutocompleteSuggestion: any; AutocompleteSessionToken: any };
+    let placesLib: Promise<PlacesLib | null> | null = null;
+    function loadGoogle(): Promise<PlacesLib | null> {
+      if (!GOOGLE_KEY) return Promise.resolve(null);
+      placesLib ??= new Promise<PlacesLib | null>((resolve) => {
+        const w = window as any;
+        const ready = () => w.google.maps.importLibrary('places').then(resolve, () => resolve(null));
+        if (w.google?.maps?.importLibrary) return void ready();
+        w.__bbMapsReady = ready;
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(GOOGLE_KEY)}&loading=async&v=weekly&callback=__bbMapsReady`;
+        script.async = true;
+        script.onerror = () => resolve(null);
+        document.head.appendChild(script);
+      });
+      return placesLib;
+    }
+
+    let streetSuggestions: any[] = [];
+    let streetToken: any = null;
+    let streetSeq = 0;
+    function showStreet(list: any[]) {
+      streetSuggestions = list;
+      const ul = document.getElementById('street-results');
+      const input = document.getElementById('f-street');
+      if (!ul || !input) return;
+      ul.innerHTML = list.map((s, i) => `<li role="option" data-street="${i}" class="px-4 py-2.5 cursor-pointer text-sm text-charcoal hover:bg-primary/10">${escapeHtml(String(s.placePrediction.text))}</li>`).join('');
+      ul.classList.toggle('hidden', !list.length);
+      input.setAttribute('aria-expanded', String(!!list.length));
+    }
+    async function suggestStreet(text: string) {
+      const lib = await loadGoogle();
+      if (!lib) return;
+      const seq = ++streetSeq;
+      if (text.trim().length < 3) return showStreet([]);
+      streetToken ??= new lib.AutocompleteSessionToken();
+      try {
+        const { suggestions } = await lib.AutocompleteSuggestion.fetchAutocompleteSuggestions({ input: text, includedRegionCodes: ['au'], sessionToken: streetToken });
+        if (seq === streetSeq) showStreet((suggestions as any[]).filter((s) => s.placePrediction).slice(0, 6));
+      } catch {
+        showStreet([]);
+      }
+    }
+    /** Fill the street, suburb, state and postcode from the address they picked. */
+    async function pickStreet(i: number) {
+      const prediction = streetSuggestions[i]?.placePrediction;
+      showStreet([]);
+      if (!prediction) return;
+      try {
+        const place = prediction.toPlace();
+        await place.fetchFields({ fields: ['addressComponents'] });
+        streetToken = null;
+        const part = (type: string, short = false) => {
+          const c = (place.addressComponents as any[] | undefined)?.find((x) => x.types.includes(type));
+          return c ? String(short ? c.shortText : c.longText) : '';
+        };
+        const unit = part('subpremise');
+        const number = part('street_number');
+        const street = [unit && number ? `${unit}/${number}` : number, part('route')].filter(Boolean).join(' ') || String(prediction.mainText ?? prediction.text);
+        form.street = street;
+        $<HTMLInputElement>('f-street').value = street;
+        const suburb = part('locality') || part('sublocality') || part('postal_town');
+        const state = part('administrative_area_level_1', true).toUpperCase();
+        const postcode = part('postal_code');
+        if (suburb && state && /^\d{4}$/.test(postcode)) pickPlace({ suburb, state, postcode });
+      } catch { /* they can still type it in */ }
+      save();
+    }
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+
     function pickPlace(p: Place) {
       form.suburb = p.suburb;
       form.state = p.state;
@@ -732,6 +815,9 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
     async function submitDetails(btn: HTMLButtonElement) {
       $('details-error').classList.add('hidden');
       $('loc-error').classList.add('hidden');
+      if ((form.street ?? '').trim().length < 3) {
+        return showError('loc-error', 'Pop in the street address we should deliver to.', 'f-street');
+      }
       if (!form.postcode || !form.suburb || !form.state) {
         return showError('loc-error', 'Start typing your postcode or suburb, then pick it from the list.', 'loc-input');
       }
@@ -739,7 +825,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
       btn.textContent = 'Sending...';
       const contact = {
         name: form.name, email: form.email, phone: form.phone,
-        suburb: form.suburb, state: form.state, postcode: form.postcode,
+        address: (form.street ?? '').trim(), suburb: form.suburb, state: form.state, postcode: form.postcode,
         timeline: form.timeline ?? '', budget: form.budget ?? '', referral: form.referral ?? '', notes: form.notes ?? '',
       };
       try {
@@ -814,9 +900,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
           <ul class="space-y-1.5 text-sm text-muted-foreground">${rec.includes.map((i) => `<li class="flex gap-2"><span class="text-primary">&#10003;</span>${escapeHtml(i)}</li>`).join('')}</ul>
         </div>
 
-        <button type="button" id="change-btn" class="mt-6 w-full min-h-[48px] bg-primary text-primary-foreground font-semibold rounded-md hover:bg-primary-light transition-colors">Change my build</button>
-        <p class="mt-1.5 text-center text-xs text-muted-foreground">Change anything and send it again. We'll update your request.</p>
-        <button type="button" id="another-btn" class="mt-3 w-full min-h-[48px] border-2 border-primary text-primary font-semibold rounded-md hover:bg-primary/5 transition-colors">Start another build</button>
+        <button type="button" id="another-btn" class="mt-6 w-full min-h-[48px] bg-primary text-primary-foreground font-semibold rounded-md hover:bg-primary-light transition-colors">Start another build</button>
       `;
     }
 
@@ -839,7 +923,6 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
         return;
       }
       if (target.closest('#another-btn')) return startOver();
-      if (target.closest('#change-btn')) return goTo(PICK);
 
       const supply = target.closest<HTMLButtonElement>('[data-supply]');
       if (supply) {
@@ -943,6 +1026,12 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
         }
         return;
       }
+      if (t.id === 'f-street') {
+        form.street = t.value;
+        save();
+        void suggestStreet(t.value);
+        return;
+      }
       if (t.name && t.name !== 'vehicle') {
         form[t.name] = t.value;
         save();
@@ -970,6 +1059,15 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
     });
 
     body.addEventListener('keydown', (e) => {
+      if ((e.target as HTMLElement).id === 'f-street' && streetSuggestions.length) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          void pickStreet(0);
+        } else if (e.key === 'Escape') {
+          showStreet([]);
+        }
+        return;
+      }
       if ((e.target as HTMLElement).id !== 'loc-input') return;
       const items = document.querySelectorAll<HTMLElement>('#loc-results li');
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -991,6 +1089,12 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
 
     // mousedown so the pick lands before the input loses focus.
     body.addEventListener('mousedown', (e) => {
+      const streetLi = (e.target as HTMLElement).closest<HTMLElement>('[data-street]');
+      if (streetLi) {
+        e.preventDefault();
+        void pickStreet(Number(streetLi.dataset.street));
+        return;
+      }
       const li = (e.target as HTMLElement).closest<HTMLElement>('[data-place]');
       if (!li) return;
       e.preventDefault();
@@ -998,6 +1102,7 @@ const viewerBtn = 'min-h-[44px] bg-black/35 hover:bg-black/50 backdrop-blur text
     });
 
     document.addEventListener('click', (e) => {
+      if (!(e.target as HTMLElement).closest('#f-street, #street-results') && streetSuggestions.length) showStreet([]);
       if (!(e.target as HTMLElement).closest('#loc-input, #loc-results')) {
         if (document.getElementById('loc-results') && !document.getElementById('loc-results')!.classList.contains('hidden')) showMatches([]);
       }

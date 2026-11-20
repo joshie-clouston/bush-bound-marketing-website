@@ -241,7 +241,7 @@ export const BASE_KIT = {
 /** Flat pack form: flat packed, or built and shipped. (Workshop installs go through Get a Quote.) */
 export const BUILD_OPTIONS: { value: 'diy' | 'assembled'; label: string; sub: string }[] = [
   { value: 'diy', label: 'Flat pack, delivered to me', sub: 'I\'ll build and install it myself' },
-  { value: 'assembled', label: 'Build it, then ship it to me', sub: 'Arrives built, ready for me to bolt in' },
+  { value: 'assembled', label: 'Build it, then ship it to me', sub: 'Arrives built, ready for me to install' },
 ];
 
 /** Rough ordering timeframes shown to customers (confirmed per order). */
@@ -254,7 +254,7 @@ export const ORDERING = {
 
 export const BUILD_LABELS: Record<string, string> = {
   diy: 'DIY flat pack: I\'ll build and install it',
-  assembled: 'Built and shipped to me, I\'ll bolt it in',
+  assembled: 'Built and shipped to me, I\'ll install it',
   installed: 'Built and installed for me',
 };
 

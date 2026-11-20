@@ -35,6 +35,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const phone = clean(contact.phone, 40);
     const postcode = clean(contact.postcode, 4);
     const suburb = clean(contact.suburb, 80);
+    // Street part of the delivery address (no D1 column for it yet, so it rides in the summary and Notion location).
+    const street = clean(contact.address, 200);
     const state = clean(contact.state, 3).toUpperCase();
     const timeline = TIMELINES.has(clean(contact.timeline)) ? clean(contact.timeline) : '';
     const budget = BUDGETS.has(clean(contact.budget)) ? clean(contact.budget) : '';
@@ -56,7 +58,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const rec = recommend(answers);
     const quote = priceKit(answers);
     const bracket = priceBracket(answers);
-    const summary = `${summaryText(answers, rec)}\nBracket shown to customer: ${bracket}`;
+    const deliveryAddress = [street, [suburb, state, postcode].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+    const summary = `${summaryText(answers, rec)}\nDelivery address: ${deliveryAddress || '-'}\nBracket shown to customer: ${bracket}`;
     const vehicleLabel = answers.vehicle === 'other' ? answers.vehicleName || 'Other vehicle' : rec.vehicle.label;
 
     // The intro screen already saved this person as a lead (/api/kit-lead). Update that row and its
@@ -112,7 +115,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
         vehicle: vehicleLabel,
         type: 'Flatpack Kit' as const,
         wishlist: summary,
-        suburb,
+        // Notion's Location reads "street, suburb STATE postcode".
+        suburb: street ? `${street}, ${suburb}` : suburb,
         state,
         postcode,
         timeline,
@@ -154,8 +158,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
               ['Name', escapeHtml(name)],
               ['Phone', escapeHtml(phone || 'Not provided')],
               ['Email', escapeHtml(email)],
-              ['Location', escapeHtml([suburb, state, postcode].filter(Boolean).join(' ') || 'Not provided')],
-              ['How they want it', escapeHtml(answers.build ? ({ diy: 'Flat pack, delivered (DIY)', assembled: 'Built and shipped (they bolt it in)', installed: 'Built and installed by us' } as Record<string, string>)[answers.build] : 'Not specified')],
+              ['Delivery address', escapeHtml(deliveryAddress || 'Not provided')],
+              ['How they want it', escapeHtml(answers.build ? ({ diy: 'Flat pack, delivered (DIY)', assembled: 'Built and shipped (they install it)', installed: 'Built and installed by us' } as Record<string, string>)[answers.build] : 'Not specified')],
               ['Timeline', escapeHtml(timeline || 'Not specified')],
               ['Budget', escapeHtml(budget || 'Not specified')],
               ['Heard about us via', escapeHtml(referral || 'Not specified')],
